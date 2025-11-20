@@ -1,0 +1,238 @@
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../controller/app_button.dart';
+import '../../controller/app_color.dart';
+import '../../controller/app_config_provider.dart';
+import '../../controller/app_constant.dart';
+import '../../controller/app_font.dart';
+import '../../controller/app_header.dart';
+import '../../controller/app_language.dart';
+import '../../controller/app_loader.dart';
+import '../../controller/app_snack_bar_toast_message.dart';
+import 'login_screen.dart';
+import 'dart:ui' as ui;
+
+class DeleteAccount extends StatefulWidget {
+  static String routeName = "./DeleteAccount";
+  const DeleteAccount({super.key});
+
+  @override
+  State<DeleteAccount> createState() => _DeleteAccountState();
+}
+
+class _DeleteAccountState extends State<DeleteAccount> {
+  TextEditingController deleteTextEditingController = TextEditingController();
+  int fillColorStatus = 0;
+  int userId = 0;
+  bool isApiCalling = false;
+  dynamic userDetails;
+
+  @override
+  void initState() {
+    super.initState();
+    getDetails();
+  }
+
+//-----------------------------GET DETAILS---------------------------//
+  Future<dynamic> getDetails() async {
+    final prefs = await SharedPreferences.getInstance();
+    userDetails = prefs.getString("userDetails");
+
+    print("userDetails $userDetails");
+    if (userDetails != null) {
+      dynamic data = json.decode(userDetails);
+      print("up $data");
+      userId = data['user_id']; //Retrieve userId from local storage
+      print('userId- $userId');
+      setState(() {});
+    }
+  }
+
+  //-----------------------------------REASON VALIDATION---------------------------//
+  reasonValidation(String reason) {
+    if (reason.isEmpty) {
+      SnackBarToastMessage.showSnackBar(
+          context, AppLanguage.reasonMsg[language]);
+      return false;
+    } else {
+      deleteAccountApiCall(reason);
+    }
+  }
+
+//---------------------------------DELETE ACCOUNT API CALL---------------------------//
+  deleteAccountApiCall(String reason) async {
+    Uri url = Uri.parse("${AppConfigProvider.apiUrl}delete_user_account");
+    print("Url $url");
+    setState(() {
+      isApiCalling = true;
+    });
+    String token = AppConstant.token;
+    try {
+      var headers = {
+        'Authorization': 'Bearer $token',
+      };
+
+      var body = {
+        'user_id': userId.toString(),
+        'reason': reason,
+      };
+
+      print("body $body");
+
+      http.Response response = await http.post(
+        url,
+        headers: headers,
+        body: body,
+      );
+      print("response--> $response");
+      var res = jsonDecode(response.body);
+
+      print("res333 : $res");
+
+      if (response.statusCode == 200) {
+        final res = json.decode(response.body);
+        setState(() {
+          isApiCalling = false;
+        });
+        if (res['success'] == true) {
+          print('Account Deleted');
+          SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
+          final prefs = await SharedPreferences.getInstance();
+          print("prefs =================>$prefs");
+
+          prefs.remove('userDetails');
+          prefs.remove("password");
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const Login()),
+          );
+        } else {
+          SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
+          if (res['active_status'] == 0) {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const Login()));
+          }
+        }
+      } else {
+        setState(() {
+          isApiCalling = false;
+        });
+
+        throw Exception('Album loading failed!');
+      }
+    } catch (e) {
+      setState(() {
+        isApiCalling = false;
+      });
+
+      print("Call Update Api");
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ProgressHUD(
+        inAsyncCall: isApiCalling,
+        opacity: 0.5,
+        child: _buildUIScreen(context));
+  }
+
+  Widget _buildUIScreen(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+        statusBarColor: AppColor.secondaryColor,
+        statusBarIconBrightness: Brightness.dark));
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        backgroundColor: AppColor.secondaryColor,
+        body: SafeArea(
+          child: Directionality(
+            textDirection:
+                language == 1 ? ui.TextDirection.rtl : ui.TextDirection.ltr,
+            child: Container(
+              height: MediaQuery.of(context).size.height * 100 / 100,
+              width: MediaQuery.of(context).size.width * 100 / 100,
+              color: AppColor.secondaryColor,
+              child: Column(
+                children: [
+                  const NoInternetBanner(),
+                  AppHeader(
+                      text: AppLanguage.deleteAccountText[language],
+                      onPress: () {
+                        Navigator.pop(context);
+                      }),
+                  SizedBox(
+                      height: MediaQuery.of(context).size.height * 3 / 100),
+                  Container(
+                    width: MediaQuery.of(context).size.width * 90 / 100,
+                    child: Text(AppLanguage.deleteReasonText[language],
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w400,
+                          fontFamily: AppFont.fontFamily,
+                          color: AppColor.primaryColor,
+                          fontSize: 12,
+                        )),
+                  ),
+
+                  SizedBox(
+                      height: MediaQuery.of(context).size.height * 3 / 100),
+                  //----------- Message Input -------------
+                  Container(
+                    width: MediaQuery.of(context).size.width * 90 / 100,
+                    child: TextFormField(
+                      style: TextStyle(height: 1, color: AppColor.textColor),
+                      keyboardType: TextInputType.multiline,
+                      controller: deleteTextEditingController,
+                      maxLines: 7,
+                      maxLength: AppConstant.describeLength,
+                      decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: AppColor.textinputBorderColor,
+                            ),
+                            borderRadius: BorderRadius.all(Radius.circular(11)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: AppColor.textinputBorderColor,
+                            ),
+                            borderRadius: BorderRadius.all(Radius.circular(11)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: AppColor.textinputBorderColor,
+                            ),
+                            borderRadius: BorderRadius.all(Radius.circular(11)),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              vertical: 18, horizontal: 15),
+                          fillColor: AppColor.secondaryColor,
+                          filled: true,
+                          counterText: '',
+                          hintText: AppLanguage.reasonText[language],
+                          hintStyle: AppConstant.textFilledStyle),
+                    ),
+                  ),
+
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 4 / 100,
+                  ),
+                  AppButton(
+                    text: AppLanguage.submitButtonText[language],
+                    onPress: () {
+                      reasonValidation(deleteTextEditingController.text);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
