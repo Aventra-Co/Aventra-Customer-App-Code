@@ -67,7 +67,7 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
   dynamic userDetails;
   dynamic tripDetails = {};
 
-//--------------------GET USER DETAILS-----------------------//
+//!--------------------GET USER DETAILS-----------------------//
   Future<dynamic> getUserDetails() async {
     final prefs = await SharedPreferences.getInstance();
     userDetails = prefs.getString("userDetails");
@@ -592,7 +592,6 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
                                           ),
                                         ),
                                       )
-                                  
                                     ],
                                   ),
                                 )

@@ -312,7 +312,7 @@ class AppLanguage {
   static const sorttext = ["Sort", "ترتيب"];
   static const memberstext = ["Members", "الأعضاء"];
   static const hourtext = ["Hour", "ساعة"];
-  static const kwdtext = ["KWD/", "KWD/"];
+  static const kwdtext = ["KWD", "KWD"];
 
   //================bookings==================
   static const bookingsText = ["Bookings", "الحجوزات"];
@@ -345,7 +345,7 @@ class AppLanguage {
   //==================details=================
   static const detailsText = ["Details", "تفاصيل"];
   static const reviewsText = ["Reviews", "مراجعات"];
-  static const pricehrText = ["Price/Hr", "السعر/ساعة"];
+  static const pricehrText = ["Price", "السعر"];
   static const descriptionsText = ["Description", "الوصف"];
   static const cancellationPolicyText = [
     "Cancellation policy",

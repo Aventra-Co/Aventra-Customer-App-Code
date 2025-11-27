@@ -60,6 +60,7 @@ class PrivateAddOnsState extends State<PrivateAddOns> {
   dynamic tripDetails = {};
   int mainIndex = 0;
   String grandTotal = "0";
+    List<String> selectedTimesShow = <String>[];
 
 //--------------------GET USER DETAILS-----------------------//
   Future<dynamic> getUserDetails() async {
@@ -76,9 +77,11 @@ class PrivateAddOnsState extends State<PrivateAddOns> {
       userId = data['user_id'];
       tripDetails = widget.tripDetails;
       addOnsList = widget.tripDetails['selected_addons'];
+       selectedTimesShow = widget.allTimeSlots.isNotEmpty
+          ? widget.allTimeSlots.split(", ").map((e) => e).toList()
+          : [];
       grandTotal = (double.parse(tripDetails['price_per_hour']) *
-              tripDetails['minimum_hours'])
-          .toStringAsFixed(1);
+              selectedTimesShow.length).toStringAsFixed(2);
       resetQuantity();
       // getGrandTotal();
     }

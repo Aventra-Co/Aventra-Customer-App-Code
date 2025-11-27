@@ -319,17 +319,19 @@ class _PublicBookingDetailsState extends State<PublicBookingDetails> {
       }
     }
     if (discount > 0) {
-      totalHoursPrice =
-          ((tripDetails['minimum_hours'] * selectedTimesShow.length) *
-              double.parse(tripDetails['price_per_hour']));
+      totalHoursPrice = selectedTimesShow.length *
+          double.parse(tripDetails['price_per_hour']);
+      // ((tripDetails['minimum_hours'] * selectedTimesShow.length) *
+      //     double.parse(tripDetails['price_per_hour']));
       totalHoursPrice =
           (totalHoursPrice - (totalHoursPrice * (discount / 100)));
       // totalHoursPrice = totalHoursPrice.roundToDouble();
       log("totalHoursPrice$totalHoursPrice");
     } else {
-      totalHoursPrice =
-          ((tripDetails['minimum_hours'] * selectedTimesShow.length) *
-              double.parse(tripDetails['price_per_hour']));
+      totalHoursPrice = selectedTimesShow.length *
+          double.parse(tripDetails['price_per_hour']);
+      // ((tripDetails['minimum_hours'] * selectedTimesShow.length) *
+      //     double.parse(tripDetails['price_per_hour']));
       // totalHoursPrice = totalHoursPrice.roundToDouble();
       log("totalHoursPrice$totalHoursPrice");
     }
@@ -345,9 +347,10 @@ class _PublicBookingDetailsState extends State<PublicBookingDetails> {
   couponApplied() {
     if (isCouponDiscount) {
       setState(() {
-        totalHoursPrice =
-            ((tripDetails['minimum_hours'] * selectedTimesShow.length) *
-                double.parse(tripDetails['price_per_hour']));
+        totalHoursPrice = selectedTimesShow.length *
+            double.parse(tripDetails['price_per_hour']);
+        // ((tripDetails['minimum_hours'] * selectedTimesShow.length) *
+        //     double.parse(tripDetails['price_per_hour']));
         log("totalHoursPrice351 $totalHoursPrice");
         totalHoursPrice =
             (totalHoursPrice - (totalHoursPrice * (couponDiscount / 100)));
@@ -1361,7 +1364,7 @@ class _PublicBookingDetailsState extends State<PublicBookingDetails> {
                                               fontFamily: AppFont.fontFamily),
                                         ),
                                         Text(
-                                          "${AppLanguage.priceText[language]}${tripDetails['price_per_hour']} KWD/Hr",
+                                          "${AppLanguage.priceText[language]}${tripDetails['price_per_hour']} KWD",
                                           style: const TextStyle(
                                               color: AppColor.themeColor,
                                               fontSize: 10,

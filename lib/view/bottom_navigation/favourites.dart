@@ -480,28 +480,28 @@ class _FavouritesState extends State<Favourites> {
                                                                           AppFont
                                                                               .fontFamily),
                                                                 ),
-                                                                Container(
-                                                                  margin:
-                                                                      const EdgeInsets
-                                                                          .only(
-                                                                          top:
-                                                                              4),
-                                                                  child: Text(
-                                                                    AppLanguage
-                                                                            .hourtext[
-                                                                        language],
-                                                                    style: const TextStyle(
-                                                                        color: AppColor
-                                                                            .secondaryColor,
-                                                                        fontSize:
-                                                                            12,
-                                                                        fontWeight:
-                                                                            FontWeight
-                                                                                .w600,
-                                                                        fontFamily:
-                                                                            AppFont.fontFamily),
-                                                                  ),
-                                                                ),
+                                                                // Container(
+                                                                //   margin:
+                                                                //       const EdgeInsets
+                                                                //           .only(
+                                                                //           top:
+                                                                //               4),
+                                                                //   child: Text(
+                                                                //     AppLanguage
+                                                                //             .hourtext[
+                                                                //         language],
+                                                                //     style: const TextStyle(
+                                                                //         color: AppColor
+                                                                //             .secondaryColor,
+                                                                //         fontSize:
+                                                                //             12,
+                                                                //         fontWeight:
+                                                                //             FontWeight
+                                                                //                 .w600,
+                                                                //         fontFamily:
+                                                                //             AppFont.fontFamily),
+                                                                //   ),
+                                                                // ),
                                                               ],
                                                             ),
                                                           ),
@@ -1288,25 +1288,25 @@ class _FavouritesState extends State<Favourites> {
                                                                           fontFamily:
                                                                               AppFont.fontFamily),
                                                                     ),
-                                                                    Container(
-                                                                      margin: const EdgeInsets
-                                                                          .only(
-                                                                          top:
-                                                                              4),
-                                                                      child:
-                                                                          Text(
-                                                                        AppLanguage
-                                                                            .hourtext[language],
-                                                                        style: const TextStyle(
-                                                                            color: AppColor
-                                                                                .secondaryColor,
-                                                                            fontSize:
-                                                                                11,
-                                                                            fontWeight:
-                                                                                FontWeight.w600,
-                                                                            fontFamily: AppFont.fontFamily),
-                                                                      ),
-                                                                    ),
+                                                                    // Container(
+                                                                    //   margin: const EdgeInsets
+                                                                    //       .only(
+                                                                    //       top:
+                                                                    //           4),
+                                                                    //   child:
+                                                                    //       Text(
+                                                                    //     AppLanguage
+                                                                    //         .hourtext[language],
+                                                                    //     style: const TextStyle(
+                                                                    //         color: AppColor
+                                                                    //             .secondaryColor,
+                                                                    //         fontSize:
+                                                                    //             11,
+                                                                    //         fontWeight:
+                                                                    //             FontWeight.w600,
+                                                                    //         fontFamily: AppFont.fontFamily),
+                                                                    //   ),
+                                                                    // ),
                                                                   ],
                                                                 ),
                                                               )

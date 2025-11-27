@@ -319,17 +319,19 @@ class PrivateBookingDetailsState extends State<PrivateBookingDetails> {
       }
     }
     if (discount > 0) {
-      totalHoursPrice =
-          ((tripDetails['minimum_hours'] * selectedTimesShow.length) *
-              double.parse(tripDetails['price_per_hour']));
+      totalHoursPrice = selectedTimesShow.length *
+          double.parse(tripDetails['price_per_hour']);
+      // ((tripDetails['minimum_hours'] * selectedTimesShow.length) *
+      //     double.parse(tripDetails['price_per_hour']));
       totalHoursPrice =
           (totalHoursPrice - (totalHoursPrice * (discount / 100)));
       // totalHoursPrice = totalHoursPrice.roundToDouble();
       log("totalHoursPrice328$totalHoursPrice");
     } else {
-      totalHoursPrice =
-          ((tripDetails['minimum_hours'] * selectedTimesShow.length) *
-              double.parse(tripDetails['price_per_hour']));
+      totalHoursPrice = selectedTimesShow.length *
+          double.parse(tripDetails['price_per_hour']);
+      // ((tripDetails['minimum_hours'] * selectedTimesShow.length) *
+      //     double.parse(tripDetails['price_per_hour']));
       log("totalHoursPrice$totalHoursPrice");
     }
     greatGrandTotal = finalAddonsPrice + totalHoursPrice;
@@ -1360,7 +1362,7 @@ class PrivateBookingDetailsState extends State<PrivateBookingDetails> {
                                               fontFamily: AppFont.fontFamily),
                                         ),
                                         Text(
-                                          "${AppLanguage.priceText[language]}${tripDetails['price_per_hour']} KWD/Hr",
+                                          "${AppLanguage.priceText[language]}${tripDetails['price_per_hour']} KWD",
                                           style: const TextStyle(
                                               color: AppColor.themeColor,
                                               fontSize: 10,

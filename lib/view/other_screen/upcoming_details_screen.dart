@@ -1283,7 +1283,7 @@ class _UpComingDetailsScreenState extends State<UpComingDetailsScreen> {
                                               ? Alignment.centerLeft
                                               : Alignment.centerRight,
                                           child: Text(
-                                            "${tripDetails['price_per_hour'] * (tripDetails['hours'] * totalSlotsCount)} KWD",
+                                            "${tripDetails['price_per_hour'] * totalSlotsCount} KWD",
                                             style: const TextStyle(
                                                 fontFamily: AppFont.fontFamily,
                                                 fontSize: 16,
@@ -1299,7 +1299,7 @@ class _UpComingDetailsScreenState extends State<UpComingDetailsScreen> {
                                         85 /
                                         100,
                                     child: Text(
-                                      "${AppLanguage.priceText[language]}${tripDetails['price_per_hour']}KWD/Hr",
+                                      "${AppLanguage.priceText[language]}${tripDetails['price_per_hour']}KWD",
                                       style: const TextStyle(
                                           fontFamily: AppFont.fontFamily,
                                           fontSize: 10,
