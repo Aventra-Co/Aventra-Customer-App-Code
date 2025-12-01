@@ -6,6 +6,7 @@ import 'controller/app_connectivity.dart';
 import 'controller/app_constant.dart';
 import 'controller/app_font.dart';
 import 'controller/one_signal_service.dart';
+import 'controller/route_observer.dart';
 import 'controller/routes.dart';
 import 'view/other_screen/splash_screen.dart';
 import 'package:provider/provider.dart';
@@ -72,6 +73,7 @@ class MyApp extends StatelessWidget {
             create: (_) => ConnectionProvider()..initialize()),
       ],
       child: MaterialApp(
+        navigatorObservers: [routeObserver],
         title: 'Aventra',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(

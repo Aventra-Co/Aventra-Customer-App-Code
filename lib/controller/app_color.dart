@@ -8,7 +8,7 @@ class AppColor {
   static const Color primaryColor = Colors.black;
   static const Color blueColor = Color(0xff228FD8);
   static const Color white = Colors.white;
-    static const Color black = Colors.black;
+  static const Color black = Colors.black;
   static const Color secondaryThemeColor = Color(0xffECF6D3);
 
   static const Color themeLightColor = Color(0xffFF321E);
@@ -37,9 +37,9 @@ class AppColor {
   static const Color profilebackgorundColor = Color(0xffF1F8F8);
   static const Color lightBlackColor = Color(0xff363939);
   static const Color grayColor = Color(0xff989898);
-static const Color lightGray1 = Color(0xffB0B0B0); // slightly lighter
-static const Color lightGray2 = Color(0xffC0C0C0); // moderately lighter
-static const Color lightGray3 = Color(0xffD0D0D0); // very light gray
+  static const Color lightGray1 = Color(0xffB0B0B0); // slightly lighter
+  static const Color lightGray2 = Color(0xffC0C0C0); // moderately lighter
+  static const Color lightGray3 = Color(0xffD0D0D0); // very light gray
   static const Color creamColor = Color(0xffEFEFEF);
   static const Color yellowColor = Color(0xffF8C63D);
   static const Color darkBlueColor = Color(0xff096B9B);
@@ -52,7 +52,7 @@ static const Color lightGray3 = Color(0xffD0D0D0); // very light gray
   static const Color greenColor = Color(0xff009640);
   static const Color boxshadowColor = Color(0xffE8E8E8);
   static const Color green = Color(0xff06AA29);
-    static const Color chatBubbaleColor = Color(0xff918F8F);
-      static const Color textLightColor = Color(0xffBEC3C7);
-        static const Color background = Color(0xfff6f4f1);
+  static const Color chatBubbaleColor = Color(0xff918F8F);
+  static const Color textLightColor = Color(0xffBEC3C7);
+  static const Color background = Color(0xfff6f4f1);
 }

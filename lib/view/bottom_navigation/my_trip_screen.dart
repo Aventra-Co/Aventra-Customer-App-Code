@@ -412,7 +412,7 @@ class _MyTripState extends State<MyTrip> {
                                                             100,
                                                     padding: const EdgeInsets
                                                         .symmetric(
-                                                        vertical: 8,
+                                                        vertical: 18,
                                                         horizontal: 3),
                                                     decoration: BoxDecoration(
                                                         color:
@@ -527,81 +527,64 @@ class _MyTripState extends State<MyTrip> {
                                                                             AppFont.fontFamily),
                                                                   ),
                                                                 ),
-                                                                Row(
-                                                                  children: [
-                                                                    SizedBox(
-                                                                      width: MediaQuery.of(context)
-                                                                              .size
-                                                                              .width *
-                                                                          53 /
-                                                                          100,
-                                                                      child:
-                                                                          Text(
-                                                                        bookings[index]['destination_english']
+                                                                SizedBox(
+                                                                  width: MediaQuery.of(
+                                                                              context)
+                                                                          .size
+                                                                          .width *
+                                                                      53 /
+                                                                      100,
+                                                                  child: Text(
+                                                                    bookings[index]
                                                                             [
-                                                                            language],
-                                                                        maxLines:
-                                                                            1,
-                                                                        overflow:
-                                                                            TextOverflow.ellipsis,
-                                                                        style: const TextStyle(
-                                                                            color: AppColor
-                                                                                .grayColor,
-                                                                            fontSize:
-                                                                                14,
-                                                                            fontWeight:
-                                                                                FontWeight.w500,
-                                                                            fontFamily: AppFont.fontFamily),
-                                                                      ),
-                                                                    ),
-                                                                    // SizedBox(
-                                                                    //     width: MediaQuery.of(
-                                                                    //                 context)
-                                                                    //             .size
-                                                                    //             .width *
-                                                                    //         1 /
-                                                                    //         100),
-                                                                    // Container(
-                                                                    //     width: MediaQuery.of(
-                                                                    //                 context)
-                                                                    //             .size
-                                                                    //             .width *
-                                                                    //         1 /
-                                                                    //         100,
-                                                                    //     height: MediaQuery.of(
-                                                                    //                 context)
-                                                                    //             .size
-                                                                    //             .width *
-                                                                    //         1 /
-                                                                    //         100,
-                                                                    //     decoration: BoxDecoration(
-                                                                    //         color: AppColor
-                                                                    //             .grayColor
-                                                                    //             .withOpacity(
-                                                                    //                 0.9),
-                                                                    //         shape: BoxShape
-                                                                    //             .circle)),
-                                                                    // SizedBox(
-                                                                    //     width: MediaQuery.of(
-                                                                    //                 context)
-                                                                    //             .size
-                                                                    //             .width *
-                                                                    //         1 /
-                                                                    //         100),
-                                                                    // Text(
-                                                                    //   bookings[index]
-                                                                    //       ['title2'],
-                                                                    //   style: TextStyle(
-                                                                    //       color: AppColor
-                                                                    //           .grayColor,
-                                                                    //       fontSize: 14,
-                                                                    //       fontWeight:
-                                                                    //           FontWeight
-                                                                    //               .w500,
-                                                                    //       fontFamily: AppFont
-                                                                    //           .fontFamily),
-                                                                    // ),
-                                                                  ],
+                                                                            'destination_english']
+                                                                        [
+                                                                        language],
+                                                                    maxLines: 1,
+                                                                    overflow:
+                                                                        TextOverflow
+                                                                            .ellipsis,
+                                                                    style: const TextStyle(
+                                                                        color: AppColor
+                                                                            .grayColor,
+                                                                        fontSize:
+                                                                            14,
+                                                                        fontWeight:
+                                                                            FontWeight
+                                                                                .w500,
+                                                                        fontFamily:
+                                                                            AppFont.fontFamily),
+                                                                  ),
+                                                                ),
+                                                                SizedBox(
+                                                                  width: MediaQuery.of(
+                                                                              context)
+                                                                          .size
+                                                                          .width *
+                                                                      53 /
+                                                                      100,
+                                                                  child: Text(
+                                                                    bookings[index]['advertisement_type'] ==
+                                                                            0
+                                                                        ? AppLanguage.privateText[
+                                                                            language]
+                                                                        : AppLanguage
+                                                                            .publicText[language],
+                                                                    maxLines: 1,
+                                                                    overflow:
+                                                                        TextOverflow
+                                                                            .ellipsis,
+                                                                    style: const TextStyle(
+                                                                        color: AppColor
+                                                                            .grayColor,
+                                                                        fontSize:
+                                                                            14,
+                                                                        fontWeight:
+                                                                            FontWeight
+                                                                                .w500,
+                                                                        fontFamily:
+                                                                            AppFont.fontFamily),
+                                                                  ),
                                                                 ),
                                                               ],
                                                             ),

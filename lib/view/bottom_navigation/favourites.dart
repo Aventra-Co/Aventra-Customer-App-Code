@@ -413,18 +413,25 @@ class _FavouritesState extends State<Favourites> {
                                                       100,
                                                   decoration: BoxDecoration(
                                                       image: DecorationImage(
-                                                          image: favoriteList[
-                                                                          index]
-                                                                      [
-                                                                      'trip_image'] !=
-                                                                  null
-                                                              ? NetworkImage(
-                                                                  '${AppConfigProvider.imageURL}${favoriteList[index]['trip_image']}')
-                                                              : const AssetImage(
-                                                                      AppImage
-                                                                          .imageFrameImage)
-                                                                  as ImageProvider,
-                                                          fit: BoxFit.cover),
+                                                        image: favoriteList[
+                                                                        index][
+                                                                    'trip_image'] !=
+                                                                null
+                                                            ? NetworkImage(
+                                                                '${AppConfigProvider.imageURL}${favoriteList[index]['trip_image']}')
+                                                            : const AssetImage(
+                                                                    AppImage
+                                                                        .imageFrameImage)
+                                                                as ImageProvider,
+                                                        fit: BoxFit.cover,
+                                                        colorFilter:
+                                                            ColorFilter.mode(
+                                                          Colors.black.withOpacity(
+                                                              0.2), // Adjust the opacity
+                                                          BlendMode
+                                                              .darken, // You can change the BlendMode if needed
+                                                        ),
+                                                      ),
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                               20)),
@@ -547,7 +554,7 @@ class _FavouritesState extends State<Favourites> {
                                                               children: [
                                                                 Text(
                                                                   AppLanguage
-                                                                          .pickupText[
+                                                                          .cityNameInputText[
                                                                       language],
                                                                   style: const TextStyle(
                                                                       color: AppColor
@@ -600,11 +607,84 @@ class _FavouritesState extends State<Favourites> {
                                                                       28 /
                                                                       100,
                                                                   child: Text(
-                                                                    favoriteList[index]
-                                                                            [
-                                                                            'destination_english']
-                                                                        [
-                                                                        language],
+                                                                    "${favoriteList[index]['city_name'][language] ?? ""}",
+                                                                    style: const TextStyle(
+                                                                        color: AppColor
+                                                                            .secondaryColor,
+                                                                        fontSize:
+                                                                            10,
+                                                                        fontWeight:
+                                                                            FontWeight
+                                                                                .w500,
+                                                                        fontFamily:
+                                                                            AppFont.fontFamily),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            Row(
+                                                              children: [
+                                                                Text(
+                                                                  AppLanguage
+                                                                          .tripTypeText[
+                                                                      language],
+                                                                  style: const TextStyle(
+                                                                      color: AppColor
+                                                                          .secondaryColor,
+                                                                      fontSize:
+                                                                          10,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w500,
+                                                                      fontFamily:
+                                                                          AppFont
+                                                                              .fontFamily),
+                                                                ),
+                                                                SizedBox(
+                                                                    width: MediaQuery.of(context)
+                                                                            .size
+                                                                            .width *
+                                                                        1 /
+                                                                        100),
+                                                                Container(
+                                                                  width: MediaQuery.of(
+                                                                              context)
+                                                                          .size
+                                                                          .width *
+                                                                      1 /
+                                                                      100,
+                                                                  height: MediaQuery.of(
+                                                                              context)
+                                                                          .size
+                                                                          .width *
+                                                                      1 /
+                                                                      100,
+                                                                  decoration: const BoxDecoration(
+                                                                      color: AppColor
+                                                                          .secondaryColor,
+                                                                      shape: BoxShape
+                                                                          .circle),
+                                                                ),
+                                                                SizedBox(
+                                                                    width: MediaQuery.of(context)
+                                                                            .size
+                                                                            .width *
+                                                                        1 /
+                                                                        100),
+                                                                SizedBox(
+                                                                  width: MediaQuery.of(
+                                                                              context)
+                                                                          .size
+                                                                          .width *
+                                                                      28 /
+                                                                      100,
+                                                                  child: Text(
+                                                                    favoriteList[index]['advertisement_type'] ==
+                                                                            0
+                                                                        ? AppLanguage.privateText[
+                                                                            language]
+                                                                        : AppLanguage
+                                                                            .publicText[language],
                                                                     style: const TextStyle(
                                                                         color: AppColor
                                                                             .secondaryColor,
@@ -671,7 +751,9 @@ class _FavouritesState extends State<Favourites> {
                                                                                 1 /
                                                                                 100),
                                                                         Text(
-                                                                          favoriteList[index]['total_rating'],
+                                                                          favoriteList[index]
+                                                                              [
+                                                                              'total_rating'],
                                                                           style: const TextStyle(
                                                                               color: AppColor.secondaryColor,
                                                                               fontSize: 8,
@@ -854,469 +936,591 @@ class _FavouritesState extends State<Favourites> {
                                             runSpacing: 15.0,
                                             children: List.generate(
                                                 favoriteList.length, (index) {
-                                              return GestureDetector(
-                                                onTap: () {
-                                                  if (favoriteList[index][
-                                                          'advertisement_type'] ==
-                                                      0) {
-                                                    Navigator.push(
-                                                        context,
-                                                        MaterialPageRoute(
-                                                            builder: (context) =>
-                                                                PrivateTripDetailsScreen(
-                                                                    tripId: favoriteList[index]
-                                                                            [
-                                                                            'trip_id']
-                                                                        .toString())));
-                                                  } else {
-                                                    Navigator.push(
-                                                        context,
-                                                        MaterialPageRoute(
-                                                            builder: (context) =>
-                                                                PublicTripDetailsScreen(
-                                                                    tripId: favoriteList[index]
-                                                                            [
-                                                                            'trip_id']
-                                                                        .toString())));
-                                                  }
-                                                },
-                                                child: Container(
-                                                  width: MediaQuery.of(context)
-                                                          .size
-                                                          .width *
-                                                      90 /
-                                                      100,
-                                                  height: MediaQuery.of(context)
-                                                          .size
-                                                          .height *
-                                                      20 /
-                                                      100,
-                                                  padding: language == 1
-                                                      ? const EdgeInsets.only(
-                                                          top: 12, right: 12)
-                                                      : const EdgeInsets.only(
-                                                          top: 12, left: 12),
-                                                  decoration: BoxDecoration(
-                                                      image: DecorationImage(
-                                                          image: favoriteList[
-                                                                          index]
-                                                                      [
-                                                                      'trip_image'] !=
-                                                                  null
-                                                              ? NetworkImage(
-                                                                  '${AppConfigProvider.imageURL}${favoriteList[index]['trip_image']}')
-                                                              : const AssetImage(
-                                                                      AppImage
-                                                                          .imageFrameImage)
-                                                                  as ImageProvider,
-                                                          fit: BoxFit.cover),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              20)),
-                                                  child: Column(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    children: [
-                                                      SizedBox(
-                                                        width: MediaQuery.of(
-                                                                    context)
-                                                                .size
-                                                                .width *
-                                                            80 /
-                                                            100,
-                                                        child: Row(
-                                                          mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .end,
-                                                          children: [
-                                                            GestureDetector(
-                                                              onTap: () {
-                                                                addFavoriteApiCall(
-                                                                    favoriteList[
+                                              return Stack(
+                                                children: [
+                                                  GestureDetector(
+                                                    onTap: () {
+                                                      if (favoriteList[index][
+                                                              'advertisement_type'] ==
+                                                          0) {
+                                                        Navigator.push(
+                                                            context,
+                                                            MaterialPageRoute(
+                                                                builder: (context) =>
+                                                                    PrivateTripDetailsScreen(
+                                                                        tripId:
+                                                                            favoriteList[index]['trip_id'].toString())));
+                                                      } else {
+                                                        Navigator.push(
+                                                            context,
+                                                            MaterialPageRoute(
+                                                                builder: (context) =>
+                                                                    PublicTripDetailsScreen(
+                                                                        tripId:
+                                                                            favoriteList[index]['trip_id'].toString())));
+                                                      }
+                                                    },
+                                                    child: Container(
+                                                      width:
+                                                          MediaQuery.of(context)
+                                                                  .size
+                                                                  .width *
+                                                              90 /
+                                                              100,
+                                                      height:
+                                                          MediaQuery.of(context)
+                                                                  .size
+                                                                  .height *
+                                                              20 /
+                                                              100,
+                                                      padding: language == 1
+                                                          ? const EdgeInsets
+                                                              .only(
+                                                              top: 12,
+                                                              right: 12)
+                                                          : const EdgeInsets
+                                                              .only(
+                                                              top: 12,
+                                                              left: 12),
+                                                      decoration: BoxDecoration(
+                                                          image:
+                                                              DecorationImage(
+                                                            image: favoriteList[
                                                                             index]
                                                                         [
-                                                                        'trip_id']);
-                                                              },
-                                                              child: SizedBox(
-                                                                width: MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width *
-                                                                    7 /
-                                                                    100,
-                                                                height: MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width *
-                                                                    7 /
-                                                                    100,
-                                                                child: Image.asset(
-                                                                    AppImage
-                                                                        .favHeartIcon),
-                                                              ),
+                                                                        'trip_image'] !=
+                                                                    null
+                                                                ? NetworkImage(
+                                                                    '${AppConfigProvider.imageURL}${favoriteList[index]['trip_image']}')
+                                                                : const AssetImage(
+                                                                        AppImage
+                                                                            .imageFrameImage)
+                                                                    as ImageProvider,
+                                                            fit: BoxFit.cover,
+                                                            colorFilter:
+                                                                ColorFilter
+                                                                    .mode(
+                                                              Colors.black
+                                                                  .withOpacity(
+                                                                      0.2), // Adjust the opacity
+                                                              BlendMode
+                                                                  .darken, // You can change the BlendMode if needed
                                                             ),
-                                                            Padding(
-                                                              padding: language ==
-                                                                      1
-                                                                  ? const EdgeInsets
-                                                                      .only(
-                                                                      right:
-                                                                          4.0)
-                                                                  : const EdgeInsets
-                                                                      .only(
-                                                                      left:
-                                                                          4.0),
-                                                              child: SizedBox(
-                                                                width: MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width *
-                                                                    7 /
-                                                                    100,
-                                                                height: MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width *
-                                                                    7 /
-                                                                    100,
-                                                                child: Image.asset(
-                                                                    AppImage
-                                                                        .favShareICon),
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                      Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          Text(
-                                                            favoriteList[index][
-                                                                'boat_name_english'][0],
-                                                            style: const TextStyle(
-                                                                color: AppColor
-                                                                    .secondaryColor,
-                                                                fontSize: 18,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                                fontFamily: AppFont
-                                                                    .fontFamily),
                                                           ),
-                                                          Row(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      20)),
+                                                      child: Column(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceBetween,
+                                                        children: [
+                                                          SizedBox(
+                                                            width: MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .width *
+                                                                80 /
+                                                                100,
+                                                            child: Row(
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .end,
+                                                              children: [
+                                                                GestureDetector(
+                                                                  onTap: () {
+                                                                    addFavoriteApiCall(
+                                                                        favoriteList[index]
+                                                                            [
+                                                                            'trip_id']);
+                                                                  },
+                                                                  child:
+                                                                      SizedBox(
+                                                                    width: MediaQuery.of(context)
+                                                                            .size
+                                                                            .width *
+                                                                        7 /
+                                                                        100,
+                                                                    height: MediaQuery.of(context)
+                                                                            .size
+                                                                            .width *
+                                                                        7 /
+                                                                        100,
+                                                                    child: Image.asset(
+                                                                        AppImage
+                                                                            .favHeartIcon),
+                                                                  ),
+                                                                ),
+                                                                Padding(
+                                                                  padding: language ==
+                                                                          1
+                                                                      ? const EdgeInsets
+                                                                          .only(
+                                                                          right:
+                                                                              4.0)
+                                                                      : const EdgeInsets
+                                                                          .only(
+                                                                          left:
+                                                                              4.0),
+                                                                  child:
+                                                                      SizedBox(
+                                                                    width: MediaQuery.of(context)
+                                                                            .size
+                                                                            .width *
+                                                                        7 /
+                                                                        100,
+                                                                    height: MediaQuery.of(context)
+                                                                            .size
+                                                                            .width *
+                                                                        7 /
+                                                                        100,
+                                                                    child: Image.asset(
+                                                                        AppImage
+                                                                            .favShareICon),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                          Column(
                                                             crossAxisAlignment:
                                                                 CrossAxisAlignment
-                                                                    .center,
+                                                                    .start,
                                                             children: [
-                                                              Text(
-                                                                AppLanguage
-                                                                        .pickupText[
-                                                                    language],
-                                                                style: const TextStyle(
-                                                                    color: AppColor
-                                                                        .secondaryColor,
-                                                                    fontSize:
-                                                                        12,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w500,
-                                                                    fontFamily:
-                                                                        AppFont
-                                                                            .fontFamily),
-                                                              ),
-                                                              SizedBox(
-                                                                  width: MediaQuery.of(
-                                                                              context)
-                                                                          .size
-                                                                          .width *
-                                                                      1 /
-                                                                      100),
-                                                              Container(
-                                                                width: MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width *
-                                                                    1 /
-                                                                    100,
-                                                                height: MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width *
-                                                                    1 /
-                                                                    100,
-                                                                margin:
-                                                                    const EdgeInsets
-                                                                        .only(
-                                                                        top: 2),
-                                                                decoration: const BoxDecoration(
-                                                                    color: AppColor
-                                                                        .secondaryColor,
-                                                                    shape: BoxShape
-                                                                        .circle),
-                                                              ),
-                                                              SizedBox(
-                                                                  width: MediaQuery.of(
-                                                                              context)
-                                                                          .size
-                                                                          .width *
-                                                                      1 /
-                                                                      100),
                                                               Text(
                                                                 favoriteList[
-                                                                            index]
-                                                                        [
-                                                                        'destination_english']
-                                                                    [language],
+                                                                        index][
+                                                                    'boat_name_english'][0],
                                                                 style: const TextStyle(
                                                                     color: AppColor
                                                                         .secondaryColor,
                                                                     fontSize:
-                                                                        12,
+                                                                        18,
                                                                     fontWeight:
                                                                         FontWeight
-                                                                            .w500,
+                                                                            .w600,
                                                                     fontFamily:
                                                                         AppFont
                                                                             .fontFamily),
                                                               ),
-                                                            ],
-                                                          ),
-                                                          // Row(
-                                                          //   crossAxisAlignment:
-                                                          //       CrossAxisAlignment.center,
-                                                          //   children: [
-                                                          //     Text(
-                                                          //       favoriteList[index]
-                                                          //           ['pickup'],
-                                                          //       style: const TextStyle(
-                                                          //           color: AppColor
-                                                          //               .secondaryColor,
-                                                          //           fontSize: 12,
-                                                          //           fontWeight:
-                                                          //               FontWeight.w500,
-                                                          //           fontFamily:
-                                                          //               AppFont.fontFamily),
-                                                          //     ),
-                                                          //     SizedBox(
-                                                          //         width:
-                                                          //             MediaQuery.of(context)
-                                                          //                     .size
-                                                          //                     .width *
-                                                          //                 1 /
-                                                          //                 100),
-                                                          //     Container(
-                                                          //       width:
-                                                          //           MediaQuery.of(context)
-                                                          //                   .size
-                                                          //                   .width *
-                                                          //               1 /
-                                                          //               100,
-                                                          //       height:
-                                                          //           MediaQuery.of(context)
-                                                          //                   .size
-                                                          //                   .width *
-                                                          //               1 /
-                                                          //               100,
-                                                          //       margin:
-                                                          //           const EdgeInsets.only(
-                                                          //               top: 2),
-                                                          //       decoration: const BoxDecoration(
-                                                          //           color: AppColor
-                                                          //               .secondaryColor,
-                                                          //           shape: BoxShape.circle),
-                                                          //     ),
-                                                          //     SizedBox(
-                                                          //         width:
-                                                          //             MediaQuery.of(context)
-                                                          //                     .size
-                                                          //                     .width *
-                                                          //                 1 /
-                                                          //                 100),
-                                                          //     Text(
-                                                          //       favoriteList[index]
-                                                          //           ['khiran'],
-                                                          //       style: const TextStyle(
-                                                          //           color: AppColor
-                                                          //               .secondaryColor,
-                                                          //           fontSize: 12,
-                                                          //           fontWeight:
-                                                          //               FontWeight.w500,
-                                                          //           fontFamily:
-                                                          //               AppFont.fontFamily),
-                                                          //     ),
-                                                          //   ],
-                                                          // ),
-
-                                                          Row(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .spaceBetween,
-                                                            children: [
                                                               Row(
+                                                                crossAxisAlignment:
+                                                                    CrossAxisAlignment
+                                                                        .center,
                                                                 children: [
-                                                                  if (favoriteList[
-                                                                              index]
-                                                                          [
-                                                                          'total_rating'] !=
-                                                                      "0.00")
-                                                                    Container(
-                                                                      width: screenWidth >
-                                                                              600
-                                                                          ? MediaQuery.of(context).size.width *
-                                                                              8 /
-                                                                              100
-                                                                          : MediaQuery.of(context).size.width *
-                                                                              14 /
-                                                                              100,
-                                                                      padding: const EdgeInsets
-                                                                          .symmetric(
-                                                                          vertical:
-                                                                              4,
-                                                                          horizontal:
-                                                                              2),
-                                                                      decoration:
-                                                                          BoxDecoration(
+                                                                  Text(
+                                                                    AppLanguage
+                                                                            .cityNameInputText[
+                                                                        language],
+                                                                    style: const TextStyle(
                                                                         color: AppColor
-                                                                            .secondaryColor
-                                                                            .withOpacity(0.2),
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(25),
-                                                                      ),
-                                                                      child:
-                                                                          Row(
-                                                                        mainAxisAlignment:
-                                                                            MainAxisAlignment.center,
-                                                                        children: [
-                                                                          SizedBox(
-                                                                            width: screenWidth > 600
-                                                                                ? MediaQuery.of(context).size.width * 2 / 100
-                                                                                : MediaQuery.of(context).size.width * 4 / 100,
-                                                                            height: screenWidth > 600
-                                                                                ? MediaQuery.of(context).size.width * 2 / 100
-                                                                                : MediaQuery.of(context).size.width * 4 / 100,
-                                                                            child:
-                                                                                Image.asset(AppImage.ratingIcon),
-                                                                          ),
-                                                                          SizedBox(
-                                                                              width: MediaQuery.of(context).size.width * 1 / 100),
-                                                                          Text(
-                                                                            favoriteList[index]['total_rating'],
-                                                                            style: const TextStyle(
-                                                                                color: AppColor.secondaryColor,
-                                                                                fontSize: 12,
-                                                                                fontWeight: FontWeight.w600,
-                                                                                fontFamily: AppFont.fontFamily),
-                                                                          ),
-                                                                        ],
-                                                                      ),
-                                                                    ),
+                                                                            .secondaryColor,
+                                                                        fontSize:
+                                                                            12,
+                                                                        fontWeight:
+                                                                            FontWeight
+                                                                                .w500,
+                                                                        fontFamily:
+                                                                            AppFont.fontFamily),
+                                                                  ),
                                                                   SizedBox(
                                                                       width: MediaQuery.of(context)
                                                                               .size
                                                                               .width *
-                                                                          2 /
+                                                                          1 /
                                                                           100),
+                                                                  Container(
+                                                                    width: MediaQuery.of(context)
+                                                                            .size
+                                                                            .width *
+                                                                        1 /
+                                                                        100,
+                                                                    height: MediaQuery.of(context)
+                                                                            .size
+                                                                            .width *
+                                                                        1 /
+                                                                        100,
+                                                                    margin: const EdgeInsets
+                                                                        .only(
+                                                                        top: 2),
+                                                                    decoration: const BoxDecoration(
+                                                                        color: AppColor
+                                                                            .secondaryColor,
+                                                                        shape: BoxShape
+                                                                            .circle),
+                                                                  ),
+                                                                  SizedBox(
+                                                                      width: MediaQuery.of(context)
+                                                                              .size
+                                                                              .width *
+                                                                          1 /
+                                                                          100),
+                                                                  Text(
+                                                                    "${favoriteList[index]['city_name'][language] ?? ""}",
+                                                                    style: const TextStyle(
+                                                                        color: AppColor
+                                                                            .secondaryColor,
+                                                                        fontSize:
+                                                                            12,
+                                                                        fontWeight:
+                                                                            FontWeight
+                                                                                .w500,
+                                                                        fontFamily:
+                                                                            AppFont.fontFamily),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                              Row(
+                                                                crossAxisAlignment:
+                                                                    CrossAxisAlignment
+                                                                        .center,
+                                                                children: [
+                                                                  Text(
+                                                                    AppLanguage
+                                                                            .tripTypeText[
+                                                                        language],
+                                                                    style: const TextStyle(
+                                                                        color: AppColor
+                                                                            .secondaryColor,
+                                                                        fontSize:
+                                                                            12,
+                                                                        fontWeight:
+                                                                            FontWeight
+                                                                                .w500,
+                                                                        fontFamily:
+                                                                            AppFont.fontFamily),
+                                                                  ),
+                                                                  SizedBox(
+                                                                      width: MediaQuery.of(context)
+                                                                              .size
+                                                                              .width *
+                                                                          1 /
+                                                                          100),
+                                                                  Container(
+                                                                    width: MediaQuery.of(context)
+                                                                            .size
+                                                                            .width *
+                                                                        1 /
+                                                                        100,
+                                                                    height: MediaQuery.of(context)
+                                                                            .size
+                                                                            .width *
+                                                                        1 /
+                                                                        100,
+                                                                    margin: const EdgeInsets
+                                                                        .only(
+                                                                        top: 2),
+                                                                    decoration: const BoxDecoration(
+                                                                        color: AppColor
+                                                                            .secondaryColor,
+                                                                        shape: BoxShape
+                                                                            .circle),
+                                                                  ),
+                                                                  SizedBox(
+                                                                      width: MediaQuery.of(context)
+                                                                              .size
+                                                                              .width *
+                                                                          1 /
+                                                                          100),
+                                                                  Text(
+                                                                    favoriteList[index]['advertisement_type'] ==
+                                                                            0
+                                                                        ? AppLanguage.privateText[
+                                                                            language]
+                                                                        : AppLanguage
+                                                                            .publicText[language],
+                                                                    style: const TextStyle(
+                                                                        color: AppColor
+                                                                            .secondaryColor,
+                                                                        fontSize:
+                                                                            12,
+                                                                        fontWeight:
+                                                                            FontWeight
+                                                                                .w500,
+                                                                        fontFamily:
+                                                                            AppFont.fontFamily),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                              // Row(
+                                                              //   crossAxisAlignment:
+                                                              //       CrossAxisAlignment.center,
+                                                              //   children: [
+                                                              //     Text(
+                                                              //       favoriteList[index]
+                                                              //           ['pickup'],
+                                                              //       style: const TextStyle(
+                                                              //           color: AppColor
+                                                              //               .secondaryColor,
+                                                              //           fontSize: 12,
+                                                              //           fontWeight:
+                                                              //               FontWeight.w500,
+                                                              //           fontFamily:
+                                                              //               AppFont.fontFamily),
+                                                              //     ),
+                                                              //     SizedBox(
+                                                              //         width:
+                                                              //             MediaQuery.of(context)
+                                                              //                     .size
+                                                              //                     .width *
+                                                              //                 1 /
+                                                              //                 100),
+                                                              //     Container(
+                                                              //       width:
+                                                              //           MediaQuery.of(context)
+                                                              //                   .size
+                                                              //                   .width *
+                                                              //               1 /
+                                                              //               100,
+                                                              //       height:
+                                                              //           MediaQuery.of(context)
+                                                              //                   .size
+                                                              //                   .width *
+                                                              //               1 /
+                                                              //               100,
+                                                              //       margin:
+                                                              //           const EdgeInsets.only(
+                                                              //               top: 2),
+                                                              //       decoration: const BoxDecoration(
+                                                              //           color: AppColor
+                                                              //               .secondaryColor,
+                                                              //           shape: BoxShape.circle),
+                                                              //     ),
+                                                              //     SizedBox(
+                                                              //         width:
+                                                              //             MediaQuery.of(context)
+                                                              //                     .size
+                                                              //                     .width *
+                                                              //                 1 /
+                                                              //                 100),
+                                                              //     Text(
+                                                              //       favoriteList[index]
+                                                              //           ['khiran'],
+                                                              //       style: const TextStyle(
+                                                              //           color: AppColor
+                                                              //               .secondaryColor,
+                                                              //           fontSize: 12,
+                                                              //           fontWeight:
+                                                              //               FontWeight.w500,
+                                                              //           fontFamily:
+                                                              //               AppFont.fontFamily),
+                                                              //     ),
+                                                              //   ],
+                                                              // ),
+
+                                                              Row(
+                                                                mainAxisAlignment:
+                                                                    MainAxisAlignment
+                                                                        .spaceBetween,
+                                                                children: [
+                                                                  Row(
+                                                                    children: [
+                                                                      if (favoriteList[index]
+                                                                              [
+                                                                              'total_rating'] !=
+                                                                          "0.00")
+                                                                        Container(
+                                                                          width: screenWidth > 600
+                                                                              ? MediaQuery.of(context).size.width * 8 / 100
+                                                                              : MediaQuery.of(context).size.width * 14 / 100,
+                                                                          padding: const EdgeInsets
+                                                                              .symmetric(
+                                                                              vertical: 4,
+                                                                              horizontal: 2),
+                                                                          decoration:
+                                                                              BoxDecoration(
+                                                                            color:
+                                                                                AppColor.secondaryColor.withOpacity(0.2),
+                                                                            borderRadius:
+                                                                                BorderRadius.circular(25),
+                                                                          ),
+                                                                          child:
+                                                                              Row(
+                                                                            mainAxisAlignment:
+                                                                                MainAxisAlignment.center,
+                                                                            children: [
+                                                                              SizedBox(
+                                                                                width: screenWidth > 600 ? MediaQuery.of(context).size.width * 2 / 100 : MediaQuery.of(context).size.width * 4 / 100,
+                                                                                height: screenWidth > 600 ? MediaQuery.of(context).size.width * 2 / 100 : MediaQuery.of(context).size.width * 4 / 100,
+                                                                                child: Image.asset(AppImage.ratingIcon),
+                                                                              ),
+                                                                              SizedBox(width: MediaQuery.of(context).size.width * 1 / 100),
+                                                                              Text(
+                                                                                favoriteList[index]['total_rating'],
+                                                                                style: const TextStyle(color: AppColor.secondaryColor, fontSize: 12, fontWeight: FontWeight.w600, fontFamily: AppFont.fontFamily),
+                                                                              ),
+                                                                            ],
+                                                                          ),
+                                                                        ),
+                                                                      SizedBox(
+                                                                          width: MediaQuery.of(context).size.width *
+                                                                              2 /
+                                                                              100),
+                                                                      Container(
+                                                                        padding: const EdgeInsets
+                                                                            .symmetric(
+                                                                            vertical:
+                                                                                4,
+                                                                            horizontal:
+                                                                                5),
+                                                                        decoration:
+                                                                            BoxDecoration(
+                                                                          color: AppColor
+                                                                              .secondaryColor
+                                                                              .withOpacity(0.2),
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(25),
+                                                                        ),
+                                                                        child:
+                                                                            Text(
+                                                                          "${favoriteList[index]['max_people']} ${AppLanguage.memberstext[language]}",
+                                                                          style: const TextStyle(
+                                                                              color: AppColor.secondaryColor,
+                                                                              fontSize: 12,
+                                                                              fontWeight: FontWeight.w600,
+                                                                              fontFamily: AppFont.fontFamily),
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                  const Spacer(),
                                                                   Container(
                                                                     padding: const EdgeInsets
                                                                         .symmetric(
                                                                         vertical:
-                                                                            4,
+                                                                            5,
                                                                         horizontal:
-                                                                            5),
-                                                                    decoration:
-                                                                        BoxDecoration(
-                                                                      color: AppColor
-                                                                          .secondaryColor
-                                                                          .withOpacity(
-                                                                              0.2),
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
-                                                                              25),
+                                                                            20),
+                                                                    decoration: BoxDecoration(
+                                                                        color: AppColor
+                                                                            .themeColor,
+                                                                        borderRadius: language ==
+                                                                                1
+                                                                            ? const BorderRadius.only(
+                                                                                bottomLeft: Radius.circular(20),
+                                                                                topRight: Radius.circular(4))
+                                                                            : const BorderRadius.only(topLeft: Radius.circular(4), bottomRight: Radius.circular(20))),
+                                                                    child: Row(
+                                                                      children: [
+                                                                        Text(
+                                                                          "${favoriteList[index]['price_per_hour']} ${AppLanguage.kwdtext[language]}",
+                                                                          style: const TextStyle(
+                                                                              color: AppColor.secondaryColor,
+                                                                              fontSize: 16,
+                                                                              fontWeight: FontWeight.w600,
+                                                                              fontFamily: AppFont.fontFamily),
+                                                                        ),
+                                                                        // Container(
+                                                                        //   margin: const EdgeInsets
+                                                                        //       .only(
+                                                                        //       top:
+                                                                        //           4),
+                                                                        //   child:
+                                                                        //       Text(
+                                                                        //     AppLanguage
+                                                                        //         .hourtext[language],
+                                                                        //     style: const TextStyle(
+                                                                        //         color: AppColor
+                                                                        //             .secondaryColor,
+                                                                        //         fontSize:
+                                                                        //             11,
+                                                                        //         fontWeight:
+                                                                        //             FontWeight.w600,
+                                                                        //         fontFamily: AppFont.fontFamily),
+                                                                        //   ),
+                                                                        // ),
+                                                                      ],
                                                                     ),
-                                                                    child: Text(
-                                                                      "${favoriteList[index]['max_people']} ${AppLanguage.memberstext[language]}",
-                                                                      style: const TextStyle(
-                                                                          color: AppColor
-                                                                              .secondaryColor,
-                                                                          fontSize:
-                                                                              12,
-                                                                          fontWeight: FontWeight
-                                                                              .w600,
-                                                                          fontFamily:
-                                                                              AppFont.fontFamily),
-                                                                    ),
-                                                                  ),
+                                                                  )
                                                                 ],
-                                                              ),
-                                                              const Spacer(),
-                                                              Container(
-                                                                padding: const EdgeInsets
-                                                                    .symmetric(
-                                                                    vertical: 5,
-                                                                    horizontal:
-                                                                        20),
-                                                                decoration: BoxDecoration(
-                                                                    color: AppColor
-                                                                        .themeColor,
-                                                                    borderRadius: language ==
-                                                                            1
-                                                                        ? const BorderRadius
-                                                                            .only(
-                                                                            bottomLeft: Radius.circular(
-                                                                                20),
-                                                                            topRight: Radius.circular(
-                                                                                4))
-                                                                        : const BorderRadius
-                                                                            .only(
-                                                                            topLeft:
-                                                                                Radius.circular(4),
-                                                                            bottomRight: Radius.circular(20))),
-                                                                child: Row(
-                                                                  children: [
-                                                                    Text(
-                                                                      "${favoriteList[index]['price_per_hour']} ${AppLanguage.kwdtext[language]}",
-                                                                      style: const TextStyle(
-                                                                          color: AppColor
-                                                                              .secondaryColor,
-                                                                          fontSize:
-                                                                              16,
-                                                                          fontWeight: FontWeight
-                                                                              .w600,
-                                                                          fontFamily:
-                                                                              AppFont.fontFamily),
-                                                                    ),
-                                                                    // Container(
-                                                                    //   margin: const EdgeInsets
-                                                                    //       .only(
-                                                                    //       top:
-                                                                    //           4),
-                                                                    //   child:
-                                                                    //       Text(
-                                                                    //     AppLanguage
-                                                                    //         .hourtext[language],
-                                                                    //     style: const TextStyle(
-                                                                    //         color: AppColor
-                                                                    //             .secondaryColor,
-                                                                    //         fontSize:
-                                                                    //             11,
-                                                                    //         fontWeight:
-                                                                    //             FontWeight.w600,
-                                                                    //         fontFamily: AppFont.fontFamily),
-                                                                    //   ),
-                                                                    // ),
-                                                                  ],
-                                                                ),
                                                               )
                                                             ],
                                                           )
                                                         ],
-                                                      )
-                                                    ],
+                                                      ),
+                                                    ),
                                                   ),
-                                                ),
+                                                  if (favoriteList[index]
+                                                              ['discount'] !=
+                                                          null &&
+                                                      favoriteList[index]
+                                                              ['discount'] >
+                                                          0) ...[
+                                                    Positioned(
+                                                      top: language == 0
+                                                          ? -30
+                                                          : -30,
+                                                      left: language == 0
+                                                          ? -22
+                                                          : null,
+                                                      right: language == 1
+                                                          ? -22
+                                                          : null,
+                                                      child: SizedBox(
+                                                        width: MediaQuery.of(
+                                                                    context)
+                                                                .size
+                                                                .width *
+                                                            30 /
+                                                            100,
+                                                        height: MediaQuery.of(
+                                                                    context)
+                                                                .size
+                                                                .height *
+                                                            15 /
+                                                            100,
+                                                        child: Image.asset(
+                                                            language == 0
+                                                                ? AppImage
+                                                                    .discountStrip
+                                                                : AppImage
+                                                                    .discountStripInverted),
+                                                      ),
+                                                    ),
+                                                    Positioned(
+                                                      top: language == 0
+                                                          ? 15
+                                                          : 13,
+                                                      left: language == 0
+                                                          ? -25
+                                                          : null,
+                                                      right: language == 1
+                                                          ? -27
+                                                          : null,
+                                                      child: Transform.rotate(
+                                                        angle: language == 0
+                                                            ? -.65
+                                                            : .65,
+                                                        child: Container(
+                                                          alignment:
+                                                              Alignment.center,
+                                                          // color: Colors.red,
+                                                          width: MediaQuery.of(
+                                                                      context)
+                                                                  .size
+                                                                  .width *
+                                                              30 /
+                                                              100,
+                                                          child: Text(
+                                                            "${favoriteList[index]['discount']}% ${AppLanguage.offText[language]}",
+                                                            textAlign: TextAlign
+                                                                .center,
+                                                            style: const TextStyle(
+                                                                fontFamily: AppFont
+                                                                    .fontFamily,
+                                                                fontSize: 11,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w800,
+                                                                color: AppColor
+                                                                    .secondaryColor),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    )
+                                                  ]
+                                                ],
                                               );
                                             }),
                                           ),

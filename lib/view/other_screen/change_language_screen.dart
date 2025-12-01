@@ -101,7 +101,7 @@ class ChangePasswordState extends State<ChangeLanguage> {
                   height: MediaQuery.of(context).size.height * 6 / 100,
                 ),
                 const NoInternetBanner(),
-                Container(
+                SizedBox(
                   width: MediaQuery.of(context).size.width * 90 / 100,
                   child: Row(
                     children: [
@@ -109,10 +109,13 @@ class ChangePasswordState extends State<ChangeLanguage> {
                         onTap: () {
                           Navigator.pop(context);
                         },
-                        child: Container(
-                          width: MediaQuery.of(context).size.width * 6 / 100,
-                          height: MediaQuery.of(context).size.width * 6 / 100,
-                          child: Image.asset(AppImage.backIcon),
+                        child: Transform.rotate(
+                          angle: language == 1 ? 3.1416 : 0,
+                          child: SizedBox(
+                            width: MediaQuery.of(context).size.width * 6 / 100,
+                            height: MediaQuery.of(context).size.width * 6 / 100,
+                            child: Image.asset(AppImage.backIcon),
+                          ),
                         ),
                       ),
                       SizedBox(

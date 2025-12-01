@@ -1,15 +1,15 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+
 import '../../controller/app_color.dart';
 import '../../controller/app_constant.dart';
 import '../../controller/app_header.dart';
-import 'dart:ui' as ui;
 
 class Content extends StatelessWidget {
   static String routeName = './Content';
   const Content({super.key});
+
   @override
   Widget build(BuildContext context) {
     ContentClass? object;
@@ -34,71 +34,129 @@ class ContentScreen extends StatefulWidget {
   State<ContentScreen> createState() => _ContentScreenState();
 }
 
-class _ContentScreenState extends State<ContentScreen> {
-  bool isApiCalling = false;
+class _ContentScreenState extends State<ContentScreen>
+    with SingleTickerProviderStateMixin {
+  bool isApiCalling = true;
+  late AnimationController _animationController;
+
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    log(widget.contenttype);
+    _animationController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-        systemNavigationBarColor: AppColor.secondaryColor,
-        systemNavigationBarIconBrightness: Brightness.dark,
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark));
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       backgroundColor: AppColor.secondaryColor,
+      appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(0),
+          child: AppBar(
+              backgroundColor: AppColor.secondaryColor,
+              systemOverlayStyle: const SystemUiOverlayStyle(
+                  systemNavigationBarColor: AppColor.secondaryColor,
+                  systemNavigationBarIconBrightness: Brightness.dark,
+                  statusBarColor: AppColor.secondaryColor,
+                  statusBarIconBrightness: Brightness.dark))),
       body: SafeArea(
-          child: Directionality(
-        textDirection:
-            language == 1 ? ui.TextDirection.rtl : ui.TextDirection.ltr,
-        child: Container(
-          height: MediaQuery.of(context).size.height * 100 / 100,
-          width: MediaQuery.of(context).size.width * 100 / 100,
-          color: AppColor.secondaryColor,
-          child: Column(
-            children: [
-              // const NoInternetBanner(),
+          child: Container(
+        height: screenHeight,
+        width: screenWidth,
+        color: AppColor.secondaryColor,
+        child: Column(
+          children: [
+            const NoInternetBanner(),
+            AppHeader(
+              text: widget.header,
+              onPress: () {
+                Navigator.pop(context);
+              },
+            ),
+            Expanded(
+                flex: 1,
+                child: Container(
+                  height: screenHeight,
+                  width: screenWidth * 0.95,
+                  alignment: Alignment.center,
+                  child: Stack(
+                    children: [
+                      // WebView - Hidden initially
+                      AnimatedOpacity(
+                        opacity: isApiCalling ? 0.0 : 1.0,
+                        duration: const Duration(milliseconds: 300),
+                        child: WebView(
+                          initialUrl: widget.contenttype,
+                          backgroundColor: AppColor.secondaryColor,
+                          onWebViewCreated:
+                              (WebViewController webViewController) {},
+                          onProgress: (int progress) {
+                            print("WebView is loading (progress : $progress%)");
+                          },
+                          onPageStarted: (String url) {
+                            print('Page started loading: $url');
+                            if (mounted) {
+                              setState(() {
+                                isApiCalling = true;
+                              });
+                            }
+                          },
+                          onPageFinished: (String url) {
+                            print('Page finished loading: $url');
+                            Future.delayed(const Duration(milliseconds: 800),
+                                () {
+                              if (mounted) {
+                                setState(() {
+                                  isApiCalling = false;
+                                });
+                              }
+                            });
+                          },
+                        ),
+                      ),
 
-              AppHeader(
-                  text: widget.header,
-                  onPress: () {
-                    Navigator.pop(context);
-                  }),
-              Expanded(
-                  flex: 1,
-                  child: Container(
-                    height: MediaQuery.of(context).size.height * 100 / 100,
-                    width: MediaQuery.of(context).size.width * 95 / 100,
-                    alignment: Alignment.center,
-                    child: WebView(
-                      initialUrl: widget.contenttype,
-                      onProgress: (int progress) {
-                        print("WebView is loading (progress : $progress%)");
-                      },
-                      onPageStarted: (String url) {
-                        print('Page started loading: $url');
-                        setState(() {
-                          isApiCalling = true;
-                        });
-                      },
-                      onPageFinished: (String url) {
-                        print('Page finished loading: $url');
-
-                        Future.delayed(const Duration(milliseconds: 500), () {
-                          setState(() {
-                            isApiCalling = false;
-                          });
-                        });
-                      },
-                    ),
-                  )),
-            ],
-          ),
+                      // Loading Overlay - Responsive Design
+                      if (isApiCalling)
+                        Container(
+                          color: AppColor.secondaryColor,
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: screenWidth * 0.08,
+                                  height: screenWidth * 0.08,
+                                  child: RotationTransition(
+                                    turns: _animationController,
+                                    child: CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        AppColor.themeColor,
+                                      ),
+                                      strokeWidth: 2.5,
+                                      backgroundColor:
+                                          Colors.grey.withOpacity(0.2),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                )),
+          ],
         ),
       )),
     );

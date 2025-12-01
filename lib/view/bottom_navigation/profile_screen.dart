@@ -19,6 +19,7 @@ import '../../controller/app_constant.dart';
 import '../../controller/app_font.dart';
 import '../../controller/app_image.dart';
 import '../../controller/app_language.dart';
+import '../../controller/route_observer.dart';
 import '../authentication/change_password_screen.dart';
 import '../authentication/deleteAccount_screen.dart';
 import '../authentication/edit_profile_screen.dart';
@@ -37,7 +38,7 @@ class Profile extends StatefulWidget {
   State<Profile> createState() => _ProfileState();
 }
 
-class _ProfileState extends State<Profile> {
+class _ProfileState extends State<Profile> with RouteAware {
   List<dynamic> languageList = [
     {"id": 0, "name": "English"},
     {"id": 1, "name": "Arabic"},
@@ -132,8 +133,8 @@ class _ProfileState extends State<Profile> {
 
 //-----------------GET CONTENT API CALL-----------------//
   Future<void> getAllContent() async {
-    Uri url =
-        Uri.parse('${AppConfigProvider.apiUrl}get_all_content?language_id=0');
+    Uri url = Uri.parse(
+        '${AppConfigProvider.apiUrl}get_all_content?language_id=$language');
     print("url $url");
 
     try {
@@ -243,6 +244,23 @@ class _ProfileState extends State<Profile> {
       await launch(url,
           forceSafariVC: inApp, forceWebView: inApp, enableJavaScript: true);
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    getAllContent();
   }
 
   @override

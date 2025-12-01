@@ -75,7 +75,7 @@ class _SignupState extends State<Signup> {
     print(query);
 
     var results1 = countrySearchList
-        .where((value) => value['country_name']
+        .where((value) => value['country_name'][language]
             .toString()
             .toLowerCase()
             .contains(query.toLowerCase()))
@@ -95,7 +95,7 @@ class _SignupState extends State<Signup> {
     print(query);
 
     var results1 = citySearchList
-        .where((value) => value['city_name']
+        .where((value) => value['city_name'][language]
             .toString()
             .toLowerCase()
             .contains(query.toLowerCase()))
@@ -1270,7 +1270,7 @@ class _SignupState extends State<Signup> {
                             onTap: () {
                               selectCountry(
                                   index,
-                                  countryList[index]["country_name"],
+                                  countryList[index]["country_name"][language],
                                   countryList[index]["country_id"]);
                               Navigator.pop(context);
                             },
@@ -1289,7 +1289,8 @@ class _SignupState extends State<Signup> {
                                           78 /
                                           100,
                                       child: Text(
-                                        countryList[index]["country_name"],
+                                        countryList[index]["country_name"]
+                                            [language],
                                         style: TextStyle(
                                             color: AppColor.textColor,
                                             fontFamily: AppFont.fontFamily,
@@ -1429,7 +1430,9 @@ class _SignupState extends State<Signup> {
                           cityList.length,
                           (index) => GestureDetector(
                             onTap: () {
-                              selectcity(index, cityList[index]["city_name"],
+                              selectcity(
+                                  index,
+                                  cityList[index]["city_name"][language],
                                   cityList[index]["city_id"]);
                               Navigator.pop(context);
                             },
@@ -1448,7 +1451,7 @@ class _SignupState extends State<Signup> {
                                           78 /
                                           100,
                                       child: Text(
-                                        cityList[index]["city_name"],
+                                        cityList[index]["city_name"][language],
                                         style: TextStyle(
                                             color: AppColor.textColor,
                                             fontFamily: AppFont.fontFamily,

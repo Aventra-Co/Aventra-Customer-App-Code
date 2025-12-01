@@ -503,7 +503,45 @@ class _CompletedDetailsScreen extends State<CompletedDetailsScreen> {
                                     2 /
                                     100),
 
-                            //destination
+                            //! Advertisement type
+                            SizedBox(
+                              width:
+                                  MediaQuery.of(context).size.width * 85 / 100,
+                              child: Text(
+                                AppLanguage.tripTypeText[language],
+                                style: const TextStyle(
+                                    fontFamily: AppFont.fontFamily,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w400,
+                                    color: AppColor.primaryColor),
+                              ),
+                            ),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height *
+                                    1 /
+                                    100),
+
+                            //!address text
+                            SizedBox(
+                              width:
+                                  MediaQuery.of(context).size.width * 85 / 100,
+                              child: Text(
+                                tripDetails['advertisement_type'] == 0
+                                    ? AppLanguage.privateText[language]
+                                    : AppLanguage.publicText[language],
+                                style: const TextStyle(
+                                    fontFamily: AppFont.fontFamily,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColor.primaryColor),
+                              ),
+                            ),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height *
+                                    1 /
+                                    100),
+
+                            //!destination
                             SizedBox(
                               width:
                                   MediaQuery.of(context).size.width * 85 / 100,

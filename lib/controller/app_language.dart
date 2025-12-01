@@ -836,4 +836,8 @@ class AppLanguage {
     "Enter number of members",
     "أدخل عدد الأعضاء",
   ];
+  static const offText = [
+    "OFF",
+    "خصم",
+  ];
 }

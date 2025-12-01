@@ -164,4 +164,7 @@ class AppImage {
   static const rightConfirmationIcon =
       './assets/icons/ic_right_confirmation.png';
   static const failedIcon = './assets/icons/ic_failed.png';
+  static const discountStrip = './assets/icons/ic_discountStrip.png';
+  static const discountStripInverted =
+      './assets/icons/ic_discountStripInverted.png';
 }
