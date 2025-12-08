@@ -1,7 +1,7 @@
 class AppConfigProvider {
   // ================ApiUrl==================//
-  static const apiUrl = "https://myboatonline.com/app/server/userAPI/";
+  static const apiUrl = "https://aventra-co.com/app/server/userAPI/";
 
   //=================imageURL===============//
-  static const imageURL = "https://myboatonline.com/app/server/uploads/";
+  static const imageURL = "https://aventra-co.com/app/server/uploads/";
 }
