@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../../controller/app_config_provider.dart';
+import '../../../controller/app_footer.dart';
 import '../../../controller/app_loader.dart';
 import '../../../controller/app_snack_bar_toast_message.dart';
 import '../../authentication/login_screen.dart';
@@ -93,11 +94,13 @@ class PrivateBookingDetailsState extends State<PrivateBookingDetails> {
   String email = '';
   int? selectedMethod;
   String fullName = '';
+  int isPayment = 0;
 
   @override
   void initState() {
     super.initState();
     getUserDetails();
+    paymentStatusApiCall();
   }
 
 //--------------------GET USER DETAILS-----------------------//
@@ -539,6 +542,47 @@ class PrivateBookingDetailsState extends State<PrivateBookingDetails> {
     } catch (e) {
       couponCode = "";
       print("Exception: $e");
+      setState(() {
+        isApiCalling = false;
+      });
+    }
+  }
+
+  //!=============================Payment API===================================//
+  Future<void> paymentStatusApiCall() async {
+    Uri url = Uri.parse("${AppConfigProvider.apiUrl}payment_hide_show");
+    print("url $url");
+    String token = AppConstant.token;
+
+    if (token.isEmpty) {
+      print("Token is missing!");
+      // return;
+    }
+
+    Map<String, String> headers = {'Authorization': 'Bearer $token'};
+
+    try {
+      final response = await http.get(url, headers: headers);
+      print("response $response");
+
+      if (response.statusCode == 200) {
+        dynamic res = jsonDecode(response.body);
+        print("res $res");
+
+        if (res['success'] == true) {
+          setState(() {
+            isPayment = res['payment_data']['payment_status'];
+          });
+        } else {
+          // ignore: use_build_context_synchronously
+          if (res['active_status'] == 0) {
+            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const Login()));
+          }
+        }
+      } else {}
+    } catch (e) {
       setState(() {
         isApiCalling = false;
       });
@@ -1740,6 +1784,19 @@ class PrivateBookingDetailsState extends State<PrivateBookingDetails> {
                                   child: AppButton(
                                     text: AppLanguage.paynowText[language],
                                     onPress: () {
+                                      if (isPayment == 0) {
+                                        SnackBarToastMessage.showSnackBar(
+                                            context, "Booking Done");
+                                        AppConstant.selectFooterIndex = 0;
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const MyFooterPage(),
+                                          ),
+                                        );
+                                        return;
+                                      }
                                       log("sendSlotIds${selectedSlotIds.join(',')}");
                                       FocusManager.instance.primaryFocus
                                           ?.unfocus();

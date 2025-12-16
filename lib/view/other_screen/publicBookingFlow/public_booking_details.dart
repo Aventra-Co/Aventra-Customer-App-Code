@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:boatapp/controller/app_footer.dart';
 import 'package:boatapp/view/other_screen/success_payment_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -93,11 +94,13 @@ class _PublicBookingDetailsState extends State<PublicBookingDetails> {
   String email = '';
   int? selectedMethod;
   String fullName = '';
+  int isPayment = 0;
 
   @override
   void initState() {
     super.initState();
     getUserDetails();
+    paymentStatusApiCall();
   }
 
 //--------------------GET USER DETAILS-----------------------//
@@ -543,6 +546,47 @@ class _PublicBookingDetailsState extends State<PublicBookingDetails> {
     } catch (e) {
       couponCode = "";
       print("Exception: $e");
+      setState(() {
+        isApiCalling = false;
+      });
+    }
+  }
+
+  //!=============================Payment API===================================//
+  Future<void> paymentStatusApiCall() async {
+    Uri url = Uri.parse("${AppConfigProvider.apiUrl}payment_hide_show");
+    print("url $url");
+    String token = AppConstant.token;
+
+    if (token.isEmpty) {
+      print("Token is missing!");
+      // return;
+    }
+
+    Map<String, String> headers = {'Authorization': 'Bearer $token'};
+
+    try {
+      final response = await http.get(url, headers: headers);
+      print("response $response");
+
+      if (response.statusCode == 200) {
+        dynamic res = jsonDecode(response.body);
+        print("res $res");
+
+        if (res['success'] == true) {
+          setState(() {
+            isPayment = res['payment_data']['payment_status'];
+          });
+        } else {
+          // ignore: use_build_context_synchronously
+          if (res['active_status'] == 0) {
+            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const Login()));
+          }
+        }
+      } else {}
+    } catch (e) {
       setState(() {
         isApiCalling = false;
       });
@@ -1716,7 +1760,7 @@ class _PublicBookingDetailsState extends State<PublicBookingDetails> {
                                 Column(
                                   children: [
                                     Text(
-                                      "${greatGrandTotal.toStringAsFixed(0)} KWD",
+                                      "${greatGrandTotal.toStringAsFixed(2)} KWD",
                                       style: const TextStyle(
                                         color: AppColor.primaryColor,
                                         fontSize: 23,
@@ -1742,6 +1786,19 @@ class _PublicBookingDetailsState extends State<PublicBookingDetails> {
                                   child: AppButton(
                                     text: AppLanguage.paynowText[language],
                                     onPress: () {
+                                      if (isPayment == 0) {
+                                        SnackBarToastMessage.showSnackBar(
+                                            context, "Booking Done");
+                                        AppConstant.selectFooterIndex = 0;
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const MyFooterPage(),
+                                          ),
+                                        );
+                                        return;
+                                      }
                                       log("sendSlotIds${selectedSlotIds.join(',')}");
                                       FocusManager.instance.primaryFocus
                                           ?.unfocus();

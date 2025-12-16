@@ -29,35 +29,19 @@ Future<void> main() async {
 }
 
 Future<void> initOneSignal(oneSignalAppId) async {
-  print("initOneSignal ------ ");
-  var settings;
   if (AppConstant.deviceType == "android") {
-    settings = {
-      OSiOSSettings.autoPrompt: false,
-      OSiOSSettings.inAppLaunchUrl: false
-    };
-  } else {
-    settings = {
-      OSiOSSettings.autoPrompt: true,
-      OSiOSSettings.inAppLaunchUrl: true
-    };
-  }
+  } else {}
   await OneSignal.shared.setAppId(AppConstant.oneSignalAppId);
 
-  print("Prompting for Permission");
-  OneSignal.shared.promptUserForPushNotificationPermission().then((accepted) {
-    print("Accepted permission: $accepted");
-  });
+  OneSignal.shared
+      .promptUserForPushNotificationPermission()
+      .then((accepted) {});
 
   final status = await OneSignal.shared.getDeviceState();
   if (status != null) {
-    print("main dart line 41");
     var tokenId = status.userId;
     if (tokenId != null) {
-      print("player Id $tokenId");
-      print(tokenId);
       AppConstant.playerID = tokenId;
-      print("playerID : ${AppConstant.playerID}");
     }
   }
 }
