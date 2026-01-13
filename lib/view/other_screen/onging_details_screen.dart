@@ -509,8 +509,6 @@ class _OngoingDetailsScreen extends State<OngoingDetailsScreen> {
                                     2 /
                                     100),
 
-                            
-
                             //! Advertisement type
                             SizedBox(
                               width:

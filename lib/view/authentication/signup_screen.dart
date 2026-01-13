@@ -69,6 +69,7 @@ class _SignupState extends State<Signup> {
   String aboutustype = "";
   String rateappurl = "";
   int userId = 0;
+  int isPayment = 0;
 
   //!---------------------SEARCH FUNCTION COUNTRY--------------------//!/
   searchResultCountry(String query) {
@@ -231,9 +232,51 @@ class _SignupState extends State<Signup> {
     }
   }
 
+  //!=============================Payment API===================================//
+  Future<void> paymentStatusApiCall() async {
+    Uri url = Uri.parse("${AppConfigProvider.apiUrl}payment_hide_show");
+    print("url $url");
+    String token = AppConstant.token;
+
+    if (token.isEmpty) {
+      print("Token is missing!");
+      // return;
+    }
+
+    Map<String, String> headers = {'Authorization': 'Bearer $token'};
+
+    try {
+      final response = await http.get(url, headers: headers);
+      print("response $response");
+
+      if (response.statusCode == 200) {
+        dynamic res = jsonDecode(response.body);
+        print("res $res");
+
+        if (res['success'] == true) {
+          setState(() {
+            isPayment = res['payment_data']['payment_status'];
+          });
+        } else {
+          // ignore: use_build_context_synchronously
+          if (res['active_status'] == 0) {
+            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const Login()));
+          }
+        }
+      } else {}
+    } catch (e) {
+      setState(() {
+        isApiCalling = false;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    paymentStatusApiCall();
     getAllContent();
     getCountries();
   }
@@ -419,9 +462,10 @@ class _SignupState extends State<Signup> {
       formData.fields['email'] = emailAddress;
       formData.fields['mobile'] = mobile.toString();
       formData.fields['password'] = password;
-      formData.fields['dob'] = sendDate;
-      formData.fields['city_id'] = cityId.toString();
-      formData.fields['country_id'] = countryId.toString();
+      formData.fields['dob'] = isPayment == 0 ? "2025-12-24" : sendDate;
+      formData.fields['city_id'] = isPayment == 0 ? "120" : cityId.toString();
+      formData.fields['country_id'] =
+          isPayment == 0 ? "89" : countryId.toString();
       formData.fields['user_type'] = "1";
       formData.fields['player_id'] = playeID.toString();
       formData.fields['device_type'] = AppConstant.deviceType;
@@ -649,326 +693,337 @@ class _SignupState extends State<Signup> {
                     SizedBox(
                         height: MediaQuery.of(context).size.height * 2 / 100),
 
-                    //!------------------country name---------------------
-                    Center(
-                      child: SizedBox(
-                        width: MediaQuery.of(context).size.width * 90 / 100,
-                        height: MediaQuery.of(context).size.height * 6 / 100,
-                        child: TextFormField(
-                          readOnly: true,
-                          style: AppConstant.textFilledHeading,
-                          textAlignVertical: TextAlignVertical.center,
-                          //! keyboardType: keyboardtype,
-                          controller: countrynameTextEditingController,
-                          onTap: () {
-                            countryListBottomSheet(context, screenWidth);
-                          },
-                          decoration: InputDecoration(
-                            prefixIcon: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  child: Image.asset(
-                                    AppImage.locationIcon,
-                                    height: MediaQuery.of(context).size.width *
-                                        5 /
-                                        100,
-                                    width: MediaQuery.of(context).size.width *
-                                        5 /
-                                        100,
+                    if (isPayment == 1) ...[
+                      //!------------------country name---------------------
+                      Center(
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width * 90 / 100,
+                          height: MediaQuery.of(context).size.height * 6 / 100,
+                          child: TextFormField(
+                            readOnly: true,
+                            style: AppConstant.textFilledHeading,
+                            textAlignVertical: TextAlignVertical.center,
+                            //! keyboardType: keyboardtype,
+                            controller: countrynameTextEditingController,
+                            onTap: () {
+                              countryListBottomSheet(context, screenWidth);
+                            },
+                            decoration: InputDecoration(
+                              prefixIcon: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    child: Image.asset(
+                                      AppImage.locationIcon,
+                                      height:
+                                          MediaQuery.of(context).size.width *
+                                              5 /
+                                              100,
+                                      width: MediaQuery.of(context).size.width *
+                                          5 /
+                                          100,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            suffixIcon: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  child: Image.asset(
-                                    AppImage.downArrowIcon,
-                                    height: MediaQuery.of(context).size.width *
-                                        4 /
-                                        100,
-                                    width: MediaQuery.of(context).size.width *
-                                        4 /
-                                        100,
+                                ],
+                              ),
+                              suffixIcon: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    child: Image.asset(
+                                      AppImage.downArrowIcon,
+                                      height:
+                                          MediaQuery.of(context).size.width *
+                                              4 /
+                                              100,
+                                      width: MediaQuery.of(context).size.width *
+                                          4 /
+                                          100,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
+                              border: const OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: AppColor.textinputBorderColor),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(8)),
+                              ),
+                              enabledBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: AppColor.textinputBorderColor),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(8)),
+                              ),
+                              focusedBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: AppColor.textinputBorderColor),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(8)),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 5, horizontal: 15),
+                              filled: false,
+                              counterText: '',
+                              hintText: AppLanguage.countryText[language],
+                              hintStyle: const TextStyle(
+                                  color: AppColor.hintTextinputColor,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                  fontFamily: AppFont.fontFamily),
                             ),
-                            border: const OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: AppColor.textinputBorderColor),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(8)),
-                            ),
-                            enabledBorder: const OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: AppColor.textinputBorderColor),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(8)),
-                            ),
-                            focusedBorder: const OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: AppColor.textinputBorderColor),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(8)),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                                vertical: 5, horizontal: 15),
-                            filled: false,
-                            counterText: '',
-                            hintText: AppLanguage.countryText[language],
-                            hintStyle: const TextStyle(
-                                color: AppColor.hintTextinputColor,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w400,
-                                fontFamily: AppFont.fontFamily),
                           ),
                         ),
                       ),
-                    ),
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 2 / 100),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 2 / 100),
 
-                    //!------------------city name---------------------
-                    Center(
-                      child: SizedBox(
-                        width: MediaQuery.of(context).size.width * 90 / 100,
-                        height: MediaQuery.of(context).size.height * 6 / 100,
-                        child: TextFormField(
-                          readOnly: true,
-                          style: AppConstant.textFilledHeading,
-                          textAlignVertical: TextAlignVertical.center,
-                          //! keyboardType: keyboardtype,
-                          controller: citynameTextEditingController,
-                          onTap: () {
-                            cityListBottomSheet(context, screenWidth);
-                          },
-                          decoration: InputDecoration(
-                            prefixIcon: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  child: Image.asset(
-                                    AppImage.locationIcon,
-                                    height: MediaQuery.of(context).size.width *
-                                        5 /
-                                        100,
-                                    width: MediaQuery.of(context).size.width *
-                                        5 /
-                                        100,
+                      //!------------------city name---------------------
+                      Center(
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width * 90 / 100,
+                          height: MediaQuery.of(context).size.height * 6 / 100,
+                          child: TextFormField(
+                            readOnly: true,
+                            style: AppConstant.textFilledHeading,
+                            textAlignVertical: TextAlignVertical.center,
+                            //! keyboardType: keyboardtype,
+                            controller: citynameTextEditingController,
+                            onTap: () {
+                              cityListBottomSheet(context, screenWidth);
+                            },
+                            decoration: InputDecoration(
+                              prefixIcon: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    child: Image.asset(
+                                      AppImage.locationIcon,
+                                      height:
+                                          MediaQuery.of(context).size.width *
+                                              5 /
+                                              100,
+                                      width: MediaQuery.of(context).size.width *
+                                          5 /
+                                          100,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            suffixIcon: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  child: Image.asset(
-                                    AppImage.downArrowIcon,
-                                    height: MediaQuery.of(context).size.width *
-                                        4 /
-                                        100,
-                                    width: MediaQuery.of(context).size.width *
-                                        4 /
-                                        100,
+                                ],
+                              ),
+                              suffixIcon: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    child: Image.asset(
+                                      AppImage.downArrowIcon,
+                                      height:
+                                          MediaQuery.of(context).size.width *
+                                              4 /
+                                              100,
+                                      width: MediaQuery.of(context).size.width *
+                                          4 /
+                                          100,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
+                              border: const OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: AppColor.textinputBorderColor),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(8)),
+                              ),
+                              enabledBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: AppColor.textinputBorderColor),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(8)),
+                              ),
+                              focusedBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: AppColor.textinputBorderColor),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(8)),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 5, horizontal: 15),
+                              filled: false,
+                              counterText: '',
+                              hintText: AppLanguage.cityNameInputText[language],
+                              hintStyle: const TextStyle(
+                                  color: AppColor.hintTextinputColor,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                  fontFamily: AppFont.fontFamily),
                             ),
-                            border: const OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: AppColor.textinputBorderColor),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(8)),
-                            ),
-                            enabledBorder: const OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: AppColor.textinputBorderColor),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(8)),
-                            ),
-                            focusedBorder: const OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: AppColor.textinputBorderColor),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(8)),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                                vertical: 5, horizontal: 15),
-                            filled: false,
-                            counterText: '',
-                            hintText: AppLanguage.cityNameInputText[language],
-                            hintStyle: const TextStyle(
-                                color: AppColor.hintTextinputColor,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w400,
-                                fontFamily: AppFont.fontFamily),
                           ),
                         ),
                       ),
-                    ),
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 2 / 100),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 2 / 100),
 
-                    //!-------------------dob----------------
-                    Center(
-                      child: SizedBox(
-                        width: MediaQuery.of(context).size.width * 90 / 100,
-                        height: MediaQuery.of(context).size.height * 6 / 100,
-                        child: TextFormField(
-                          readOnly: true,
-                          style: AppConstant.textFilledHeading,
-                          textAlignVertical: TextAlignVertical.center,
-                          //! keyboardType: keyboardtype,
-                          controller: dobTextEditingController,
-                          onTap: () async {
-                            print(DateTime.now());
-                            //! print(getDate);
+                      //!-------------------dob----------------
+                      Center(
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width * 90 / 100,
+                          height: MediaQuery.of(context).size.height * 6 / 100,
+                          child: TextFormField(
+                            readOnly: true,
+                            style: AppConstant.textFilledHeading,
+                            textAlignVertical: TextAlignVertical.center,
+                            //! keyboardType: keyboardtype,
+                            controller: dobTextEditingController,
+                            onTap: () async {
+                              print(DateTime.now());
+                              //! print(getDate);
 
-                            DateTime today = DateTime.now();
-                            DateTime minDate =
-                                today.subtract(Duration(days: 365 * 100));
-                            DateTime maxDate =
-                                today.subtract(Duration(days: 365 * 16));
+                              DateTime today = DateTime.now();
+                              DateTime minDate =
+                                  today.subtract(Duration(days: 365 * 100));
+                              DateTime maxDate =
+                                  today.subtract(Duration(days: 365 * 16));
 
-                            DateTime initialDate;
-                            if (getDate.isEmpty || getDate == "Invalid date") {
-                              initialDate = today;
-                            } else {
-                              try {
-                                initialDate = DateTime.parse(getDate);
-                              } catch (e) {
+                              DateTime initialDate;
+                              if (getDate.isEmpty ||
+                                  getDate == "Invalid date") {
                                 initialDate = today;
-                                print(" $getDate");
+                              } else {
+                                try {
+                                  initialDate = DateTime.parse(getDate);
+                                } catch (e) {
+                                  initialDate = today;
+                                  print(" $getDate");
+                                }
                               }
-                            }
 
-                            if (initialDate.isBefore(minDate)) {
-                              initialDate = minDate;
-                            }
-                            if (initialDate.isAfter(maxDate)) {
-                              initialDate = maxDate;
-                            }
+                              if (initialDate.isBefore(minDate)) {
+                                initialDate = minDate;
+                              }
+                              if (initialDate.isAfter(maxDate)) {
+                                initialDate = maxDate;
+                              }
 
-                            final DateTime? pickedDate = await showDatePicker(
-                              context: context,
-                              initialDate: initialDate,
-                              firstDate: minDate,
-                              lastDate: maxDate,
-                              builder: (BuildContext context, Widget? child) {
-                                return Theme(
-                                  data: ThemeData.light().copyWith(
-                                    primaryColor: AppColor.themeColor,
-                                    colorScheme: const ColorScheme.light(
-                                      primary: AppColor.themeColor,
-                                      onPrimary: AppColor.secondaryColor,
+                              final DateTime? pickedDate = await showDatePicker(
+                                context: context,
+                                initialDate: initialDate,
+                                firstDate: minDate,
+                                lastDate: maxDate,
+                                builder: (BuildContext context, Widget? child) {
+                                  return Theme(
+                                    data: ThemeData.light().copyWith(
+                                      primaryColor: AppColor.themeColor,
+                                      colorScheme: const ColorScheme.light(
+                                        primary: AppColor.themeColor,
+                                        onPrimary: AppColor.secondaryColor,
+                                      ),
+                                      buttonTheme: const ButtonThemeData(
+                                        textTheme: ButtonTextTheme.primary,
+                                      ),
+                                      textButtonTheme: TextButtonThemeData(
+                                        style: TextButton.styleFrom(
+                                            foregroundColor:
+                                                AppColor.themeColor),
+                                      ),
+                                      backgroundColor: AppColor.themeColor,
+                                      dialogBackgroundColor:
+                                          AppColor.themeColor,
+                                      highlightColor: AppColor.themeColor,
+                                      textTheme: const TextTheme(
+                                        bodyText2: TextStyle(
+                                            color: AppColor.themeColor),
+                                      ),
                                     ),
-                                    buttonTheme: const ButtonThemeData(
-                                      textTheme: ButtonTextTheme.primary,
-                                    ),
-                                    textButtonTheme: TextButtonThemeData(
-                                      style: TextButton.styleFrom(
-                                          foregroundColor: AppColor.themeColor),
-                                    ),
-                                    backgroundColor: AppColor.themeColor,
-                                    dialogBackgroundColor: AppColor.themeColor,
-                                    highlightColor: AppColor.themeColor,
-                                    textTheme: const TextTheme(
-                                      bodyText2:
-                                          TextStyle(color: AppColor.themeColor),
+                                    child: child!,
+                                  );
+                                },
+                              );
+
+                              if (pickedDate != null) {
+                                String formattedDate =
+                                    DateFormat('dd-MM-yyyy').format(pickedDate);
+                                String sentFormatDate =
+                                    DateFormat('yyyy-MM-dd').format(pickedDate);
+                                print(formattedDate);
+                                setState(() {
+                                  getDate = formattedDate;
+                                  sendDate = sentFormatDate;
+                                  log("senddate$sendDate");
+                                  dobTextEditingController.text = getDate;
+                                });
+                              } else {
+                                print("No date selected");
+                              }
+                            },
+                            decoration: InputDecoration(
+                              prefixIcon: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    child: Image.asset(
+                                      AppImage.dobIcon,
+                                      height:
+                                          MediaQuery.of(context).size.width *
+                                              5 /
+                                              100,
+                                      width: MediaQuery.of(context).size.width *
+                                          5 /
+                                          100,
                                     ),
                                   ),
-                                  child: child!,
-                                );
-                              },
-                            );
-
-                            if (pickedDate != null) {
-                              String formattedDate =
-                                  DateFormat('dd-MM-yyyy').format(pickedDate);
-                              String sentFormatDate =
-                                  DateFormat('yyyy-MM-dd').format(pickedDate);
-                              print(formattedDate);
-                              setState(() {
-                                getDate = formattedDate;
-                                sendDate = sentFormatDate;
-                                log("senddate$sendDate");
-                                dobTextEditingController.text = getDate;
-                              });
-                            } else {
-                              print("No date selected");
-                            }
-                          },
-                          decoration: InputDecoration(
-                            prefixIcon: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  child: Image.asset(
-                                    AppImage.dobIcon,
-                                    height: MediaQuery.of(context).size.width *
-                                        5 /
-                                        100,
-                                    width: MediaQuery.of(context).size.width *
-                                        5 /
-                                        100,
+                                ],
+                              ),
+                              suffixIcon: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    child: Image.asset(
+                                      AppImage.downArrowIcon,
+                                      height:
+                                          MediaQuery.of(context).size.width *
+                                              4 /
+                                              100,
+                                      width: MediaQuery.of(context).size.width *
+                                          4 /
+                                          100,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
+                              border: const OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: AppColor.textinputBorderColor),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(8)),
+                              ),
+                              enabledBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: AppColor.textinputBorderColor),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(8)),
+                              ),
+                              focusedBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: AppColor.textinputBorderColor),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(8)),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 5, horizontal: 15),
+                              filled: false,
+                              counterText: '',
+                              hintText: AppLanguage.dobInputText[language],
+                              hintStyle: const TextStyle(
+                                  color: AppColor.hintTextinputColor,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                  fontFamily: AppFont.fontFamily),
                             ),
-                            suffixIcon: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  child: Image.asset(
-                                    AppImage.downArrowIcon,
-                                    height: MediaQuery.of(context).size.width *
-                                        4 /
-                                        100,
-                                    width: MediaQuery.of(context).size.width *
-                                        4 /
-                                        100,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            border: const OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: AppColor.textinputBorderColor),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(8)),
-                            ),
-                            enabledBorder: const OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: AppColor.textinputBorderColor),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(8)),
-                            ),
-                            focusedBorder: const OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: AppColor.textinputBorderColor),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(8)),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                                vertical: 5, horizontal: 15),
-                            filled: false,
-                            counterText: '',
-                            hintText: AppLanguage.dobInputText[language],
-                            hintStyle: const TextStyle(
-                                color: AppColor.hintTextinputColor,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w400,
-                                fontFamily: AppFont.fontFamily),
                           ),
                         ),
                       ),
-                    ),
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 2 / 100),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 2 / 100),
+                    ],
 
                     //!------------------mobile number---------------------
                     CustomTextFormField(

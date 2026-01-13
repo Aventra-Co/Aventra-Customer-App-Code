@@ -73,10 +73,12 @@ class _EditProfileState extends State<EditProfile> {
   String date = '';
   var sendDate = "";
   String vendorId = '';
+  int isPayment = 0;
 
   @override
   void initState() {
     super.initState();
+    paymentStatusApiCall();
     getUserDetails();
     getCountries();
   }
@@ -138,6 +140,47 @@ class _EditProfileState extends State<EditProfile> {
     });
     getCities();
     setState(() {});
+  }
+
+  //!=============================Payment API===================================//
+  Future<void> paymentStatusApiCall() async {
+    Uri url = Uri.parse("${AppConfigProvider.apiUrl}payment_hide_show");
+    print("url $url");
+    String token = AppConstant.token;
+
+    if (token.isEmpty) {
+      print("Token is missing!");
+      // return;
+    }
+
+    Map<String, String> headers = {'Authorization': 'Bearer $token'};
+
+    try {
+      final response = await http.get(url, headers: headers);
+      print("response $response");
+
+      if (response.statusCode == 200) {
+        dynamic res = jsonDecode(response.body);
+        print("res $res");
+
+        if (res['success'] == true) {
+          setState(() {
+            isPayment = res['payment_data']['payment_status'];
+          });
+        } else {
+          // ignore: use_build_context_synchronously
+          if (res['active_status'] == 0) {
+            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const Login()));
+          }
+        }
+      } else {}
+    } catch (e) {
+      setState(() {
+        isApiCalling = false;
+      });
+    }
   }
 
 //--------------------------------FROM CAMERA-----------------------//
@@ -284,9 +327,9 @@ class _EditProfileState extends State<EditProfile> {
       formData.fields['l_name'] = lastNameTextEditingController.text;
       formData.fields['email'] = emailTextEditingController.text;
       formData.fields['mobile'] = mobileTextEditingController.text;
-      formData.fields['country_id'] = countryId.toString();
-      formData.fields['city_id'] = cityId.toString();
-      formData.fields['dob'] = sendDate.toString();
+      formData.fields['country_id'] = isPayment == 0 ? "89" : countryId.toString();
+      formData.fields['city_id'] = isPayment == 0 ? "120" : cityId.toString();
+      formData.fields['dob'] = isPayment == 0 ? "2024-12-24" : sendDate.toString();
 
       if (_imageSelect != null) {
         XFile image1 = _imageSelect!;
