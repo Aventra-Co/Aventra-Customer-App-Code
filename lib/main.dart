@@ -90,6 +90,6 @@ class _AppInitializerState extends State<AppInitializer> {
 
   @override
   Widget build(BuildContext context) {
-    return Splash(); // Your splash screen will handle the rest
+    return Splash();
   }
 }

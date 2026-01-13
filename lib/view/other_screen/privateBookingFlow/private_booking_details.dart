@@ -456,15 +456,6 @@ class PrivateBookingDetailsState extends State<PrivateBookingDetails> {
                 sendSlotIds: selectedSlotIds.join(',')),
           ),
         );
-        // } else {
-        //   SnackBarToastMessage.showSnackBar(context, res['message'][language]);
-        //   if (res['active_flag'] == 0) {
-        //     Navigator.push(
-        //       context,
-        //       MaterialPageRoute(builder: (context) => const Login()),
-        //     );
-        //   }
-        // }
       } else {
         // Handle non-200 response
         SnackBarToastMessage.showSnackBar(
@@ -670,17 +661,7 @@ class PrivateBookingDetailsState extends State<PrivateBookingDetails> {
                                                         .width *
                                                     1 /
                                                     100),
-                                            // Container(
-                                            //   width: MediaQuery.of(context).size.width *
-                                            //       1 /
-                                            //       100,
-                                            //   height: MediaQuery.of(context).size.width *
-                                            //       1 /
-                                            //       100,
-                                            //   decoration: BoxDecoration(
-                                            //       color: AppColor.grayColor,
-                                            //       shape: BoxShape.circle),
-                                            // ),
+                                       
                                             SizedBox(
                                                 width: MediaQuery.of(context)
                                                         .size
@@ -732,18 +713,7 @@ class PrivateBookingDetailsState extends State<PrivateBookingDetails> {
                                                 AppColor.themeColor),
                                       ),
                                     ),
-                                    // Container(
-                                    //   width: MediaQuery.of(context).size.width * 18 / 100,
-                                    //   height:
-                                    //       MediaQuery.of(context).size.width * 18 / 100,
-                                    //   decoration: BoxDecoration(
-                                    //       image: DecorationImage(
-                                    //           image: AssetImage(
-                                    //             './assets/icons/ship_image1.png',
-                                    //           ),
-                                    //           fit: BoxFit.cover),
-                                    //       borderRadius: BorderRadius.circular(16)),
-                                    // ),
+                           
                                   ],
                                 ),
                               ],
@@ -1885,10 +1855,7 @@ class PrivateBookingDetailsState extends State<PrivateBookingDetails> {
                                 titleCentered: true,
                               ),
                               calendarStyle: const CalendarStyle(
-                                // todayDecoration: BoxDecoration(
-                                //   color: AppColor.blueColor,
-                                //   shape: BoxShape.circle,
-                                // ),
+                           
                                 selectedDecoration: BoxDecoration(
                                   color: AppColor.themeColor,
                                   shape: BoxShape.circle,
@@ -2071,22 +2038,7 @@ class PrivateBookingDetailsState extends State<PrivateBookingDetails> {
                                     List.generate(timeSlots.length, (index) {
                                   return Column(
                                     children: [
-                                      // SizedBox(
-                                      //   width: MediaQuery.of(context)
-                                      //           .size
-                                      //           .width *
-                                      //       21 /
-                                      //       100,
-                                      //   child: Text(
-                                      //     "${AppLanguage.ticketText[language]} (${timeSlots[index]['available_ticket_count']})",
-                                      //     textAlign: TextAlign.center,
-                                      //     style: const TextStyle(
-                                      //         fontFamily: AppFont.fontFamily,
-                                      //         fontSize: 13,
-                                      //         fontWeight: FontWeight.w500,
-                                      //         color: AppColor.primaryColor),
-                                      //   ),
-                                      // ),
+                                    
                                       GestureDetector(
                                         onTap: () {
                                           if (timeSlots[index]
@@ -2113,28 +2065,7 @@ class PrivateBookingDetailsState extends State<PrivateBookingDetails> {
                                             }
                                             setTime();
                                             setState(() {});
-                                            // if (selectedSlotId ==
-                                            //     timeSlots[index]['slot_id']
-                                            //         .toString()) {
-                                            //   setState(() {
-                                            //     selectedSlotId = '';
-                                            //     selectedTime = '';
-                                            //     availableTicketsCount = 0;
-                                            //   });
-                                            // } else {
-                                            //   setState(() {
-                                            //     selectedSlotId = timeSlots[index]
-                                            //             ['slot_id']
-                                            //         .toString();
-                                            //     selectedTime =
-                                            //         timeSlots[index]['start_time'];
-                                            //     sendSelectedTime =
-                                            //         timeSlots[index]['start_time'];
-                                            //     availableTicketsCount =
-                                            //         timeSlots[index]
-                                            //             ['available_ticket_count'];
-                                            //   });
-                                            // }
+                                         
                                           }
                                         },
                                         child: Container(

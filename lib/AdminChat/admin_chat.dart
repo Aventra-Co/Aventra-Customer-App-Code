@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:boatapp/controller/app_image.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-// import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -142,26 +141,8 @@ class _ChatState extends State<AdminChat> {
     print("ChatInitialScreen");
     print(widget.otherUserId);
     print(widget.otherUserName);
-    // print(widget.otherUserImage);
-    // print(widget.otherUserNameIdentify);
     print("deviceToken : ${widget.deviceToken}");
     FirebaseProvider.firebaseCreateUser(true, 'yes');
-    // // Suppose you have a Timestamp object called timestamp
-    // Timestamp timestamp = Timestamp.fromMillisecondsSinceEpoch(1647169645000);
-
-    // // Convert the Timestamp to a DateTime object
-    // DateTime dateTime = timestamp.toDate();
-
-    // // Print the DateTime object in a readable format
-    // print("dateTime : ${dateTime.toString()}");
-
-    // Get the current timestamp
-    // Timestamp currentTimestamp = Timestamp.now();
-    // print("CurrentTimestamp---> $currentTimestamp");
-
-    // Print the current timestamp in a readable format
-    // print("CurrentTimestamp ${currentTimestamp.toDate().toString()}");
-
     super.initState();
   }
 
@@ -169,13 +150,6 @@ class _ChatState extends State<AdminChat> {
     print("Message Screen");
     final prefs = await SharedPreferences.getInstance();
     dynamic userDetails = prefs.getString('userDetails');
-
-    // var userMet = prefs.getString('user_met').toString();
-    // print("user_met : ${json.decode(userMet)}");
-
-    // if (json.decode(userMet) != null) {
-    //   userIds = json.decode(userMet);
-    // }
 
     //--------------Firebase Get Other User Inbox ---------------
     if (userDetails != null) {
@@ -190,13 +164,7 @@ class _ChatState extends State<AdminChat> {
           userId.toString(), widget.otherUserId.toString());
 
       userName = "john".toString();
-      // print("userName $userName");
 
-      // String id = userDetail['user_id'].toString();
-      // print('id $id');
-
-      // String userImageUrl = userDetail['avatar']['url'];
-      // print("userImageUrl : $userImageUrl");
       userImage = "";
 
       String otherUserId = widget.otherUserId.toString();
@@ -214,14 +182,6 @@ class _ChatState extends State<AdminChat> {
 
       otherUserCreatedChatId = 'u_${otherUserId}__u_$userId';
 
-      // print("widget.acceptAt : ${widget.acceptAt}");
-
-      // if (widget.acceptAt != "NA") {
-      //   String days =
-      //       Utils.differenceBetweenTwoDateInDays(widget.acceptAt.toString());
-      //   // print("days $days");
-      //   daysAgo = days.toString();
-      // }
     }
 
     await FirebaseDatabase.instance
@@ -230,14 +190,7 @@ class _ChatState extends State<AdminChat> {
         .then((snap) {
       print("snap.value--> ${snap.value}");
 
-      // jsonObject.addAll({
-      //   'answerTimeStamp': answerTimeStamp,
-      // });
-      // final list=snap.value;
-      // print("list  $list");
-      //  for (var i = 0; i < list.length; i++) {
 
-      //                     }
       if (snap.value == null) {
         isMessageEmpty = true;
       }
@@ -423,43 +376,7 @@ class _ChatState extends State<AdminChat> {
                         ),
                       ),
                     ),
-                    // AppHeader(
-                    //     text: AppLanguage.helpAndSupportText[language],
-                    //     onPress: () {
-                    //       FirebaseProvider.firebaseCreateUser(true, 'yes');
-                    //       Navigator.pop(context);
-                    //     }),
-                    // Container(
-                    //   width: MediaQuery.of(context).size.width * 90 / 100,
-                    //   child: Row(
-                    //     children: [
-                    //       GestureDetector(
-                    //         onTap: () {
-                    //           FirebaseProvider.firebaseCreateUser(true, 'yes');
-                    //           Navigator.pop(context);
-                    //         },
-                    //         child: Container(
-                    //           width: MediaQuery.of(context).size.width * 12 / 100,
-                    //           height:
-                    //               MediaQuery.of(context).size.width * 12 / 100,
-                    //           child: Image.asset(AppImage.navigateBackLogo),
-                    //         ),
-                    //       ),
-                    //       SizedBox(
-                    //         width: MediaQuery.of(context).size.width * 3 / 100,
-                    //       ),
-                    //       Text(
-                    //         AppLanguage.chatSupportText[language],
-                    //         // style: AppConstant.appBarTitleStyle,
-                    //       )
-                    //     ],
-                    //   ),
-                    // ),
-
-                    // SizedBox(
-                    //   height: MediaQuery.of(context).size.height * 3 / 100,
-                    // ),
-                    // const SizedBox(height: 10),
+                 
 
                     Container(
                       padding: const EdgeInsets.only(bottom: 11),
@@ -484,17 +401,7 @@ class _ChatState extends State<AdminChat> {
                             for (var i = 0; i < item.length; i++) {
                               if (item[i]['senderId'] == 1) {
                                 item[i]['MsgTimeShamp'] = item[i]['timestamp'];
-                                // print("hello");
-                                // DateTime datetime =
-                                //     DateTime.fromMillisecondsSinceEpoch(
-                                //         item[i]['timestamp']);
-                                // String formattedDateTime =
-                                //     DateFormat('yyyy-MM-dd HH:mm:ss')
-                                //         .format(datetime);
-
-                                //   print("formattedDateTime$formattedDateTime");
-
-                                //   item[i]['MsgTimeShamp'] = formattedDateTime;
+                              
                               }
                               if (item[i]['senderId'] != 1) {
                                 item[i]['MsgTimeShamp'] = item[i]['timestamp'];
@@ -507,8 +414,6 @@ class _ChatState extends State<AdminChat> {
                                 if (isVisibleFirstTime == false) {
                                   WidgetsBinding.instance
                                       .addPostFrameCallback((_) {
-                                    // chatModalAfterTenMessages(
-                                    //     context, 1, 1);
                                     setState(() {
                                       isVisibleFirstTime = true;
                                     });
@@ -909,7 +814,6 @@ class _ChatState extends State<AdminChat> {
   }
 
   bool shouldHideKeyboard() {
-    // Implement your logic here to determine whether to hide the keyboard
-    return true; // Replace with your condition
+    return true; 
   }
 }

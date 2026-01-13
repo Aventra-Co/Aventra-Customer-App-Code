@@ -58,9 +58,7 @@ class _BookingHistoryState extends State<BookingHistory> {
       userId = data['user_id'];
       print('67$userId');
     }
-    // setState(() {
-    //   isApiCalling = false;
-    // });
+
     getBookingHistoryApi(userId);
     setState(() {});
   }
@@ -212,16 +210,7 @@ class _BookingHistoryState extends State<BookingHistory> {
                                                   ),
                                                 ),
                                               );
-                                              // Navigator.push(
-                                              //   context,
-                                              //   MaterialPageRoute(
-                                              //     builder: (context) => DetailsAfterScreen(
-                                              //       tripBookingId: bookingHistoryList[index]
-                                              //               ['trip_booking_id']
-                                              //           .toString(),
-                                              //     ),
-                                              //   ),
-                                              // );
+                                           
                                             },
                                             child: Container(
                                               width: MediaQuery.of(context)

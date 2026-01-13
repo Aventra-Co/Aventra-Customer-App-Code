@@ -1881,28 +1881,7 @@ class _BeachesState extends State<Beaches> {
                                                                           fontFamily:
                                                                               AppFont.fontFamily),
                                                                     ),
-                                                                    // Container(
-                                                                    //   margin:
-                                                                    //       const EdgeInsets
-                                                                    //           .only(
-                                                                    //           top:
-                                                                    //               4),
-                                                                    //   child: Text(
-                                                                    //     AppLanguage
-                                                                    //             .hourtext[
-                                                                    //         language],
-                                                                    //     style: const TextStyle(
-                                                                    //         color: AppColor
-                                                                    //             .secondaryColor,
-                                                                    //         fontSize:
-                                                                    //             10,
-                                                                    //         fontWeight:
-                                                                    //             FontWeight
-                                                                    //                 .w500,
-                                                                    //         fontFamily:
-                                                                    //             AppFont.fontFamily),
-                                                                    //   ),
-                                                                    // ),
+                                                               
                                                                   ],
                                                                 ),
                                                               )
@@ -2159,28 +2138,7 @@ class _BeachesState extends State<Beaches> {
                                                                       AppFont
                                                                           .fontFamily),
                                                             ),
-                                                            // Container(
-                                                            //   margin:
-                                                            //       const EdgeInsets
-                                                            //           .only(
-                                                            //           top: 4),
-                                                            //   child: Text(
-                                                            //     AppLanguage
-                                                            //             .hourtext[
-                                                            //         language],
-                                                            //     style: const TextStyle(
-                                                            //         color: AppColor
-                                                            //             .secondaryColor,
-                                                            //         fontSize:
-                                                            //             12,
-                                                            //         fontWeight:
-                                                            //             FontWeight
-                                                            //                 .w600,
-                                                            //         fontFamily:
-                                                            //             AppFont
-                                                            //                 .fontFamily),
-                                                            //   ),
-                                                            // ),
+                                                        
                                                           ],
                                                         ),
                                                       ),
@@ -3506,8 +3464,6 @@ class _BeachesState extends State<Beaches> {
                                     );
                                   },
                                   child: Container(
-                                    // alignment: Alignment.centerLeft,
-                                    // margin: const EdgeInsets.symmetric(vertical: 3),
                                     width: MediaQuery.of(context).size.width *
                                         90 /
                                         100,
@@ -3518,10 +3474,7 @@ class _BeachesState extends State<Beaches> {
                                       //  crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Container(
-                                          // width: MediaQuery.of(context).size.width *
-                                          //     78 /
-                                          //     100,
-                                          //      color: Colors.amberAccent,
+
                                           child: Text(
                                             sortList[index]["text"],
                                             style: TextStyle(

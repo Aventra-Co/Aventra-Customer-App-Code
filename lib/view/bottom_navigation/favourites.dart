@@ -57,9 +57,7 @@ class _FavouritesState extends State<Favourites> {
       return;
     }
     if (data == null) {
-      // print("worked");
-      // SnackBarToastMessage.showSnackBar(
-      //     context, AppLanguage.notRegisteredMsg[language]);
+ 
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => const Login()));
     } else {
@@ -487,28 +485,7 @@ class _FavouritesState extends State<Favourites> {
                                                                           AppFont
                                                                               .fontFamily),
                                                                 ),
-                                                                // Container(
-                                                                //   margin:
-                                                                //       const EdgeInsets
-                                                                //           .only(
-                                                                //           top:
-                                                                //               4),
-                                                                //   child: Text(
-                                                                //     AppLanguage
-                                                                //             .hourtext[
-                                                                //         language],
-                                                                //     style: const TextStyle(
-                                                                //         color: AppColor
-                                                                //             .secondaryColor,
-                                                                //         fontSize:
-                                                                //             12,
-                                                                //         fontWeight:
-                                                                //             FontWeight
-                                                                //                 .w600,
-                                                                //         fontFamily:
-                                                                //             AppFont.fontFamily),
-                                                                //   ),
-                                                                // ),
+                                                              
                                                               ],
                                                             ),
                                                           ),
@@ -1243,72 +1220,7 @@ class _FavouritesState extends State<Favourites> {
                                                                   ),
                                                                 ],
                                                               ),
-                                                              // Row(
-                                                              //   crossAxisAlignment:
-                                                              //       CrossAxisAlignment.center,
-                                                              //   children: [
-                                                              //     Text(
-                                                              //       favoriteList[index]
-                                                              //           ['pickup'],
-                                                              //       style: const TextStyle(
-                                                              //           color: AppColor
-                                                              //               .secondaryColor,
-                                                              //           fontSize: 12,
-                                                              //           fontWeight:
-                                                              //               FontWeight.w500,
-                                                              //           fontFamily:
-                                                              //               AppFont.fontFamily),
-                                                              //     ),
-                                                              //     SizedBox(
-                                                              //         width:
-                                                              //             MediaQuery.of(context)
-                                                              //                     .size
-                                                              //                     .width *
-                                                              //                 1 /
-                                                              //                 100),
-                                                              //     Container(
-                                                              //       width:
-                                                              //           MediaQuery.of(context)
-                                                              //                   .size
-                                                              //                   .width *
-                                                              //               1 /
-                                                              //               100,
-                                                              //       height:
-                                                              //           MediaQuery.of(context)
-                                                              //                   .size
-                                                              //                   .width *
-                                                              //               1 /
-                                                              //               100,
-                                                              //       margin:
-                                                              //           const EdgeInsets.only(
-                                                              //               top: 2),
-                                                              //       decoration: const BoxDecoration(
-                                                              //           color: AppColor
-                                                              //               .secondaryColor,
-                                                              //           shape: BoxShape.circle),
-                                                              //     ),
-                                                              //     SizedBox(
-                                                              //         width:
-                                                              //             MediaQuery.of(context)
-                                                              //                     .size
-                                                              //                     .width *
-                                                              //                 1 /
-                                                              //                 100),
-                                                              //     Text(
-                                                              //       favoriteList[index]
-                                                              //           ['khiran'],
-                                                              //       style: const TextStyle(
-                                                              //           color: AppColor
-                                                              //               .secondaryColor,
-                                                              //           fontSize: 12,
-                                                              //           fontWeight:
-                                                              //               FontWeight.w500,
-                                                              //           fontFamily:
-                                                              //               AppFont.fontFamily),
-                                                              //     ),
-                                                              //   ],
-                                                              // ),
-
+                                                            
                                                               Row(
                                                                 mainAxisAlignment:
                                                                     MainAxisAlignment
@@ -1411,25 +1323,7 @@ class _FavouritesState extends State<Favourites> {
                                                                               fontWeight: FontWeight.w600,
                                                                               fontFamily: AppFont.fontFamily),
                                                                         ),
-                                                                        // Container(
-                                                                        //   margin: const EdgeInsets
-                                                                        //       .only(
-                                                                        //       top:
-                                                                        //           4),
-                                                                        //   child:
-                                                                        //       Text(
-                                                                        //     AppLanguage
-                                                                        //         .hourtext[language],
-                                                                        //     style: const TextStyle(
-                                                                        //         color: AppColor
-                                                                        //             .secondaryColor,
-                                                                        //         fontSize:
-                                                                        //             11,
-                                                                        //         fontWeight:
-                                                                        //             FontWeight.w600,
-                                                                        //         fontFamily: AppFont.fontFamily),
-                                                                        //   ),
-                                                                        // ),
+                                                                   
                                                                       ],
                                                                     ),
                                                                   )

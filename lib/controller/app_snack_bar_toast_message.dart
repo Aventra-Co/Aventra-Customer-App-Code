@@ -10,11 +10,7 @@ class SnackBarToastMessage {
         backgroundColor: Colors.black,
         duration: Duration(milliseconds: 2000),
         behavior: SnackBarBehavior.floating,
-        // shape: RoundedRectangleBorder(
-        //   borderRadius: BorderRadius.all(
-        //     Radius.circular(25),
-        //   ),
-        // ),
+
         content: Directionality(
             textDirection:
                 language == 1 ? ui.TextDirection.rtl : ui.TextDirection.ltr,

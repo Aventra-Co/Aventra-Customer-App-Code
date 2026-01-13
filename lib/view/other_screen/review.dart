@@ -303,36 +303,7 @@ class _ReviewState extends State<Review> {
                                     2 /
                                     100),
 
-                            // GestureDetector(
-                            //   onTap: () {
-                            //     Navigator.push(
-                            //       context,
-                            //       MaterialPageRoute(
-                            //         builder: (context) => const RateNow(
-                            //           tripId: "102",
-                            //           ownerId: "20",
-                            //           tripBookingId: "102",
-                            //         ),
-                            //       ),
-                            //     );
-                            //   },
-                            //   child: Container(
-                            //     padding: const EdgeInsets.symmetric(
-                            //         vertical: 7, horizontal: 15),
-                            //     decoration: BoxDecoration(
-                            //         color: AppColor.themeColor,
-                            //         borderRadius: BorderRadius.circular(25)),
-                            //     child: Text(
-                            //       AppLanguage.addReviewText[language],
-                            //       style: const TextStyle(
-                            //           color: AppColor.secondaryColor,
-                            //           fontSize: 14,
-                            //           fontWeight: FontWeight.w600,
-                            //           fontFamily: AppFont.fontFamily),
-                            //     ),
-                            //   ),
-                            // )
-                          ],
+                       ],
                         ),
                       ),
                       SizedBox(

@@ -1280,29 +1280,7 @@ class _EditProfileState extends State<EditProfile> {
                                 height: MediaQuery.of(context).size.height *
                                     3 /
                                     100),
-                            // Container(
-                            //   width: MediaQuery.of(context).size.width *
-                            //       90 /
-                            //       100,
-                            //   child: Text(AppLanguage.addressText[language],
-                            //       style: const TextStyle(
-                            //           color: AppColor.hintTextinputColor,
-                            //           fontFamily: AppFont.fontFamily,
-                            //           fontWeight: FontWeight.w400,
-                            //           fontSize: 14)),
-                            // ),
-                            // CustomEditTextFormField(
-                            //   readOnly: false,
-                            //   fillColorStatus: 0,
-                            //   controller: addressEditingController,
-                            //   hintText: AppLanguage.addressText[language],
-                            //   //  image: AppImage.upArrowIcon,
-                            //   keyboardtype: TextInputType.text,
-                            // ),
-                            // SizedBox(
-                            //     height: MediaQuery.of(context).size.height *
-                            //         7 /
-                            //         100),
+                          
 
                             AppButton(
                               text: AppLanguage.updateButtonText[language],

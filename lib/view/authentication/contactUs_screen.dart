@@ -48,33 +48,6 @@ class _ContactUsState extends State<ContactUs> {
                             height:
                                 MediaQuery.of(context).size.height * 2 / 100),
 
-                        // -----------first Number -------------
-                        // CustomInputTextFormField(
-                        //     readOnly: false,
-                        //     fillColorStatus: 0,
-                        //     controller: nameTextEditingController,
-                        //     hintText: AppLanguage.nameInputText[language],
-                        //     image: AppImage.userNameIcon,
-                        //     keyboardtype: TextInputType.name,
-                        //     maxLength: AppConstant.fullnameLength),
-
-                        // SizedBox(
-                        //     height:
-                        //         MediaQuery.of(context).size.height * 1.5 / 100),
-
-                        // // ----------- email Input -------------
-                        // CustomInputTextFormField(
-                        //     readOnly: false,
-                        //     fillColorStatus: 0,
-                        //     controller: emailTextEditingController,
-                        //     hintText: AppLanguage.emailInputText[language],
-                        //     image: AppImage.emailcon,
-                        //     keyboardtype: TextInputType.emailAddress,
-                        //     maxLength: AppConstant.emailMaxLength),
-                        // SizedBox(
-                        //     height:
-                        //         MediaQuery.of(context).size.height * 3 / 100),
-
                         // ----------- Message Input -------------
                         Container(
                           width: MediaQuery.of(context).size.width * 90 / 100,

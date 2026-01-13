@@ -63,9 +63,6 @@ class _LoginState extends State<Login> {
   Map<String, String>? authHeaders;
   GoogleSignInAccount? _currentUser;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    // Optional clientId
-    // clientId:
-    //     '963185498048-g4tkcivctfkit8httl9he4j78l17kj90.apps.googleusercontent.com',
     scopes: <String>[
       'profile',
       'email',
@@ -230,11 +227,6 @@ class _LoginState extends State<Login> {
           setState(() {
             isApiCalling = false;
           });
-          // if (res['active_status'] == 0) {
-          //   AppConstant.authNavigation = 0;
-          //   Navigator.push(context,
-          //       MaterialPageRoute(builder: (context) => const SignupScreen()));
-          // }
         }
       } else {
         setState(() {
@@ -496,8 +488,6 @@ class _LoginState extends State<Login> {
                                               const ChangeLanguage(),
                                         ),
                                       );
-                                      // languageListBottomSheet(
-                                      //     context, screenWidth, screenHeight);
                                     },
                                     child: Container(
                                       width: screenWidth > 600
@@ -1325,12 +1315,8 @@ class _LoginState extends State<Login> {
             SharedPreferences prefs = await SharedPreferences.getInstance();
             await prefs.setString('appledata', jsonEncode(data));
 
-            // 🔁 You should send this data to your backend here to store it permanently
-            // await api.saveAppleUser(data); // implement if not done already
-
             chackUserId(data, "apple");
           } else {
-            // First time login data not available (e.g. Apple denied it)
             SnackBarToastMessage.showSnackBar(context,
                 "We couldn't retrieve your Apple account details. Please try again.");
           }

@@ -61,13 +61,7 @@ class _UpComingDetailsScreenState extends State<UpComingDetailsScreen> {
     final prefs = await SharedPreferences.getInstance();
     data = prefs.getString("userDetails");
 
-    // print("userDetails $userDetails");
     if (data == null) {
-      // print("worked");
-      // SnackBarToastMessage.showSnackBar(
-      //     context, AppLanguage.notRegisteredMsg[language]);
-      // Navigator.push(
-      //     context, MaterialPageRoute(builder: (context) => const Login()));
     } else {
       userDataArr = jsonDecode(data);
       userId = userDataArr['user_id'] ?? 0;
@@ -468,26 +462,7 @@ class _UpComingDetailsScreenState extends State<UpComingDetailsScreen> {
                                               2 /
                                               100),
 
-                                      //image
-                                      // Container(
-                                      //   width:
-                                      //       MediaQuery.of(context).size.width *
-                                      //           20 /
-                                      //           100,
-                                      //   height:
-                                      //       MediaQuery.of(context).size.height *
-                                      //           10 /
-                                      //           100,
-                                      //   child: ClipRRect(
-                                      //     borderRadius:
-                                      //         BorderRadius.circular(10),
-                                      //     child: Image.asset(
-                                      //       AppImage.boatImage,
-                                      //       fit: BoxFit.cover,
-                                      //     ),
-                                      //   ),
-                                      // ),
-                                    ],
+                              ],
                                   ),
                                 ),
                               ),
@@ -1203,38 +1178,7 @@ class _UpComingDetailsScreenState extends State<UpComingDetailsScreen> {
                                                                 ),
                                                               ),
                                                             ),
-                                                            // GestureDetector(
-                                                            //   onTap: () {
-                                                            //     deleteSubAddOn(
-                                                            //         selectedAddons[
-                                                            //                 index][
-                                                            //             'addon_id'],
-                                                            //         selectedAddons[index]
-                                                            //                     [
-                                                            //                     'subAddons']
-                                                            //                 [subIndex]
-                                                            //             [
-                                                            //             'subAddOnId']);
-                                                            //   },
-                                                            //   child: Container(
-                                                            //     width: MediaQuery.of(
-                                                            //                 context)
-                                                            //             .size
-                                                            //             .width *
-                                                            //         5 /
-                                                            //         100,
-                                                            //     height: MediaQuery.of(
-                                                            //                 context)
-                                                            //             .size
-                                                            //             .width *
-                                                            //         5 /
-                                                            //         100,
-                                                            //     child: Image.asset(
-                                                            //         AppImage
-                                                            //             .deleteAccountIcon),
-                                                            //   ),
-                                                            // )
-                                                          ],
+                                                     ],
                                                         )
                                                       ],
                                                     ),
@@ -1505,67 +1449,7 @@ class _UpComingDetailsScreenState extends State<UpComingDetailsScreen> {
                                               2 /
                                               100),
 
-                                  // Container(
-                                  //   width: MediaQuery.of(context).size.width *
-                                  //       85 /
-                                  //       100,
-                                  //   child: const Text(
-                                  //     "-------------------------------------------------------------------------------------------",
-                                  //     maxLines: 1,
-                                  //     style: TextStyle(
-                                  //         fontFamily: AppFont.fontFamily,
-                                  //         fontSize: 12,
-                                  //         fontWeight: FontWeight.w400,
-                                  //         color: AppColor.boaderColor),
-                                  //   ),
-                                  // ),
-                                  // SizedBox(
-                                  //     height: MediaQuery.of(context).size.height *
-                                  //         1 /
-                                  //         100),
-                                  // Container(
-                                  //   width: MediaQuery.of(context).size.width *
-                                  //       85 /
-                                  //       100,
-                                  //   child: Row(
-                                  //     children: [
-                                  //       Container(
-                                  //         width: MediaQuery.of(context).size.width *
-                                  //             42 /
-                                  //             100,
-                                  //         child: Text(
-                                  //           AppLanguage.captainFeesText[language],
-                                  //           style: const TextStyle(
-                                  //               fontFamily: AppFont.fontFamily,
-                                  //               fontSize: 16,
-                                  //               fontWeight: FontWeight.w500,
-                                  //               color: AppColor.textColor),
-                                  //         ),
-                                  //       ),
-                                  //       Container(
-                                  //         width: MediaQuery.of(context).size.width *
-                                  //             42 /
-                                  //             100,
-                                  //         alignment: language == 1
-                                  //             ? Alignment.centerLeft
-                                  //             : Alignment.centerRight,
-                                  //         child: const Text(
-                                  //           "10 KWD",
-                                  //           style: TextStyle(
-                                  //               fontFamily: AppFont.fontFamily,
-                                  //               fontSize: 16,
-                                  //               fontWeight: FontWeight.w600,
-                                  //               color: AppColor.primaryColor),
-                                  //         ),
-                                  //       ),
-                                  //     ],
-                                  //   ),
-                                  // ),
-                                  // SizedBox(
-                                  //     height: MediaQuery.of(context).size.height *
-                                  //         2 /
-                                  //         100),
-
+                           
                                   Container(
                                     width: MediaQuery.of(context).size.width *
                                         85 /

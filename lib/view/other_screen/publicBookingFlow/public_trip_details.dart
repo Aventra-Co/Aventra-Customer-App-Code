@@ -144,10 +144,6 @@ class _PublicTripDetailsScreenState extends State<PublicTripDetailsScreen> {
                   DateTime.parse(dateStr)) // parse string → DateTime
               .toSet(); // convert list → set
 
-          // markedDates = markedDatesString
-          //     .split(',')
-          //     .map((dateStr) => DateTime.parse(dateStr.trim()))
-          //     .toSet();
           setState(() {
             isApiCalling = false;
           });
@@ -645,31 +641,7 @@ class _PublicTripDetailsScreenState extends State<PublicTripDetailsScreen> {
                                                 ),
                                               ),
                                             ),
-                                            // GestureDetector(
-                                            //   onTap: () {
-                                            //     if (tripImages.length >
-                                            //         changeIndex) {
-                                            //       setState(() {
-                                            //         changeIndex++;
-                                            //       });
-                                            //     }
-                                            //   },
-                                            //   child: SizedBox(
-                                            //     width: MediaQuery.of(context)
-                                            //             .size
-                                            //             .width *
-                                            //         7 /
-                                            //         100,
-                                            //     height: MediaQuery.of(context)
-                                            //             .size
-                                            //             .width *
-                                            //         7 /
-                                            //         100,
-                                            //     child: Image.asset(
-                                            //         AppImage.leftScrollIcon),
-                                            //   ),
-                                            // )
-                                          ],
+                                        ],
                                         ),
                                       )
                                     ],
@@ -983,50 +955,7 @@ class _PublicTripDetailsScreenState extends State<PublicTripDetailsScreen> {
                                             fontWeight: FontWeight.w400,
                                             fontFamily: AppFont.fontFamily),
                                       ),
-                                      // Text(
-                                      //   "${AppLanguage.yachtSizeText[language]} 33 feet",
-                                      //   style: TextStyle(
-                                      //       color: AppColor.primaryColor,
-                                      //       fontSize: 14,
-                                      //       fontWeight: FontWeight.w400,
-                                      //       fontFamily: AppFont.fontFamily),
-                                      // ),
-                                      // Text(
-                                      //   AppLanguage
-                                      //           .yachtCapacityText[language] +
-                                      //       " 7 people",
-                                      //   style: TextStyle(
-                                      //       color: AppColor.primaryColor,
-                                      //       fontSize: 14,
-                                      //       fontWeight: FontWeight.w400,
-                                      //       fontFamily: AppFont.fontFamily),
-                                      // ),
-                                      // Text(
-                                      //   AppLanguage.facilitiesText[language] +
-                                      //       " Bathroom, Bedroom, kitchen , fishing equipment, life jacket, refrigerator, Sound system , ice box .",
-                                      //   style: TextStyle(
-                                      //       color: AppColor.primaryColor,
-                                      //       fontSize: 14,
-                                      //       fontWeight: FontWeight.w400,
-                                      //       fontFamily: AppFont.fontFamily),
-                                      // ),
-                                      // Text(
-                                      //   "the boat is equipped with a tracking system .",
-                                      //   style: TextStyle(
-                                      //       color: AppColor.primaryColor,
-                                      //       fontSize: 14,
-                                      //       fontWeight: FontWeight.w400,
-                                      //       fontFamily: AppFont.fontFamily),
-                                      // ),
-                                      // Text(
-                                      //   "Happy trip !)",
-                                      //   style: TextStyle(
-                                      //       color: AppColor.primaryColor,
-                                      //       fontSize: 14,
-                                      //       fontWeight: FontWeight.w400,
-                                      //       fontFamily: AppFont.fontFamily),
-                                      // ),
-                                      SizedBox(
+                                  SizedBox(
                                           height: MediaQuery.of(context)
                                                   .size
                                                   .height *
@@ -1298,22 +1227,7 @@ class _PublicTripDetailsScreenState extends State<PublicTripDetailsScreen> {
                                               fontWeight: FontWeight.w600,
                                               fontFamily: AppFont.fontFamily),
                                         ),
-                                        // Text(
-                                        //   "Abdullah Al Mubarak Street,",
-                                        //   style: TextStyle(
-                                        //       color: AppColor.grayColor,
-                                        //       fontSize: 12,
-                                        //       fontWeight: FontWeight.w500,
-                                        //       fontFamily: AppFont.fontFamily),
-                                        // ),
-                                        // Text(
-                                        //   "Kuwait City,",
-                                        //   style: TextStyle(
-                                        //       color: AppColor.grayColor,
-                                        //       fontSize: 12,
-                                        //       fontWeight: FontWeight.w500,
-                                        //       fontFamily: AppFont.fontFamily),
-                                        // ),
+                                      
                                       ],
                                     ),
                                     Container(
@@ -1609,89 +1523,7 @@ class _PublicTripDetailsScreenState extends State<PublicTripDetailsScreen> {
                               height:
                                   MediaQuery.of(context).size.height * 3 / 100),
 
-                          // SizedBox(
-                          //   width: MediaQuery.of(context).size.width * 90 / 100,
-                          //   child: Text(
-                          //     AppLanguage.selectFexibleText[language],
-                          //     style: TextStyle(
-                          //         color: AppColor.primaryColor,
-                          //         fontSize: 14,
-                          //         fontWeight: FontWeight.w400,
-                          //         fontFamily: AppFont.fontFamily),
-                          //   ),
-                          // ),
-                          // SizedBox(
-                          //     height: MediaQuery.of(context).size.height * 2 / 100),
-                          // // ---------------time -----------
-                          // Container(
-                          //   width: MediaQuery.of(context).size.width * 90 / 100,
-                          //   height: MediaQuery.of(context).size.height * 6 / 100,
-                          //   child: TextFormField(
-                          //     onTap: () async {
-                          //       // Show Time Picker
-                          //       final TimeOfDay? pickedTime = await showTimePicker(
-                          //         context: context,
-                          //         initialTime:
-                          //             TimeOfDay.fromDateTime(DateTime.now()),
-                          //       );
-                          //       if (pickedTime != null) {
-                          //         final String formattedTime =
-                          //             pickedTime.format(context);
-                          //         setState(() {
-                          //           timeTextEditingController.text = formattedTime;
-                          //         });
-                          //       }
-                          //     },
-                          //     readOnly: true,
-                          //     style: AppConstant.textFilledStyle,
-                          //     textAlignVertical: TextAlignVertical.center,
-                          //     controller: timeTextEditingController,
-                          //     decoration: InputDecoration(
-                          //       suffixIcon: Column(
-                          //         mainAxisAlignment: MainAxisAlignment.center,
-                          //         children: [
-                          //           SizedBox(
-                          //             child: Image.asset(
-                          //               AppImage.openBottomIcon,
-                          //               height: MediaQuery.of(context).size.width *
-                          //                   5 /
-                          //                   100,
-                          //               width: MediaQuery.of(context).size.width *
-                          //                   5 /
-                          //                   100,
-                          //             ),
-                          //           ),
-                          //         ],
-                          //       ),
-                          //       border: const OutlineInputBorder(
-                          //         borderSide: BorderSide(
-                          //             color: AppColor.textinputBorderColor),
-                          //         borderRadius:
-                          //             BorderRadius.all(Radius.circular(8)),
-                          //       ),
-                          //       enabledBorder: const OutlineInputBorder(
-                          //         borderSide: BorderSide(
-                          //             color: AppColor.textinputBorderColor),
-                          //         borderRadius:
-                          //             BorderRadius.all(Radius.circular(8)),
-                          //       ),
-                          //       focusedBorder: const OutlineInputBorder(
-                          //         borderSide: BorderSide(
-                          //             color: AppColor.textinputBorderColor),
-                          //         borderRadius:
-                          //             BorderRadius.all(Radius.circular(8)),
-                          //       ),
-                          //       contentPadding: const EdgeInsets.symmetric(
-                          //           vertical: 5, horizontal: 15),
-                          //       fillColor: AppColor.secondaryColor,
-                          //       filled: true,
-                          //       counterText: '',
-                          //       hintText: AppLanguage.selectHoursText[language],
-                          //       hintStyle: AppConstant.textFilledHeading,
-                          //     ),
-                          //   ),
-                          // ),
-
+                    
                           if (timeSlots.isNotEmpty && selectedDate.isNotEmpty)
                             Column(
                               children: [
@@ -1770,28 +1602,7 @@ class _PublicTripDetailsScreenState extends State<PublicTripDetailsScreen> {
                                                       ['start_time_formated'];
                                             }
                                             setState(() {});
-                                            // if (selectedSlotId ==
-                                            //     timeSlots[index]['slot_id']
-                                            //         .toString()) {
-                                            //   setState(() {
-                                            //     selectedSlotId = '';
-                                            //     selectedTime = '';
-                                            //     availableTicketsCount = 0;
-                                            //   });
-                                            // } else {
-                                            //   setState(() {
-                                            //     selectedSlotId = timeSlots[index]
-                                            //             ['slot_id']
-                                            //         .toString();
-                                            //     selectedTime =
-                                            //         timeSlots[index]['start_time'];
-                                            //     sendSelectedTime =
-                                            //         timeSlots[index]['start_time'];
-                                            //     availableTicketsCount =
-                                            //         timeSlots[index]
-                                            //             ['available_ticket_count'];
-                                            //   });
-                                            // }
+                                       
                                           }
                                         },
                                         child: Container(
@@ -1859,19 +1670,7 @@ class _PublicTripDetailsScreenState extends State<PublicTripDetailsScreen> {
                           //! Number of people textfield
                           Column(
                             children: [
-                              // SizedBox(
-                              //   width: MediaQuery.of(context).size.width *
-                              //       90 /
-                              //       100,
-                              //   child: Text(
-                              //     "${AppLanguage.availableTickets[language]} ($availableTicketsCount)",
-                              //     style: const TextStyle(
-                              //         color: AppColor.primaryColor,
-                              //         fontSize: 15,
-                              //         fontWeight: FontWeight.w600,
-                              //         fontFamily: AppFont.fontFamily),
-                              //   ),
-                              // ),
+                             
                               SizedBox(
                                   height: MediaQuery.of(context).size.height *
                                       1 /

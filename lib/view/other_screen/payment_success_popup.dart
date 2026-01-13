@@ -181,18 +181,7 @@ class _PaymentSuccessPopUpState extends State<PaymentSuccessPopUp> {
                 SizedBox(
                   height: MediaQuery.of(context).size.height * 2 / 100,
                 ),
-                // Container(
-                //   width: MediaQuery.of(context).size.width * 90 / 100,
-                //   child: Text(
-                //     AppLanguage.bookappointmentSuccessText[language],
-                //     style: const TextStyle(
-                //         fontSize: 17.5,
-                //         color: AppColor.textColor,
-                //         fontFamily: AppFont.fontFamily,
-                //         fontWeight: FontWeight.w600),
-                //     textAlign: TextAlign.center,
-                //   ),
-                // )
+    
               ],
             ),
           ),

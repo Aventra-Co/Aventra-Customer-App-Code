@@ -62,13 +62,7 @@ class _OngoingDetailsScreen extends State<OngoingDetailsScreen> {
     final prefs = await SharedPreferences.getInstance();
     data = prefs.getString("userDetails");
 
-    // print("userDetails $userDetails");
     if (data == null) {
-      // print("worked");
-      // SnackBarToastMessage.showSnackBar(
-      //     context, AppLanguage.notRegisteredMsg[language]);
-      // Navigator.push(
-      //     context, MaterialPageRoute(builder: (context) => const Login()));
     } else {
       userDataArr = jsonDecode(data);
       userId = userDataArr['user_id'] ?? 0;
@@ -189,7 +183,6 @@ class _OngoingDetailsScreen extends State<OngoingDetailsScreen> {
   }
 
   Widget _buildUIScreen(BuildContext context) {
-    // double screenWidth = MediaQuery.of(context).size.width;
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
         statusBarColor: AppColor.secondaryColor,
         statusBarIconBrightness: Brightness.dark));
@@ -244,35 +237,7 @@ class _OngoingDetailsScreen extends State<OngoingDetailsScreen> {
                                           color: AppColor.primaryColor),
                                     ),
                                   ),
-                                  // GestureDetector(
-                                  //   onTap: () {
-                                  //     setState(() {});
-                                  //   },
-                                  //   child: Container(
-                                  //     alignment: Alignment.center,
-                                  //     width: MediaQuery.of(context).size.width *
-                                  //         25 /
-                                  //         100,
-                                  //     decoration: BoxDecoration(
-                                  //         color: AppColor.themeColor,
-                                  //         borderRadius:
-                                  //             BorderRadius.circular(10)),
-                                  //     child: Padding(
-                                  //       padding: const EdgeInsets.symmetric(
-                                  //           vertical: 8.0),
-                                  //       child: Text(
-                                  //         AppLanguage.addToCalenderText[language],
-                                  //         textAlign: TextAlign.center,
-                                  //         style: const TextStyle(
-                                  //             fontSize: 15,
-                                  //             fontWeight: FontWeight.w500,
-                                  //             color: AppColor.secondaryColor,
-                                  //             fontFamily: AppFont.fontFamily),
-                                  //       ),
-                                  //     ),
-                                  //   ),
-                                  // ),
-                                ],
+                             ],
                               ),
                             ),
                             SizedBox(
@@ -480,25 +445,7 @@ class _OngoingDetailsScreen extends State<OngoingDetailsScreen> {
                                               2 /
                                               100),
 
-                                      //image
-                                      // Container(
-                                      //   width:
-                                      //       MediaQuery.of(context).size.width *
-                                      //           20 /
-                                      //           100,
-                                      //   height:
-                                      //       MediaQuery.of(context).size.height *
-                                      //           10 /
-                                      //           100,
-                                      //   child: ClipRRect(
-                                      //     borderRadius:
-                                      //         BorderRadius.circular(10),
-                                      //     child: Image.asset(
-                                      //       AppImage.boatImage,
-                                      //       fit: BoxFit.cover,
-                                      //     ),
-                                      //   ),
-                                      // ),
+                                  
                                     ],
                                   ),
                                 ),
@@ -617,40 +564,7 @@ class _OngoingDetailsScreen extends State<OngoingDetailsScreen> {
                                     2 /
                                     100),
 
-                            //!Get Direction
-                            // Row(
-                            //   mainAxisAlignment: MainAxisAlignment.end,
-                            //   children: [
-                            //     GestureDetector(
-                            //       onTap: () {
-                            //         openMap(tripDetails['latitude'],
-                            //             tripDetails['longitude']);
-                            //       },
-                            //       child: Container(
-                            //         color: Colors.transparent,
-                            //         width: MediaQuery.of(context).size.width *
-                            //             42 /
-                            //             100,
-                            //         alignment: Alignment.center,
-                            //         child: Text(
-                            //           AppLanguage.getDirectionsText[language],
-                            //           style: const TextStyle(
-                            //               fontFamily: AppFont.fontFamily,
-                            //               fontSize: 14,
-                            //               fontWeight: FontWeight.w600,
-                            //               color: AppColor.themeColor,
-                            //               decoration: TextDecoration.underline,
-                            //               decorationColor: AppColor.themeColor),
-                            //         ),
-                            //       ),
-                            //     ),
-                            //   ],
-                            // ),
-                            // SizedBox(
-                            //     height: MediaQuery.of(context).size.height *
-                            //         1 /
-                            //         100),
-
+                        
                             //!map
                             Stack(children: [
                               ClipRRect(
@@ -1190,37 +1104,7 @@ class _OngoingDetailsScreen extends State<OngoingDetailsScreen> {
                                                                 ),
                                                               ),
                                                             ),
-                                                            // GestureDetector(
-                                                            //   onTap: () {
-                                                            //     deleteSubAddOn(
-                                                            //         selectedAddons[
-                                                            //                 index][
-                                                            //             'addon_id'],
-                                                            //         selectedAddons[index]
-                                                            //                     [
-                                                            //                     'subAddons']
-                                                            //                 [subIndex]
-                                                            //             [
-                                                            //             'subAddOnId']);
-                                                            //   },
-                                                            //   child: Container(
-                                                            //     width: MediaQuery.of(
-                                                            //                 context)
-                                                            //             .size
-                                                            //             .width *
-                                                            //         5 /
-                                                            //         100,
-                                                            //     height: MediaQuery.of(
-                                                            //                 context)
-                                                            //             .size
-                                                            //             .width *
-                                                            //         5 /
-                                                            //         100,
-                                                            //     child: Image.asset(
-                                                            //         AppImage
-                                                            //             .deleteAccountIcon),
-                                                            //   ),
-                                                            // )
+                                                          
                                                           ],
                                                         )
                                                       ],
@@ -1491,67 +1375,7 @@ class _OngoingDetailsScreen extends State<OngoingDetailsScreen> {
                                               2 /
                                               100),
 
-                                  // Container(
-                                  //   width: MediaQuery.of(context).size.width *
-                                  //       85 /
-                                  //       100,
-                                  //   child: const Text(
-                                  //     "-------------------------------------------------------------------------------------------",
-                                  //     maxLines: 1,
-                                  //     style: TextStyle(
-                                  //         fontFamily: AppFont.fontFamily,
-                                  //         fontSize: 12,
-                                  //         fontWeight: FontWeight.w400,
-                                  //         color: AppColor.boaderColor),
-                                  //   ),
-                                  // ),
-                                  // SizedBox(
-                                  //     height: MediaQuery.of(context).size.height *
-                                  //         1 /
-                                  //         100),
-                                  // Container(
-                                  //   width: MediaQuery.of(context).size.width *
-                                  //       85 /
-                                  //       100,
-                                  //   child: Row(
-                                  //     children: [
-                                  //       Container(
-                                  //         width: MediaQuery.of(context).size.width *
-                                  //             42 /
-                                  //             100,
-                                  //         child: Text(
-                                  //           AppLanguage.captainFeesText[language],
-                                  //           style: const TextStyle(
-                                  //               fontFamily: AppFont.fontFamily,
-                                  //               fontSize: 16,
-                                  //               fontWeight: FontWeight.w500,
-                                  //               color: AppColor.textColor),
-                                  //         ),
-                                  //       ),
-                                  //       Container(
-                                  //         width: MediaQuery.of(context).size.width *
-                                  //             42 /
-                                  //             100,
-                                  //         alignment: language == 1
-                                  //             ? Alignment.centerLeft
-                                  //             : Alignment.centerRight,
-                                  //         child: const Text(
-                                  //           "10 KWD",
-                                  //           style: TextStyle(
-                                  //               fontFamily: AppFont.fontFamily,
-                                  //               fontSize: 16,
-                                  //               fontWeight: FontWeight.w600,
-                                  //               color: AppColor.primaryColor),
-                                  //         ),
-                                  //       ),
-                                  //     ],
-                                  //   ),
-                                  // ),
-                                  // SizedBox(
-                                  //     height: MediaQuery.of(context).size.height *
-                                  //         2 /
-                                  //         100),
-
+                            
                                   Container(
                                     width: MediaQuery.of(context).size.width *
                                         85 /
@@ -1759,22 +1583,7 @@ class _OngoingDetailsScreen extends State<OngoingDetailsScreen> {
                                 onPress: () {
                                   openMap(tripDetails['latitude'],
                                       tripDetails['longitude']);
-                                  // Navigator.push(
-                                  //     context,
-                                  //     MaterialPageRoute(
-                                  //         builder: (context) => Beaches(
-                                  //               status: 1,
-                                  //               activityId:
-                                  //                   tripDetails['trip_type_id']
-                                  //                       .toString(),
-                                  //               destinationId: tripDetails[
-                                  //                       'destination_id']
-                                  //                   .toString(),
-                                  //               toOpen: tripDetails[
-                                  //                       'pickup_point'] ??
-                                  //                   "",
-                                  //             )));
-                                }),
+                             }),
                             SizedBox(
                                 height: MediaQuery.of(context).size.height *
                                     2 /

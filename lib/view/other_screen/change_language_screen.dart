@@ -36,18 +36,7 @@ class ChangePasswordState extends State<ChangeLanguage> {
       "id": 1,
       "title": "Arabic",
     },
-    // {
-    //   "id": 3,
-    //   "title": AppLanguage.frenchText[language],
-    // },
-    // {
-    //   "id": 4,
-    //   "title": AppLanguage.italianText[language],
-    // },
-    // {
-    //   "id": 5,
-    //   "title": AppLanguage.koreanText[language],
-    // },
+ 
   ];
   dynamic languageId;
   @override

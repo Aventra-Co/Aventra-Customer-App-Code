@@ -142,10 +142,6 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
                   DateTime.parse(dateStr)) // parse string → DateTime
               .toSet(); // convert list → set
 
-          // markedDates = markedDatesString
-          //     .split(',')
-          //     .map((dateStr) => DateTime.parse(dateStr.trim()))
-          //     .toSet();
           setState(() {
             isApiCalling = false;
           });
@@ -383,8 +379,6 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
           timeSlots = (item != "NA") ? item : [];
           if (timeSlots.isNotEmpty) {
             availableTicketsCount = timeSlots[0]['available_ticket_count'];
-            // SnackBarToastMessage.showSnackBar(
-            //     context, AppLanguage.boatTimingNotAvailableText[language]);
           }
           setState(() {
             isApiCalling = false;
@@ -462,8 +456,6 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
                                   width: MediaQuery.of(context).size.width *
                                       100 /
                                       100,
-                                  // height:
-                                  //     MediaQuery.of(context).size.height * 33 / 100,
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 15),
                                   child: Column(
@@ -903,49 +895,7 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
                                             fontWeight: FontWeight.w400,
                                             fontFamily: AppFont.fontFamily),
                                       ),
-                                      // Text(
-                                      //   "${AppLanguage.yachtSizeText[language]} 33 feet",
-                                      //   style: TextStyle(
-                                      //       color: AppColor.primaryColor,
-                                      //       fontSize: 14,
-                                      //       fontWeight: FontWeight.w400,
-                                      //       fontFamily: AppFont.fontFamily),
-                                      // ),
-                                      // Text(
-                                      //   AppLanguage
-                                      //           .yachtCapacityText[language] +
-                                      //       " 7 people",
-                                      //   style: TextStyle(
-                                      //       color: AppColor.primaryColor,
-                                      //       fontSize: 14,
-                                      //       fontWeight: FontWeight.w400,
-                                      //       fontFamily: AppFont.fontFamily),
-                                      // ),
-                                      // Text(
-                                      //   AppLanguage.facilitiesText[language] +
-                                      //       " Bathroom, Bedroom, kitchen , fishing equipment, life jacket, refrigerator, Sound system , ice box .",
-                                      //   style: TextStyle(
-                                      //       color: AppColor.primaryColor,
-                                      //       fontSize: 14,
-                                      //       fontWeight: FontWeight.w400,
-                                      //       fontFamily: AppFont.fontFamily),
-                                      // ),
-                                      // Text(
-                                      //   "the boat is equipped with a tracking system .",
-                                      //   style: TextStyle(
-                                      //       color: AppColor.primaryColor,
-                                      //       fontSize: 14,
-                                      //       fontWeight: FontWeight.w400,
-                                      //       fontFamily: AppFont.fontFamily),
-                                      // ),
-                                      // Text(
-                                      //   "Happy trip !)",
-                                      //   style: TextStyle(
-                                      //       color: AppColor.primaryColor,
-                                      //       fontSize: 14,
-                                      //       fontWeight: FontWeight.w400,
-                                      //       fontFamily: AppFont.fontFamily),
-                                      // ),
+
                                       SizedBox(
                                           height: MediaQuery.of(context)
                                                   .size
@@ -1218,22 +1168,7 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
                                               fontWeight: FontWeight.w600,
                                               fontFamily: AppFont.fontFamily),
                                         ),
-                                        // Text(
-                                        //   "Abdullah Al Mubarak Street,",
-                                        //   style: TextStyle(
-                                        //       color: AppColor.grayColor,
-                                        //       fontSize: 12,
-                                        //       fontWeight: FontWeight.w500,
-                                        //       fontFamily: AppFont.fontFamily),
-                                        // ),
-                                        // Text(
-                                        //   "Kuwait City,",
-                                        //   style: TextStyle(
-                                        //       color: AppColor.grayColor,
-                                        //       fontSize: 12,
-                                        //       fontWeight: FontWeight.w500,
-                                        //       fontFamily: AppFont.fontFamily),
-                                        // ),
+                                        
                                       ],
                                     ),
                                     Container(
@@ -1354,8 +1289,6 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
                               ],
                             ),
                           ),
-                          //! SizedBox(
-                          //     height: MediaQuery.of(context).size.height * 2 / 100),
 
                           //!table calendar
                           SizedBox(
@@ -1370,10 +1303,7 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
                                 titleCentered: true,
                               ),
                               calendarStyle: const CalendarStyle(
-                                // todayDecoration: BoxDecoration(
-                                //   color: AppColor.blueColor,
-                                //   shape: BoxShape.circle,
-                                // ),
+                           
                                 selectedDecoration: BoxDecoration(
                                   color: AppColor.themeColor,
                                   shape: BoxShape.circle,
@@ -1529,88 +1459,7 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
                               height:
                                   MediaQuery.of(context).size.height * 3 / 100),
 
-                          //! SizedBox(
-                          //   width: MediaQuery.of(context).size.width * 90 / 100,
-                          //   child: Text(
-                          //     AppLanguage.selectFexibleText[language],
-                          //     style: TextStyle(
-                          //         color: AppColor.primaryColor,
-                          //         fontSize: 14,
-                          //         fontWeight: FontWeight.w400,
-                          //         fontFamily: AppFont.fontFamily),
-                          //   ),
-                          // ),
-                          // SizedBox(
-                          //     height: MediaQuery.of(context).size.height * 2 / 100),
-                          // // ---------------time -----------
-                          // Container(
-                          //   width: MediaQuery.of(context).size.width * 90 / 100,
-                          //   height: MediaQuery.of(context).size.height * 6 / 100,
-                          //   child: TextFormField(
-                          //     onTap: () async {
-                          //       // Show Time Picker
-                          //       final TimeOfDay? pickedTime = await showTimePicker(
-                          //         context: context,
-                          //         initialTime:
-                          //             TimeOfDay.fromDateTime(DateTime.now()),
-                          //       );
-                          //       if (pickedTime != null) {
-                          //         final String formattedTime =
-                          //             pickedTime.format(context);
-                          //         setState(() {
-                          //           timeTextEditingController.text = formattedTime;
-                          //         });
-                          //       }
-                          //     },
-                          //     readOnly: true,
-                          //     style: AppConstant.textFilledStyle,
-                          //     textAlignVertical: TextAlignVertical.center,
-                          //     controller: timeTextEditingController,
-                          //     decoration: InputDecoration(
-                          //       suffixIcon: Column(
-                          //         mainAxisAlignment: MainAxisAlignment.center,
-                          //         children: [
-                          //           SizedBox(
-                          //             child: Image.asset(
-                          //               AppImage.openBottomIcon,
-                          //               height: MediaQuery.of(context).size.width *
-                          //                   5 /
-                          //                   100,
-                          //               width: MediaQuery.of(context).size.width *
-                          //                   5 /
-                          //                   100,
-                          //             ),
-                          //           ),
-                          //         ],
-                          //       ),
-                          //       border: const OutlineInputBorder(
-                          //         borderSide: BorderSide(
-                          //             color: AppColor.textinputBorderColor),
-                          //         borderRadius:
-                          //             BorderRadius.all(Radius.circular(8)),
-                          //       ),
-                          //       enabledBorder: const OutlineInputBorder(
-                          //         borderSide: BorderSide(
-                          //             color: AppColor.textinputBorderColor),
-                          //         borderRadius:
-                          //             BorderRadius.all(Radius.circular(8)),
-                          //       ),
-                          //       focusedBorder: const OutlineInputBorder(
-                          //         borderSide: BorderSide(
-                          //             color: AppColor.textinputBorderColor),
-                          //         borderRadius:
-                          //             BorderRadius.all(Radius.circular(8)),
-                          //       ),
-                          //       contentPadding: const EdgeInsets.symmetric(
-                          //           vertical: 5, horizontal: 15),
-                          //       fillColor: AppColor.secondaryColor,
-                          //       filled: true,
-                          //       counterText: '',
-                          //       hintText: AppLanguage.selectHoursText[language],
-                          //       hintStyle: AppConstant.textFilledHeading,
-                          //     ),
-                          //   ),
-                          // ),
+                         
 
                           if (timeSlots.isNotEmpty && selectedDate.isNotEmpty)
                             Column(
@@ -1648,21 +1497,7 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
                                     List.generate(timeSlots.length, (index) {
                                   return Column(
                                     children: [
-                                      // SizedBox(
-                                      //   width:
-                                      //       MediaQuery.of(context).size.width *
-                                      //           21 /
-                                      //           100,
-                                      //   child: Text(
-                                      //     "${AppLanguage.ticketText[language]} (${timeSlots[index]['available_ticket_count']})",
-                                      //     textAlign: TextAlign.center,
-                                      //     style: const TextStyle(
-                                      //         fontFamily: AppFont.fontFamily,
-                                      //         fontSize: 13,
-                                      //         fontWeight: FontWeight.w500,
-                                      //         color: AppColor.primaryColor),
-                                      //   ),
-                                      // ),
+                                    
                                       GestureDetector(
                                         onTap: () {
                                           if (!timeSlots[index]
@@ -1687,28 +1522,7 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
                                                       ['start_time_formated'];
                                             }
                                             setState(() {});
-                                            // if (selectedSlotId ==
-                                            //     timeSlots[index]['slot_id']
-                                            //         .toString()) {
-                                            //   setState(() {
-                                            //     selectedSlotId = '';
-                                            //     selectedTime = '';
-                                            //     availableTicketsCount = 0;
-                                            //   });
-                                            // } else {
-                                            //   setState(() {
-                                            //     selectedSlotId = timeSlots[index]
-                                            //             ['slot_id']
-                                            //         .toString();
-                                            //     selectedTime =
-                                            //         timeSlots[index]['start_time'];
-                                            //     sendSelectedTime =
-                                            //         timeSlots[index]['start_time'];
-                                            //     availableTicketsCount =
-                                            //         timeSlots[index]
-                                            //             ['available_ticket_count'];
-                                            //   });
-                                            // }
+                                          
                                           }
                                         },
                                         child: Container(

@@ -97,8 +97,6 @@ class _ResetPasswordState extends State<ResetPassword> {
           });
           // ignore: use_build_context_synchronously
           SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
-          //FirebaseProvider.firebaseCreateUser(true);
-          // ignore: use_build_context_synchronously
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const Login()),

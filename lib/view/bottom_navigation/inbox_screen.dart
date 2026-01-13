@@ -14,8 +14,6 @@ import '../../controller/app_color.dart';
 import '../../controller/app_constant.dart';
 import '../../controller/app_font.dart';
 import '../../controller/app_language.dart';
-// import '../other_screen/chat_screen.dart';
-// import '../other_screen/chat_screen.dart';
 
 class Inbox extends StatefulWidget {
   static String routeName = './Inbox';
@@ -78,9 +76,6 @@ class _InboxState extends State<Inbox> {
       return;
     }
     if (data == null) {
-      // print("worked");
-      // SnackBarToastMessage.showSnackBar(
-      //     context, AppLanguage.notRegisteredMsg[language]);
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => const Login()));
     } else {
@@ -332,197 +327,7 @@ class _InboxState extends State<Inbox> {
                   ),
                 ),
 
-                // Expanded(
-                //   flex: 1,
-                //   child: SingleChildScrollView(
-                //     child: Column(
-                //       children: [
-                //         SizedBox(
-                //             height:
-                //                 MediaQuery.of(context).size.height * 2 / 100),
-                //         Container(
-                //           width: MediaQuery.of(context).size.width * 90 / 100,
-                //           child: SingleChildScrollView(
-                //             scrollDirection: Axis.vertical,
-                //             child: Wrap(
-                //               spacing: 10,
-                //               runSpacing:
-                //                   MediaQuery.of(context).size.height * 3 / 100,
-                //               children: List.generate(chatList.length, (index) {
-                //                 return GestureDetector(
-                //                   onTap: () {
-                //                     Navigator.push(
-                //                         context,
-                //                         MaterialPageRoute(
-                //                             builder: (context) =>
-                //                                 const Chat()));
-                //                   },
-                //                   child: Row(
-                //                     mainAxisAlignment:
-                //                         MainAxisAlignment.spaceBetween,
-                //                     crossAxisAlignment:
-                //                         CrossAxisAlignment.start,
-                //                     children: [
-                //                       ClipRRect(
-                //                         borderRadius:
-                //                             BorderRadius.circular(100),
-                //                         child: Container(
-                //                           width: screenWidth > 600
-                //                               ? MediaQuery.of(context)
-                //                                       .size
-                //                                       .width *
-                //                                   10 /
-                //                                   100
-                //                               : MediaQuery.of(context)
-                //                                       .size
-                //                                       .width *
-                //                                   12 /
-                //                                   100,
-                //                           height: screenWidth > 600
-                //                               ? MediaQuery.of(context)
-                //                                       .size
-                //                                       .width *
-                //                                   10 /
-                //                                   100
-                //                               : MediaQuery.of(context)
-                //                                       .size
-                //                                       .width *
-                //                                   12 /
-                //                                   100,
-                //                           child: Image.asset(
-                //                             chatList[index]['userImage'],
-                //                             fit: BoxFit.cover,
-                //                           ),
-                //                         ),
-                //                       ),
-                //                       Container(
-                //                         width:
-                //                             MediaQuery.of(context).size.width *
-                //                                 57 /
-                //                                 100,
-                //                         margin: EdgeInsets.only(top: 5),
-                //                         child: Column(
-                //                           crossAxisAlignment:
-                //                               CrossAxisAlignment.start,
-                //                           mainAxisAlignment:
-                //                               MainAxisAlignment.center,
-                //                           children: [
-                //                             Text(
-                //                               chatList[index]['userName'],
-                //                               style: const TextStyle(
-                //                                   color: AppColor.primaryColor,
-                //                                   fontSize: 14,
-                //                                   fontWeight: FontWeight.w600,
-                //                                   fontFamily:
-                //                                       AppFont.fontFamily),
-                //                             ),
-                //                             Text(
-                //                               chatList[index]['userMessage'],
-                //                               style: const TextStyle(
-                //                                   color: AppColor.primaryColor,
-                //                                   fontSize: 12,
-                //                                   fontWeight: FontWeight.w400,
-                //                                   fontFamily:
-                //                                       AppFont.fontFamily),
-                //                             ),
-                //                           ],
-                //                         ),
-                //                       ),
-                //                       GestureDetector(
-                //                         onTap: () {
-                //                           Navigator.push(
-                //                               context,
-                //                               MaterialPageRoute(
-                //                                   builder: (context) =>
-                //                                       const Chat()));
-                //                         },
-                //                         child: Container(
-                //                           // width:
-                //                           //     MediaQuery.of(context).size.width *
-                //                           //         6 /
-                //                           //         100,
-                //                           child: Column(
-                //                             crossAxisAlignment:
-                //                                 CrossAxisAlignment.end,
-                //                             children: [
-                //                               Container(
-                //                                 // width: MediaQuery.of(context)
-                //                                 //         .size
-                //                                 //         .width *
-                //                                 //     15 /
-                //                                 //     100,
-                //                                 margin: EdgeInsets.only(top: 5),
-                //                                 child: Text(
-                //                                   chatList[index]['timeAgo'],
-                //                                   style: const TextStyle(
-                //                                       color: AppColor
-                //                                           .hintTextinputColor,
-                //                                       fontSize: 12,
-                //                                       fontWeight:
-                //                                           FontWeight.w500,
-                //                                       fontFamily:
-                //                                           AppFont.fontFamily),
-                //                                 ),
-                //                               ),
-                //                               SizedBox(
-                //                                   height: MediaQuery.of(context)
-                //                                           .size
-                //                                           .height *
-                //                                       .2 /
-                //                                       100),
-                //                               if (chatList[index]
-                //                                       ['readStatus'] ==
-                //                                   false)
-                //                                 Container(
-                //                                   width: MediaQuery.of(context)
-                //                                           .size
-                //                                           .width *
-                //                                       5 /
-                //                                       100,
-                //                                   height: MediaQuery.of(context)
-                //                                           .size
-                //                                           .width *
-                //                                       5 /
-                //                                       100,
-                //                                   decoration:
-                //                                       const BoxDecoration(
-                //                                     color: AppColor.themeColor,
-                //                                     shape: BoxShape.circle,
-                //                                   ),
-                //                                   child: const Center(
-                //                                     child: Text(
-                //                                       "1",
-                //                                       // textAlign: TextAlign.center,
-                //                                       style: TextStyle(
-                //                                           color: AppColor
-                //                                               .secondaryColor,
-                //                                           fontSize: 10,
-                //                                           fontWeight:
-                //                                               FontWeight.w500,
-                //                                           fontFamily: AppFont
-                //                                               .fontFamily),
-                //                                     ),
-                //                                   ),
-                //                                 )
-                //                             ],
-                //                           ),
-                //                         ),
-                //                       )
-                //                     ],
-                //                   ),
-                //                 );
-                //               }),
-                //             ),
-                //           ),
-                //         ),
-                //         SizedBox(
-                //             height:
-                //                 MediaQuery.of(context).size.height * 2 / 100),
-                //       ],
-                //     ),
-                //   ),
-                // )
-              ],
+            ],
             ),
           )),
         ),

@@ -51,9 +51,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
       return;
     }
     if (data == null) {
-      // print("worked");
-      // SnackBarToastMessage.showSnackBar(
-      //     context, AppLanguage.notRegisteredMsg[language]);
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => const Login()));
     } else {

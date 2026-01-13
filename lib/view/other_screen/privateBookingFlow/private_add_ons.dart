@@ -330,17 +330,7 @@ class PrivateAddOnsState extends State<PrivateAddOns> {
                                       width: MediaQuery.of(context).size.width *
                                           1 /
                                           100),
-                                  // Container(
-                                  //   width: MediaQuery.of(context).size.width *
-                                  //       1 /
-                                  //       100,
-                                  //   height: MediaQuery.of(context).size.width *
-                                  //       1 /
-                                  //       100,
-                                  //   decoration: BoxDecoration(
-                                  //       color: AppColor.grayColor,
-                                  //       shape: BoxShape.circle),
-                                  // ),
+                         
                                   SizedBox(
                                       width: MediaQuery.of(context).size.width *
                                           1 /
@@ -384,18 +374,7 @@ class PrivateAddOnsState extends State<PrivateAddOns> {
                                   decorationColor: AppColor.themeColor),
                             ),
                           ),
-                          // Container(
-                          //   width: MediaQuery.of(context).size.width * 18 / 100,
-                          //   height:
-                          //       MediaQuery.of(context).size.width * 18 / 100,
-                          //   decoration: BoxDecoration(
-                          //       image: DecorationImage(
-                          //           image: AssetImage(
-                          //             './assets/icons/ship_image1.png',
-                          //           ),
-                          //           fit: BoxFit.cover),
-                          //       borderRadius: BorderRadius.circular(16)),
-                          // ),
+                        
                         ],
                       ),
                     ],

@@ -101,11 +101,7 @@ class _HelpSupportState extends State<HelpSupport> {
                                     fontWeight: FontWeight.w600,
                                     fontFamily: AppFont.fontFamily)),
                           ),
-                          // SizedBox(
-                          //   height: MediaQuery.of(context).size.width * 5 / 100,
-                          //   width: MediaQuery.of(context).size.width * 5 / 100,
-                          //   child: Image.asset(AppImage.phoneIcon),
-                          // ),
+                         
                         ],
                       ),
                     ),
@@ -138,18 +134,7 @@ class _HelpSupportState extends State<HelpSupport> {
                                                   .width *
                                               70 /
                                               100,
-                                          // padding: EdgeInsets.symmetric(
-                                          //     vertical: MediaQuery.of(context)
-                                          //             .size
-                                          //             .height *
-                                          //         2 /
-                                          //         100,
-                                          //     horizontal: MediaQuery.of(context)
-                                          //             .size
-                                          //             .width *
-                                          //         3 /
-                                          //         100),
-
+                                         
                                           padding: const EdgeInsets.only(
                                                   top: 12, bottom: 20) +
                                               const EdgeInsets.symmetric(

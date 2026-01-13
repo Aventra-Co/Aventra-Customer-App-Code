@@ -182,15 +182,7 @@ class _SuccessPaymentScreenState extends State<SuccessPaymentScreen> {
                                 ),
                               ],
                             ),
-                            // const SizedBox(height: 30),
-                            // const Text(
-                            //   'Loading Payment...',
-                            //   style: TextStyle(
-                            //     color: AppColor.primaryColor,
-                            //     fontSize: 16,
-                            //     fontWeight: FontWeight.w500,
-                            //   ),
-                            // ),
+                     
                             const SizedBox(height: 10),
                             Text(
                               '$loadingProgress%',
