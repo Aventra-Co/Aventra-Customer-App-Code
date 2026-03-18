@@ -8,7 +8,7 @@ import 'package:uni_links/uni_links.dart';
 import '../main.dart';
 import '../view/bottom_navigation/explore_screen.dart';
 import '../view/bottom_navigation/inbox_screen.dart';
-import '../view/bottom_navigation/my_trip_screen.dart';
+import '../view/bottom_navigation/bookings.dart';
 import '../view/bottom_navigation/profile_screen.dart';
 import '../view/bottom_navigation/favourites.dart';
 import '../view/other_screen/privateBookingFlow/private_redirection_trip_details.dart';
@@ -20,7 +20,8 @@ import 'app_language.dart';
 import 'dart:ui' as ui;
 
 class MyFooterPage extends StatefulWidget {
-  const MyFooterPage({Key? key}) : super(key: key);
+  final int selectedTab;
+  const MyFooterPage({Key? key, this.selectedTab = 0}) : super(key: key);
 
   @override
   _MyFooterPageState createState() => _MyFooterPageState();
@@ -33,9 +34,12 @@ class _MyFooterPageState extends State<MyFooterPage> {
   @override
   void initState() {
     super.initState();
+    _selectedIndex = widget.selectedTab;
+    _pageController = PageController(initialPage: widget.selectedTab);
     initUniLinks();
     _pageController =
         PageController(initialPage: AppConstant.selectFooterIndex);
+
     setState(() {
       _selectedIndex = AppConstant.selectFooterIndex;
     });
@@ -134,7 +138,7 @@ class _MyFooterPageState extends State<MyFooterPage> {
         onPageChanged: _onPageChanged,
         children: <Widget>[
           const Explore(),
-          const MyTrip(),
+          const MyTrip(selectedTab: 1),
           const Inbox(),
           const Favourites(),
           const Profile()
@@ -233,8 +237,8 @@ class _MyFooterPageState extends State<MyFooterPage> {
                         decoration: BoxDecoration(
                           image: DecorationImage(
                             image: AssetImage(_selectedIndex == 1
-                                ? AppImage.activeMyTripIcon1
-                                : AppImage.deactiveMyTripIcon),
+                                ? AppImage.activebookingIcon
+                                : AppImage.bookingIcon),
                           ),
                         ),
                       ),
@@ -242,7 +246,7 @@ class _MyFooterPageState extends State<MyFooterPage> {
                           height:
                               MediaQuery.of(context).size.height * 0.7 / 100),
                       Text(
-                        AppLanguage.myTripText[language],
+                        AppLanguage.bookingsText[language],
                         style: TextStyle(
                           fontFamily: AppFont.fontFamily,
                           fontSize: screenWidth > 600 ? 16 : 11,

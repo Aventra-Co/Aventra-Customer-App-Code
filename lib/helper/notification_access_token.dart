@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 class NotificationAccessToken {
   static String? _token;
@@ -9,6 +8,8 @@ class NotificationAccessToken {
 
   // to get admin bearer token
   static Future<String?> _getAccessToken() async {
+    return null;
+  
 
   }
 }

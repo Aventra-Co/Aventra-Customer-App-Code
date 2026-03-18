@@ -60,8 +60,8 @@ class _SignupState extends State<Signup> {
   var countryId;
   List<dynamic> cityList = [];
   List<dynamic> countryList = [];
-  List citySearchList = [];
-  List countrySearchList = [];
+  List<dynamic> citySearchList = [];
+  List<dynamic> countrySearchList = [];
   bool isApiCalling = false;
   String shareWith = "";
   String termsandconditionstype = "";
@@ -431,7 +431,6 @@ class _SignupState extends State<Signup> {
           context, AppLanguage.passwordandConfirmpassMessage[language]);
     } else {
       //! If validation passes, call the API
-
       signUpUserApiCall(firstName, lastName, email, mobile, password);
     }
   }

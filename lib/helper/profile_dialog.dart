@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-
-import '../../main.dart';
 import '../../model/chat_user.dart';
 import '../chat/profile_image.dart';
 

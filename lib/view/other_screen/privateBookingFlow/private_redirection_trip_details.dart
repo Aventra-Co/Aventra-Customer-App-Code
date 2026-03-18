@@ -2124,4 +2124,7 @@ class _RedirectionTripDetailsState
           });
         });
   }
+
+
+
 }

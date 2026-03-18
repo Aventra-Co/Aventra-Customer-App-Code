@@ -133,7 +133,6 @@ class _BeachesState extends State<Beaches> {
     // print("userDetails $userDetails");
     if (userDetails != null) {
       dynamic data = json.decode(userDetails);
-      print("up $data");
       userId = data['user_id'];
     }
     List<int> sendActivity =
@@ -166,13 +165,10 @@ class _BeachesState extends State<Beaches> {
       advertisementType, String addOnsIds, String activityIds) async {
     Uri url = Uri.parse(
         "${AppConfigProvider.apiUrl}fetch_trip_according_destination_activity?user_id=$userId&activity_id=$activityIds&destination_id=${widget.destinationId}&pickup_location=$pickUp&advertisement_type=$advertisementType&addone_id=$addOnsIds&date=$date");
-    print("url $url");
 
     String token = AppConstant.token;
 
-    if (token.isEmpty) {
-      print("Token is missing!");
-    }
+    if (token.isEmpty) {}
 
     Map<String, String> headers = {
       'Authorization': 'Bearer $token', // Use 'Bearer' if required
@@ -182,21 +178,16 @@ class _BeachesState extends State<Beaches> {
       isLoading = true;
     });
 
-    print("headers $headers");
-
     try {
       final response = await http.get(url, headers: headers);
-      print("response $response");
 
       if (response.statusCode == 200) {
         dynamic res = jsonDecode(response.body);
-        print("res $res");
 
         if (res['success'] == true) {
           var item = res['trip_arr'];
           oceanExploreList = (item != "NA") ? item : [];
           searchOceanExploreList = (item != "NA") ? item : [];
-          print("oceanExploreList$oceanExploreList");
 
           destination = res['destination_arr'][language];
           rating = res['destinationRating'].toString();
@@ -217,13 +208,11 @@ class _BeachesState extends State<Beaches> {
           });
         }
       } else {
-        print("Error: ${response.statusCode}");
         setState(() {
           isLoading = false;
         });
       }
     } catch (e) {
-      print("Exception: $e");
       setState(() {
         isLoading = false;
       });
@@ -234,13 +223,10 @@ class _BeachesState extends State<Beaches> {
   Future<void> getAddonsApi(userId) async {
     Uri url =
         Uri.parse("${AppConfigProvider.apiUrl}get_addons?user_id=$userId");
-    print("url $url");
 
     String token = AppConstant.token;
 
-    if (token.isEmpty) {
-      print("Token is missing!");
-    }
+    if (token.isEmpty) {}
 
     Map<String, String> headers = {
       'Authorization': 'Bearer $token', // Use 'Bearer' if required
@@ -250,20 +236,15 @@ class _BeachesState extends State<Beaches> {
       isApiCalling = true;
     });
 
-    print("headers $headers");
-
     try {
       final response = await http.get(url, headers: headers);
-      print("response $response");
 
       if (response.statusCode == 200) {
         dynamic res = jsonDecode(response.body);
-        print("res $res");
 
         if (res['success'] == true) {
           var item = res['addonCategoryArray'];
           addOnsList = (item != "NA") ? item : [];
-          print("addonslist$addOnsList");
 
           setState(() {
             isApiCalling = false;
@@ -281,13 +262,11 @@ class _BeachesState extends State<Beaches> {
           });
         }
       } else {
-        print("Error: ${response.statusCode}");
         setState(() {
           isApiCalling = false;
         });
       }
     } catch (e) {
-      print("Exception: $e");
       setState(() {
         isApiCalling = false;
       });
@@ -298,13 +277,10 @@ class _BeachesState extends State<Beaches> {
   Future<void> getActivityApi(userId) async {
     Uri url = Uri.parse(
         "${AppConfigProvider.apiUrl}get_activity?user_id=$userId&destination_id=${widget.destinationId}");
-    print("url $url");
 
     String token = AppConstant.token;
 
-    if (token.isEmpty) {
-      print("Token is missing!");
-    }
+    if (token.isEmpty) {}
 
     Map<String, String> headers = {
       'Authorization': 'Bearer $token', // Use 'Bearer' if required
@@ -314,20 +290,15 @@ class _BeachesState extends State<Beaches> {
       isApiCalling = true;
     });
 
-    print("headers $headers");
-
     try {
       final response = await http.get(url, headers: headers);
-      print("response $response");
 
       if (response.statusCode == 200) {
         dynamic res = jsonDecode(response.body);
-        print("res $res");
 
         if (res['success'] == true) {
           var item = res['activity_arr'];
           activityList = (item != "NA") ? item : [];
-          print("activityList$activityList");
 
           setState(() {
             isApiCalling = false;
@@ -345,13 +316,11 @@ class _BeachesState extends State<Beaches> {
           });
         }
       } else {
-        print("Error: ${response.statusCode}");
         setState(() {
           isApiCalling = false;
         });
       }
     } catch (e) {
-      print("Exception: $e");
       setState(() {
         isApiCalling = false;
       });
@@ -362,13 +331,10 @@ class _BeachesState extends State<Beaches> {
   Future<void> getPickUpsApi(userId) async {
     Uri url = Uri.parse(
         "${AppConfigProvider.apiUrl}get_all_pickup_points?user_id=$userId&destination_id=${widget.destinationId}");
-    print("url $url");
 
     String token = AppConstant.token;
 
-    if (token.isEmpty) {
-      print("Token is missing!");
-    }
+    if (token.isEmpty) {}
 
     Map<String, String> headers = {
       'Authorization': 'Bearer $token', // Use 'Bearer' if required
@@ -378,15 +344,11 @@ class _BeachesState extends State<Beaches> {
       isApiCalling = true;
     });
 
-    print("headers $headers");
-
     try {
       final response = await http.get(url, headers: headers);
-      print("response $response");
 
       if (response.statusCode == 200) {
         dynamic res = jsonDecode(response.body);
-        print("res $res");
 
         if (res['success'] == true) {
           var item = res['data'];
@@ -394,7 +356,6 @@ class _BeachesState extends State<Beaches> {
           pickUpList = locationsList;
           if (locationsList.isNotEmpty) {
             beaches = convertApiDataToBeaches(locationsList);
-            print("locationsList$locationsList");
           }
           setState(() {
             isApiCalling = false;
@@ -412,13 +373,11 @@ class _BeachesState extends State<Beaches> {
           });
         }
       } else {
-        print("Error: ${response.statusCode}");
         setState(() {
           isApiCalling = false;
         });
       }
     } catch (e) {
-      print("Exception: $e");
       setState(() {
         isApiCalling = false;
       });
@@ -444,16 +403,12 @@ class _BeachesState extends State<Beaches> {
 
   //---------------------SEARCH FUNCTION Trips--------------------///
   searchResultCountry(String query) {
-    print(query);
-
     var results1 = searchOceanExploreList
         .where((value) => value['boat_name']
             .toString()
             .toLowerCase()
             .contains(query.toLowerCase()))
         .toList();
-
-    print("results1 $results1");
 
     oceanExploreList = [];
 
@@ -466,13 +421,10 @@ class _BeachesState extends State<Beaches> {
   Future<void> getLatLongsApi(userId, destinationId) async {
     Uri url = Uri.parse(
         "${AppConfigProvider.apiUrl}get_all_pickup_points?user_id=$userId&destination_id=$destinationId");
-    print("url $url");
 
     String token = AppConstant.token;
 
-    if (token.isEmpty) {
-      print("Token is missing!");
-    }
+    if (token.isEmpty) {}
 
     Map<String, String> headers = {
       'Authorization': 'Bearer $token', // Use 'Bearer' if required
@@ -482,20 +434,15 @@ class _BeachesState extends State<Beaches> {
       isApiCalling = true;
     });
 
-    print("headers $headers");
-
     try {
       final response = await http.get(url, headers: headers);
-      print("response $response");
 
       if (response.statusCode == 200) {
         dynamic res = jsonDecode(response.body);
-        print("res $res");
 
         if (res['success'] == true) {
           var item = res['activity_arr'];
           activityList = (item != "NA") ? item : [];
-          print("activityList$activityList");
 
           setState(() {
             isApiCalling = false;
@@ -513,13 +460,11 @@ class _BeachesState extends State<Beaches> {
           });
         }
       } else {
-        print("Error: ${response.statusCode}");
         setState(() {
           isApiCalling = false;
         });
       }
     } catch (e) {
-      print("Exception: $e");
       setState(() {
         isApiCalling = false;
       });
@@ -539,21 +484,15 @@ class _BeachesState extends State<Beaches> {
 
   void applySorting() {
     if (selectedFilterOption == 0) {
-      print('No filter selected - skipping sorting');
       return;
     }
-
-    print('Applying sorting with option: $selectedFilterOption');
-    print('Before sorting: ${oceanExploreList.length} items');
 
     setState(() {
       oceanExploreList = List.from(oceanExploreList);
 
       switch (selectedFilterOption) {
         case 0: // Highly Rated
-          print('Sorting by rating...');
           oceanExploreList.sort((a, b) {
-            print('\nComparing items (Rating):');
             dynamic ratingA = a['rating'] ?? 0;
             dynamic ratingB = b['rating'] ?? 0;
 
@@ -564,15 +503,12 @@ class _BeachesState extends State<Beaches> {
                 ? double.tryParse(ratingB) ?? 0
                 : (ratingB as num).toDouble();
 
-            print('Converted to: A=$numA, B=$numB');
             return numB.compareTo(numA); // high to low
           });
           break;
 
         case 1: // Price High To Low
-          print('Sorting by price (high to low)...');
           oceanExploreList.sort((a, b) {
-            print('\nComparing items (Price):');
             dynamic priceA = a['price_per_hour'] ?? 0;
             dynamic priceB = b['price_per_hour'] ?? 0;
 
@@ -583,19 +519,15 @@ class _BeachesState extends State<Beaches> {
                 ? double.tryParse(priceB) ?? 0
                 : (priceB as num).toDouble();
 
-            print('Converted to: A=$numA, B=$numB');
             return numB.compareTo(numA);
           });
           break;
       }
 
-      print('Sorting completed! First 3 items after sorting:');
       for (var i = 0;
           i < (oceanExploreList.length > 3 ? 3 : oceanExploreList.length);
           i++) {
         var item = oceanExploreList[i];
-        print('Rating: ${item['rating']}, '
-            'Price: ${item['price_per_hour']}');
       }
     });
   }
@@ -603,7 +535,6 @@ class _BeachesState extends State<Beaches> {
   //=============add favorite trip API================//
   Future<void> addFavoriteApiCall(index, tripId) async {
     Uri url = Uri.parse("${AppConfigProvider.apiUrl}add_favourite");
-    print("Url $url");
     setState(() {
       isApiCalling = false;
     });
@@ -618,19 +549,14 @@ class _BeachesState extends State<Beaches> {
         'trip_id': tripId.toString(),
       };
 
-      print("body $body");
-
       http.Response response = await http.post(
         url,
         headers: headers,
         body: body,
       );
-      print("response--> $response");
       var res = jsonDecode(response.body);
 
-      print("res333 : $res");
       if (response.statusCode == 200) {
-        print("res : $res");
         if (res['success'] == true) {
           setState(() {
             oceanExploreList[index]['favourite_status'] =
@@ -670,8 +596,6 @@ class _BeachesState extends State<Beaches> {
     final RenderBox box = context.findRenderObject() as RenderBox;
     await Share.share("Aventra App! $shareUrl",
         sharePositionOrigin: box.localToGlobal(Offset.zero) & box.size);
-
-    print("shareUrl $shareUrl");
   }
 
   @override
@@ -1704,7 +1628,7 @@ class _BeachesState extends State<Beaches> {
                                                                             context)
                                                                         .size
                                                                         .width *
-                                                                    70 /
+                                                                    69 /
                                                                     100,
                                                                 // color: Colors.red,
                                                                 child: Text(
@@ -1881,7 +1805,6 @@ class _BeachesState extends State<Beaches> {
                                                                           fontFamily:
                                                                               AppFont.fontFamily),
                                                                     ),
-                                                               
                                                                   ],
                                                                 ),
                                                               )
@@ -2138,7 +2061,6 @@ class _BeachesState extends State<Beaches> {
                                                                       AppFont
                                                                           .fontFamily),
                                                             ),
-                                                        
                                                           ],
                                                         ),
                                                       ),
@@ -3474,7 +3396,6 @@ class _BeachesState extends State<Beaches> {
                                       //  crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Container(
-
                                           child: Text(
                                             sortList[index]["text"],
                                             style: TextStyle(
@@ -3561,7 +3482,6 @@ class _BeachesState extends State<Beaches> {
     setState(() {
       selectedFilterOption = sortList[index]['id'];
       applySorting();
-      print("Selected ID: $index");
     });
   }
 }

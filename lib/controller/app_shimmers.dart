@@ -141,7 +141,7 @@ Widget myTripShimmerEffect(BuildContext context) {
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Column(
         children: List.generate(
-            5, // Number of shimmer items to show
+            4, // Number of shimmer items to show
             (index) => Column(
                   children: [
                     Row(
@@ -181,21 +181,28 @@ Widget favGridShimmerEffect(BuildContext context) {
   return Shimmer.fromColors(
     baseColor: Colors.grey[300]!,
     highlightColor: Colors.grey[100]!,
-    child: Container(
-      width: MediaQuery.of(context).size.width * 90 / 100,
-      child: Wrap(
-        alignment: WrapAlignment.spaceBetween,
-        runSpacing: 10.0,
-        children: List.generate(6, (index) {
-          return Container(
-            width: MediaQuery.of(context).size.width * 44 / 100,
-            height: MediaQuery.of(context).size.height * 25 / 100,
-            decoration: BoxDecoration(
-                color: Colors.grey[300]!,
-                borderRadius: BorderRadius.circular(20)),
-          );
-        }),
-      ),
+    child: Column(
+      children: [
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 2 / 100,
+        ),
+        SizedBox(
+          width: MediaQuery.of(context).size.width * 90 / 100,
+          child: Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            runSpacing: 10.0,
+            children: List.generate(6, (index) {
+              return Container(
+                width: MediaQuery.of(context).size.width * 44 / 100,
+                height: MediaQuery.of(context).size.height * 25 / 100,
+                decoration: BoxDecoration(
+                    color: Colors.grey[300]!,
+                    borderRadius: BorderRadius.circular(20)),
+              );
+            }),
+          ),
+        ),
+      ],
     ),
   );
 }

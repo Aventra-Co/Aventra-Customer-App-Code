@@ -80,11 +80,9 @@ class _ChatState extends State<AdminChat> {
   //------------------------GET NUMBER API CALL--------------------------------//
   Future<void> getNumberApiCall() async {
     Uri url = Uri.parse("${AppConfigProvider.apiUrl}get_admin_number");
-    print("url $url");
     String token = AppConstant.token;
 
     if (token.isEmpty) {
-      print("Token is missing!");
       // return;
     }
 
@@ -92,15 +90,12 @@ class _ChatState extends State<AdminChat> {
       'Authorization': 'Bearer $token', // Use 'Bearer' if required
     };
 
-    print("headers $headers");
 
     try {
       final response = await http.get(url, headers: headers);
-      print("response $response");
 
       if (response.statusCode == 200) {
         dynamic res = jsonDecode(response.body);
-        print("res $res");
 
         if (res['success'] == true) {
           mobileNumber = res['admin_number'].toString();
@@ -121,7 +116,6 @@ class _ChatState extends State<AdminChat> {
     final Uri url = Uri.parse('tel:+91$phoneNumber');
 
     // Uri url = Uri(scheme: "tel", path: phoneNumber);
-    print("Formatted URI: $url");
 
     if (await canLaunchUrl(url)) {
       await launchUrl(
@@ -129,7 +123,6 @@ class _ChatState extends State<AdminChat> {
         mode: LaunchMode.externalApplication,
       );
     } else {
-      print("Can't open dial pad.");
     }
   }
 
@@ -138,16 +131,11 @@ class _ChatState extends State<AdminChat> {
     // getGetMetUserApi(widget.otherUserId);
     getUserDetails();
     getNumberApiCall();
-    print("ChatInitialScreen");
-    print(widget.otherUserId);
-    print(widget.otherUserName);
-    print("deviceToken : ${widget.deviceToken}");
     FirebaseProvider.firebaseCreateUser(true, 'yes');
     super.initState();
   }
 
   Future<void> getUserDetails() async {
-    print("Message Screen");
     final prefs = await SharedPreferences.getInstance();
     dynamic userDetails = prefs.getString('userDetails');
 
@@ -188,7 +176,6 @@ class _ChatState extends State<AdminChat> {
         .ref('message/$userCreatedChatId')
         .get()
         .then((snap) {
-      print("snap.value--> ${snap.value}");
 
 
       if (snap.value == null) {
@@ -209,7 +196,6 @@ class _ChatState extends State<AdminChat> {
     String formattedDateTime =
         DateFormat('yyyy-MM-dd HH:mm:ss').format(datetime);
 
-    print('Datetime: $formattedDateTime');
 
     String formattedTime =
         DateFormat('h:mm a').format(formattedDateTime as DateTime);
@@ -253,13 +239,11 @@ class _ChatState extends State<AdminChat> {
   }
 
   getTime(timestamp) {
-    print("object$timestamp");
 
     DateTime datetime = DateTime.fromMillisecondsSinceEpoch(timestamp);
     String formattedDateTime =
         DateFormat('yyyy-MM-dd HH:mm:ss').format(datetime);
 
-    print("formattedDateTime$formattedDateTime");
   }
 
   @override
@@ -292,7 +276,6 @@ class _ChatState extends State<AdminChat> {
     return WillPopScope(
       onWillPop: () async {
         // Capture a print value when the back button is pressed
-        print('Back button pressed');
 
         // Determine whether to hide the keyboard or not
         if (shouldHideKeyboard()) {
@@ -397,7 +380,6 @@ class _ChatState extends State<AdminChat> {
                             data.forEach((index, data) =>
                                 item.add({"key": index, ...data}));
 
-                            print("object11$item");
                             for (var i = 0; i < item.length; i++) {
                               if (item[i]['senderId'] == 1) {
                                 item[i]['MsgTimeShamp'] = item[i]['timestamp'];
@@ -407,7 +389,6 @@ class _ChatState extends State<AdminChat> {
                                 item[i]['MsgTimeShamp'] = item[i]['timestamp'];
                               }
                             }
-                            print("object33$item");
 
                             if (widget.chatMetStatus == "no") {
                               if (item.length == 10) {
@@ -432,7 +413,6 @@ class _ChatState extends State<AdminChat> {
                             List item1 = [];
                             // String value = "NA";
                             for (var i = 0; i < item.length; i++) {
-                              print("object$item");
                               var chatJson = {
                                 'key': item[i]['key'],
                                 'senderId': item[i]['senderId'],
@@ -722,14 +702,12 @@ class _ChatState extends State<AdminChat> {
   }
 
   sendFirstMessage(otherUserId, message) async {
-    print("sendFirstMessage;");
     final prefs = await SharedPreferences.getInstance();
     var jwtToken = prefs.getString('user_jwt_token').toString();
 
     String userJWTToken = "Bearer $jwtToken";
 
     final url = Uri.parse("${AppConfigProvider.apiUrl}chats");
-    print('url: $url');
 
     Map<String, String> headers = ({
       'Authorization': userJWTToken.toString(),
@@ -744,7 +722,6 @@ class _ChatState extends State<AdminChat> {
           }
         }),
         headers: headers);
-    print(json.decode(response.body));
 
     try {
       if (response.statusCode == 200) {
@@ -756,14 +733,12 @@ class _ChatState extends State<AdminChat> {
   }
 
   sendFirstMessageVerify(otherUserId, message) async {
-    print("sendFirstMessageVerify;");
     final prefs = await SharedPreferences.getInstance();
     var jwtToken = prefs.getString('user_jwt_token').toString();
 
     String userJWTToken = "Bearer $jwtToken";
 
     final url = Uri.parse("${AppConfigProvider.apiUrl}chats");
-    print('url: $url');
 
     Map<String, String> headers = ({
       'Authorization': userJWTToken.toString(),
@@ -778,7 +753,6 @@ class _ChatState extends State<AdminChat> {
           }
         }),
         headers: headers);
-    print(json.decode(response.body));
     try {
       if (response.statusCode == 200) {
       } else {}

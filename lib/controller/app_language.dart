@@ -9,6 +9,7 @@ class AppLanguage {
   static const welcomeText = ["WELCOME", "أهلاً وسهلاً"];
   static const proceedText = ["Proceed", "متابعة"];
   static const checkoutText = ["Checkout", "الدفع"];
+  static const checkInDateText = ["Check-in Date", "تاريخ تسجيل الوصول"];
 
   static const confirmButtonText = ["Confirm", "تأكيد"];
   static const contactUsingText = ["or contact using ", "أو تواصل باستخدام"];
@@ -839,5 +840,164 @@ class AppLanguage {
   static const offText = [
     "OFF",
     "خصم",
+  ];
+
+// 23/02/2026
+  static const seaText = ['Sea', 'بحر'];
+  static const propertyText = ['Property', 'عقار'];
+  static const seaCardText = [
+    'Book Your Sea Experience',
+    'احجز تجربتك البحرية'
+  ];
+  static const propertyCardText = [
+    'Find Your Perfect Stay',
+    'ابحث عن إقامتك المثالية'
+  ];
+  static const greenLeafInnText = ['The Greenleaf Inn', 'نزل جرين ليف'];
+  static const southKutaText = ['South Kuta', 'جنوب كوتا'];
+  static const bookingDate = ['Booking Date', 'تاريخ الحجز'];
+  static const bookingDays = ['Booking Days', 'أيام الحجز'];
+  static const cancelReaText = ['Cancel Reason', 'سبب الإلغاء'];
+
+  static const foundAnotherpropertyText = [
+    'Found another property',
+    'وجدت عقار آخر'
+  ];
+  static const whatThisplaceOfferText = [
+    'What this place offers',
+    'ما يوفره هذا المكان'
+  ];
+
+  static const propertyDetailsText = [
+    "Property Details",
+    "تفاصيل العقار",
+  ];
+
+  static const propertyNameText = [
+    "Property Name:",
+    "اسم العقار:",
+  ];
+
+  static const propertyTypeText = [
+    "Property Type",
+    "نوع العقار",
+  ];
+
+  static const propertyAddressText = [
+    "Property Address:",
+    "عنوان العقار:",
+  ];
+
+  static const roomsText = [
+    "Rooms",
+    "الغرف",
+  ];
+
+  static const hallsText = [
+    "Halls",
+    "الصالات",
+  ];
+
+  static const outdoorSeatingText = [
+    "Outdoor Seating:",
+    "جلسات خارجية:",
+  ];
+
+  static const washroomsText = [
+    "Washrooms",
+    "دورات المياه",
+  ];
+
+  static const poolText = [
+    "Pool:",
+    "المسبح:",
+  ];
+
+  static const guestsext = ["Guests", "ضيف"];
+  static const selectSeaTypeText = [
+    "Select Sea Type",
+    "اختر نوع البحر",
+  ];
+
+  static const selectPropertyTypeText = [
+    "Select Property Type",
+    "اختر نوع العقار",
+  ];
+  static const startingFromText = ["Starting From", "يبدأ من"];
+  static const oceanExplorer3000Text = [
+    "Ocean Explorer 3000",
+    "أوشن إكسبلورر 3000",
+  ];
+
+  static const blueNatureText = [
+    'Blue Nature is a 5 star complemented with 80 well bedroom and suit, modern residence with prime location within the city center.',
+    'بلو نيتشر هو فندق 5 نجوم مكتمل بـ 80 غرفة وجناح فاخر، مكان إقامة عصري مع موقع متميز في وسط المدينة',
+  ];
+  //26-02
+
+  static const mostPopularpropertiesText = [
+    "Most Popular Properties",
+    "العقارات الأكثر شهرة",
+  ];
+
+  static const guestsText = ["Guests", "ضيف"];
+  static const adultText = [
+    "Adult",
+    "بالغ",
+  ];
+
+  static const childText = [
+    "Child",
+    "طفل",
+  ];
+
+  static const childrenText = [
+    "Children",
+    "أطفال",
+  ];
+  static const petFriendlyCOLONText = [
+    "Pet Friendly:",
+    "مسموح بالحيوانات الأليفة:",
+  ];
+  static const guardText = [
+    "Guard:",
+    "الحارس:",
+  ];
+  static const oneDayText = [
+    "One day \n(2pm till next day 12 afternoon)",
+    "يوم واحد \n(من 2 ظهراً حتى 12 ظهر اليوم التالي)"
+  ];
+
+  static const weekDaysText = [
+    "Weekday (Sun-Wed)",
+    "أيام الأسبوع (الأحد-الأربعاء)"
+  ];
+
+  static const weekendDaysText = [
+    "Weekend (Thu-Sat)",
+    "عطلة نهاية الأسبوع (الخميس-السبت)"
+  ];
+
+  static const fullWeekDaysText = [
+    "Full week (Sun-Sat)",
+    "طوال الأسبوع (الأحد-السبت)"
+  ];
+  static const selectDateMsg = [
+    "Please select a date",
+    "يرجى اختيار التاريخ",
+  ];
+
+  static const numberOfGuestMsg = [
+    "Number of guest must be greater than 0",
+    "يجب أن يكون عدد الضيوف أكبر من 0",
+  ];
+
+  static const selectCityText = [
+    "Select City",
+    "اختر المدينة",
+  ];
+  static const daysText = [
+    "Day(s)",
+    "يوم/أيام",
   ];
 }

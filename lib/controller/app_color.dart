@@ -55,4 +55,8 @@ class AppColor {
   static const Color chatBubbaleColor = Color(0xff918F8F);
   static const Color textLightColor = Color(0xffBEC3C7);
   static const Color background = Color(0xfff6f4f1);
+  static const Color completedColor = Color(0xFF1A908E);
+  static const Color ongoingColor = Color(0xFF096B9B);
+  static const Color pendingColor = Color(0xFFF8C63D);
+  static const Color lightGreen = Color.fromARGB(159, 229, 240, 239);
 }

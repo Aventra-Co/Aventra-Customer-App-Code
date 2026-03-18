@@ -79,10 +79,10 @@ class AppInitializer extends StatefulWidget {
 }
 
 class _AppInitializerState extends State<AppInitializer> {
-  @override
+@override
   void initState() {
     super.initState();
-    // Mark app as initialized after the first frame
+    // Mark app as initialized after the first frame_buildPromotionsSection
     WidgetsBinding.instance.addPostFrameCallback((_) {
       OneSignalService.setAppInitialized(true);
     });

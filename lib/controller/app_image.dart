@@ -74,6 +74,10 @@ class AppImage {
   static const beachImage = './assets/icons/image_beach.png';
   // static const ratingIcon = './assets/icons/.png';
 
+  // 23/02/2026
+  static const seaImage = './assets/icons/Sea.png';
+  static const propertyImage = './assets/icons/Property.png';
+
   // ===================beaches======================
   static const navigateBackIcon = './assets/icons/icon_navigate_back.png';
   static const searchIcon = './assets/icons/icon_search.png';
@@ -167,4 +171,59 @@ class AppImage {
   static const discountStrip = './assets/icons/ic_discountStrip.png';
   static const discountStripInverted =
       './assets/icons/ic_discountStripInverted.png';
+
+//==================== Property Home =======================
+  static const propertyHomeImage = './assets/icons/image 9 (1).png';
+  static const searchicon2 = './assets/icons/icon_search.png';
+  static const greenLeafImage = './assets/icons/greenLeaf.png';
+  static const farmHouseImage = './assets/icons/farmhouse.png';
+  static const palmResortImage = './assets/icons/parmResortImage.png';
+  static const addFavouriteIcons = './assets/icons/Frame 1707482250.png';
+  static const removeFavouriteIcon = './assets/icons/ic_favHeart.png';
+  static const activelistImageIcon = './assets/icons/Frame 1707482261.png';
+  static const deactivelistImageIcon = './assets/icons/Frame 1707482260.png';
+  static const activegridImageIcon = './assets/icons/Frame 1707482262.png';
+  static const deactivegridImageIcon = './assets/icons/Frame 1707482263.png';
+  static const activemapImageIcon = './assets/icons/Frame 1707482264.png';
+  static const deactivemapImageIcon = './assets/icons/Frame 1707482265.png';
+  static const privateVillaImage = './assets/icons/Rectangle 22596.png';
+  static const chaletIstirahaImage = './assets/icons/Rectangle 22597.png';
+  static const farmhouseImage = './assets/icons/Rectangle 22596 (1).png';
+  static const resortVillaImage = './assets/icons/Rectangle 22597 (2).png';
+  static const tentInDesertImage = './assets/icons/Rectangle 22597 (1).png';
+  static const luxuryVillaIcon = './assets/icons/Rectangle 22598.png';
+  static const mapImage2 = './assets/icons/map2.png';
+  static const filterSortImage = './assets/icons/Frame 1707482266.png';
+  static const greenLeafImage2 = './assets/icons/greenLeafInn.png';
+  static const subImage1 = './assets/icons/subImage4.png';
+  static const subImage2 = './assets/icons/subImage3.png';
+  static const subImage3 = './assets/icons/subImage2.png';
+  static const subImage4 = './assets/icons/subImage1.png';
+  static const redLocationIcon = './assets/icons/location.png';
+  static const tvIcon = './assets/icons/Frame 1707482237.png';
+  static const wifiIcon = './assets/icons/Frame 1707482239.png';
+  static const fridgeIcon = './assets/icons/Frame 1707482243.png';
+  static const beddingIcon = './assets/icons/Frame 1707482238.png';
+  static const microwaveIcon = './assets/icons/Frame 1707482240.png';
+  static const kettleIcon = './assets/icons/Frame 1707482242.png';
+  static const coffeeIcon = './assets/icons/Frame 1707482244.png';
+  static const acIcon = './assets/icons/Frame 1707482241.png';
+  static const cancelicon = './assets/icons/Frame 1707482251.png';
+  static const filterAndSortIcon = './assets/icons/filterAndsort.png';
+  static const snorkelingImage = './assets/icons/snorkelling.png';
+  static const divingImage = './assets/icons/diving.png';
+  static const parasailingImage = './assets/icons/parasailing.png';
+  static const jacketImageIcon = './assets/icons/jacketsImage.png';
+  static const bookingTime = './assets/icons/ic_clockIcon.png';
+  static const guestsIcon = './assets/icons/Frame 1707482254.png';
+  static const houseIcon = './assets/icons/house.png';
+  static const backnav = './assets/icons/icon_navigate_back.png';
+  static const cancellationPolicyicon =
+      './assets/icons/cancellationPolicyicon.png';
+  static const activebookingIcon = './assets/icons/activeBookingIcon.png';
+  static const bookingIcon = './assets/icons/bookingIcon.png';
+  static const increamentIcon = './assets/icons/increament.png';
+  static const decreamentIcon = './assets/icons/decreament.png';
+  static const disableDecreamentIcon = './assets/icons/disable_decreament.png';
+  static const disableIncreamentIcon = './assets/icons/disable_increament.png';
 }

@@ -57,7 +57,7 @@ class _OngoingDetailsScreen extends State<OngoingDetailsScreen> {
     getUserDetails();
   }
 
-  //----------------------------GET USER DETAILS--------------------------------//
+  //! ----------------------------GET USER DETAILS--------------------------------//
   Future<dynamic> getUserDetails() async {
     final prefs = await SharedPreferences.getInstance();
     data = prefs.getString("userDetails");
@@ -73,7 +73,7 @@ class _OngoingDetailsScreen extends State<OngoingDetailsScreen> {
     setState(() {});
   }
 
-  //------------------------Upcoming trip Details API CALL--------------------------------//
+  //! ------------------------Upcoming trip Details API CALL--------------------------------//
   Future<void> tripDetailsApiCall(userId) async {
     setState(() {
       isApiCalling = true;
@@ -237,7 +237,7 @@ class _OngoingDetailsScreen extends State<OngoingDetailsScreen> {
                                           color: AppColor.primaryColor),
                                     ),
                                   ),
-                             ],
+                                ],
                               ),
                             ),
                             SizedBox(
@@ -444,8 +444,6 @@ class _OngoingDetailsScreen extends State<OngoingDetailsScreen> {
                                                   .width *
                                               2 /
                                               100),
-
-                                  
                                     ],
                                   ),
                                 ),
@@ -564,8 +562,7 @@ class _OngoingDetailsScreen extends State<OngoingDetailsScreen> {
                                     2 /
                                     100),
 
-                        
-                            //!map
+                            //! Google Map
                             Stack(children: [
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(12),
@@ -1104,7 +1101,6 @@ class _OngoingDetailsScreen extends State<OngoingDetailsScreen> {
                                                                 ),
                                                               ),
                                                             ),
-                                                          
                                                           ],
                                                         )
                                                       ],
@@ -1329,7 +1325,6 @@ class _OngoingDetailsScreen extends State<OngoingDetailsScreen> {
                                       ],
                                     ),
                                   ),
-
                                   SizedBox(
                                     width: MediaQuery.of(context).size.width *
                                         85 /
@@ -1374,8 +1369,6 @@ class _OngoingDetailsScreen extends State<OngoingDetailsScreen> {
                                           MediaQuery.of(context).size.height *
                                               2 /
                                               100),
-
-                            
                                   Container(
                                     width: MediaQuery.of(context).size.width *
                                         85 /
@@ -1583,7 +1576,7 @@ class _OngoingDetailsScreen extends State<OngoingDetailsScreen> {
                                 onPress: () {
                                   openMap(tripDetails['latitude'],
                                       tripDetails['longitude']);
-                             }),
+                                }),
                             SizedBox(
                                 height: MediaQuery.of(context).size.height *
                                     2 /
