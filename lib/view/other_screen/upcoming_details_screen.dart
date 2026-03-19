@@ -461,8 +461,7 @@ class _UpComingDetailsScreenState extends State<UpComingDetailsScreen> {
                                                   .width *
                                               2 /
                                               100),
-
-                              ],
+                                    ],
                                   ),
                                 ),
                               ),
@@ -1178,7 +1177,7 @@ class _UpComingDetailsScreenState extends State<UpComingDetailsScreen> {
                                                                 ),
                                                               ),
                                                             ),
-                                                     ],
+                                                          ],
                                                         )
                                                       ],
                                                     ),
@@ -1402,7 +1401,6 @@ class _UpComingDetailsScreenState extends State<UpComingDetailsScreen> {
                                       ],
                                     ),
                                   ),
-
                                   SizedBox(
                                     width: MediaQuery.of(context).size.width *
                                         85 /
@@ -1448,8 +1446,6 @@ class _UpComingDetailsScreenState extends State<UpComingDetailsScreen> {
                                           MediaQuery.of(context).size.height *
                                               2 /
                                               100),
-
-                           
                                   Container(
                                     width: MediaQuery.of(context).size.width *
                                         85 /
@@ -1574,7 +1570,9 @@ class _UpComingDetailsScreenState extends State<UpComingDetailsScreen> {
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) => CancelBooking(
+                                          cancelType: 1,
                                               tripBookingId: widget.tripId,
+                                              propertyBookingId: 1,
                                             )));
                               },
                               child: Container(

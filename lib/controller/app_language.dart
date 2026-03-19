@@ -276,7 +276,7 @@ class AppLanguage {
     "Find Delivery Person",
     "ابحث عن موصل"
   ];
-  static const statusText = ["Status : ", "الحالة : "];
+  static const statusText = ["Status", "الحالة"];
   static const receivedText = ["Received", "تم الاستلام"];
   static const inprogressText = ["Inprogress", "قيد التنفيذ"];
   static const pendingText = ["Pending", "معلق"];
@@ -317,6 +317,7 @@ class AppLanguage {
 
   //================bookings==================
   static const bookingsText = ["Bookings", "الحجوزات"];
+  static const bookingText = ["Booking", "الحجوزات"];
   static const startTimeText = ["Start Time", "وقت البدء"];
   static const bookingHoursText = ["Booking Hours", "ساعات الحجز"];
   static const ongoingText = ["Ongoing", "جارٍ التنفيذ"];
@@ -960,8 +961,8 @@ class AppLanguage {
     "مسموح بالحيوانات الأليفة:",
   ];
   static const guardText = [
-    "Guard:",
-    "الحارس:",
+    "Guard",
+    "الحارس",
   ];
   static const oneDayText = [
     "One day \n(2pm till next day 12 afternoon)",
@@ -1000,4 +1001,28 @@ class AppLanguage {
     "Day(s)",
     "يوم/أيام",
   ];
+  static const checkinCheckoutTimeText = [
+    "Check-in is at 2 PM on the arrival date, and check-out is by 12 PM (noon) on the departure date.",
+    "تسجيل الوصول يكون الساعة 2 مساءً في يوم الوصول، وتسجيل المغادرة قبل الساعة 12 ظهرًا في يوم المغادرة."
+  ];
+  static const timingText = ["Timing", "المواعيد"];
+  static const selectDatesText = [
+    'Select dates to see total',
+    'اختر التواريخ لرؤية الإجمالي',
+  ];
+
+  static const nightsText = [
+    'nights',
+    'ليالي',
+  ];
+
+  static const forText = [
+    'For',
+    'لـ',
+  ];
+  static const perDayText = [
+    '/Day',
+    '/يوم',
+  ];
+  static const selectProTypeText = ["Select Property Type", "اختر نوع العقار"];
 }

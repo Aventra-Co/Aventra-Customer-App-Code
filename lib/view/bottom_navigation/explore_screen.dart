@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:boatapp/view/property_screens/property_screen.dart';
 import 'package:boatapp/view/property_screens/viewAll_property_screen.dart';
 import 'package:boatapp/view/property_screens/property_detail_screen.dart';
@@ -1747,7 +1746,6 @@ class _ExploreState extends State<Explore> {
                           right: 8,
                           child: GestureDetector(
                             onTap: () {
-                              log("tap working");
                               deeplinkingProp(
                                   context, property['property_ad_id']);
                             },
@@ -1803,7 +1801,7 @@ class _ExploreState extends State<Explore> {
                               const SizedBox(height: 4),
                               Row(
                                 children: [
-                                  if (property['rating'].toString() != "0.00")
+                                  if (property['rating'] != 0)
                                     Container(
                                       width: screenWidth > 600
                                           ? MediaQuery.of(context).size.width *

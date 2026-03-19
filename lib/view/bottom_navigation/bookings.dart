@@ -35,26 +35,7 @@ class MyTrip extends StatefulWidget {
 
 class _MyTripState extends State<MyTrip> {
   List<dynamic> bookings = [];
-  List filterList = [
-    {
-      "id": 1,
-      "title": "Parasailing",
-      "image": "./assets/icons/parasailing.png"
-    },
-    {
-      "id": 2,
-      "title": "Snorkelling",
-      "image": "./assets/icons/snorkelling.png"
-    },
-    {"id": 3, "title": "Yachts", "image": "./assets/icons/ship.png"},
-    {"id": 4, "title": "Boats", "image": "./assets/icons/image_ship.png"},
-    {
-      "id": 5,
-      "title": "Diving",
-      "image": "./assets/icons/diving.png",
-    },
-    {"id": 6, "title": "Surfing", "image": "./assets/icons/surfing.png"}
-  ];
+  List<dynamic> propertyTypeList = [];
   bool isApiCalling = false;
   bool isLoading = true;
   int userId = 0;
@@ -62,6 +43,7 @@ class _MyTripState extends State<MyTrip> {
   dynamic userDataArr;
   List activitiesList = <dynamic>[];
   int selectedActivityId = 0;
+  int selectedPropTypeId = 0;
 
   @override
   void initState() {
@@ -110,6 +92,7 @@ class _MyTripState extends State<MyTrip> {
     bookingsApiCall(userId, "");
     propertyBookingsApiCall(userId, "");
     getActivitiesApi(userId);
+    propertyTypesApiCall(userId);
     isApiCalling = false;
     setState(() {});
   }
@@ -233,9 +216,9 @@ class _MyTripState extends State<MyTrip> {
   }
 
   //------------------------Bookings API CALL--------------------------------//
-  Future<void> propertyBookingsApiCall(userId, tripTypeId) async {
+  Future<void> propertyBookingsApiCall(userId, propertyTypeId) async {
     Uri url = Uri.parse(
-        "${AppConfigProvider.apiUrl}get_user_property_booking?user_id=$userId");
+        "${AppConfigProvider.apiUrl}get_user_property_booking?user_id=$userId&property_type_id=$propertyTypeId");
     print("url $url");
     setState(() {
       isLoading = true;
@@ -264,6 +247,69 @@ class _MyTripState extends State<MyTrip> {
         if (res['success'] == true) {
           var item = res['data'];
           propertyBookings = (item != "NA") ? item : [];
+
+          setState(() {
+            isLoading = false;
+          });
+        } else {
+          propertyBookings = [];
+          setState(() {
+            isLoading = false;
+          });
+          // ignore: use_build_context_synchronously
+          if (res['active_status'] == 0) {
+            localstorageclearbutton();
+            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
+          }
+        }
+      } else {
+        propertyBookings = [];
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      propertyBookings = [];
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  //------------------------PropType API CALL--------------------------------//
+  Future<void> propertyTypesApiCall(
+    userId,
+  ) async {
+    Uri url = Uri.parse(
+        "${AppConfigProvider.apiUrl}get_all_property_type?user_id=$userId");
+    print("url $url");
+    setState(() {
+      isLoading = true;
+    });
+    String token = AppConstant.token;
+
+    if (token.isEmpty) {
+      print("Token is missing!");
+      // return;
+    }
+
+    Map<String, String> headers = {
+      'Authorization': 'Bearer $token', // Use 'Bearer' if required
+    };
+
+    print("headers $headers");
+
+    try {
+      final response = await http.get(url, headers: headers);
+      print("response $response");
+
+      if (response.statusCode == 200) {
+        dynamic res = jsonDecode(response.body);
+        print("res $res");
+
+        if (res['success'] == true) {
+          var item = res['data'];
+          propertyTypeList = (item != "NA") ? item : [];
 
           setState(() {
             isLoading = false;
@@ -384,7 +430,8 @@ class _MyTripState extends State<MyTrip> {
                           GestureDetector(
                             onTap: () {
                               selectedTab == 1
-                                  ? showFilterModal(context, selectedOption)
+                                  ? showFilterModal(
+                                      context, selectedOption, screenWidth)
                                   : filterBottomSheet(context, screenWidth);
                             },
                             child: Container(
@@ -1041,26 +1088,30 @@ class _MyTripState extends State<MyTrip> {
 
   Widget _propertyBookingCard(Map<String, dynamic> booking, index) {
     final size = MediaQuery.of(context).size;
-
     return GestureDetector(
         onTap: () {
-          if (index == 1) {
+          if (booking["booking_status"] == 1) {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => PropertyOngoingDetailScreen()));
+                    builder: (context) => PropertyOngoingDetailScreen(
+                          propertyBookingId: booking['property_booking_id'],
+                        )));
           }
-          if (index == 0) {
+          if (booking["booking_status"] == 0) {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => PropertyPendingDetailsScreen()));
+                    builder: (context) => PropertyPendingDetailsScreen(
+                          propertyBookingId: booking['property_booking_id'],
+                        )));
           }
-          if (index == 2) {
+          if (booking["booking_status"] == 2) {
             Navigator.push(
                 context,
                 MaterialPageRoute(
                     builder: (context) => PropertyBookingHistoryDetailScreen(
+                          propertyBookingId: booking['property_booking_id'],
                           iscompleted: true,
                         )));
           }
@@ -1133,9 +1184,9 @@ class _MyTripState extends State<MyTrip> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                const Text(
                                   "name static",
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                     fontFamily: AppFont.fontFamily,
@@ -1156,7 +1207,7 @@ class _MyTripState extends State<MyTrip> {
                           ),
                           // Arrow icon
                           Padding(
-                            padding: EdgeInsets.symmetric(),
+                            padding: const EdgeInsets.symmetric(),
                             child: Image.asset(
                               AppImage.rightArrow,
                               color: AppColor.primaryColor,
@@ -1184,7 +1235,7 @@ class _MyTripState extends State<MyTrip> {
                                 ),
                               ),
                               Text(
-                                'Booking',
+                                AppLanguage.bookingText[language],
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w500,
@@ -1198,7 +1249,7 @@ class _MyTripState extends State<MyTrip> {
                           SizedBox(width: size.width * 0.15),
                           // Status
                           Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 booking['booking_status_label'],
@@ -1206,11 +1257,15 @@ class _MyTripState extends State<MyTrip> {
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                   fontFamily: AppFont.fontFamily,
-                                  color: AppColor.ongoingColor,
+                                  color: booking['booking_status'] == 0
+                                      ? AppColor.yellowColor
+                                      : booking['booking_status'] == 1
+                                          ? AppColor.darkBlueColor
+                                          : AppColor.themeColor,
                                 ),
                               ),
                               Text(
-                                'Status',
+                                AppLanguage.statusText[language],
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w500,
@@ -1261,7 +1316,7 @@ class _MyTripState extends State<MyTrip> {
           Text(
             label,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
               fontFamily: AppFont.fontFamily,
@@ -1464,63 +1519,195 @@ class _MyTripState extends State<MyTrip> {
     );
   }
 
-  void showFilterModal(BuildContext context, String selectedOption) {
-    showModalBottomSheet(
+  void showFilterModal(
+      BuildContext context, String selectedOption, screenWidth) {
+    showModalBottomSheet<void>(
+      isScrollControlled: true,
+      constraints: BoxConstraints.expand(
+          width: screenWidth,
+          height: MediaQuery.of(context).size.height * 60 / 100),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(30),
+          topRight: Radius.circular(30),
+        ),
+      ),
       context: context,
-      backgroundColor: AppColor.transparentColor,
-      builder: (context) {
-        return Container(
-          padding: EdgeInsets.all(24),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(24),
-              topRight: Radius.circular(24),
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Title
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Select property type',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: AppFont.fontFamily,
-                    color: Colors.black,
-                  ),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Container(
+              height: MediaQuery.of(context).size.height * 55 / 100,
+              width: MediaQuery.of(context).size.width * 100 / 100,
+              decoration: const BoxDecoration(
+                color: AppColor.secondaryColor,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(30),
+                  topRight: Radius.circular(30),
                 ),
               ),
-              const SizedBox(height: 24),
-
-              // Grid of property types
-              GridView.count(
-                  shrinkWrap: true,
-                  crossAxisCount: 3,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  childAspectRatio: 0.85,
-                  physics: const NeverScrollableScrollPhysics(),
-                  children: [
-                    _propertyTypeCard(context, AppImage.privateVillaImage,
-                        'Private Villa', selectedOption),
-                    _propertyTypeCard(context, AppImage.chaletIstirahaImage,
-                        'Chalet/Istiraha', selectedOption),
-                    _propertyTypeCard(context, AppImage.luxuryVillaIcon,
-                        'Luxury Villa', selectedOption),
-                    _propertyTypeCard(context, AppImage.farmHouseImage,
-                        'Farmhouse', selectedOption),
-                    _propertyTypeCard(context, AppImage.resortVillaImage,
-                        'Resort Villa', selectedOption),
-                    _propertyTypeCard(context, AppImage.tentInDesertImage,
-                        'Tent in desert', selectedOption),
-                  ]),
-              const SizedBox(height: 16),
-            ],
-          ),
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 4 / 100,
+                  ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 90 / 100,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(AppLanguage.selectProTypeText[language],
+                            style: TextStyle(
+                                color: AppColor.primaryColor,
+                                fontFamily: AppFont.fontFamily,
+                                fontWeight: FontWeight.w700,
+                                fontSize: screenWidth > 600 ? 20 : 16)),
+                        InkWell(
+                          onTap: () {
+                            selectedPropTypeId = 0;
+                            Navigator.pop(context);
+                            propertyBookingsApiCall(userId, "");
+                          },
+                          child: Text(AppLanguage.clearAllText[language],
+                              style: TextStyle(
+                                  color: AppColor.themeColor,
+                                  fontFamily: AppFont.fontFamily,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: screenWidth > 600 ? 18 : 14)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 3 / 100,
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width * 90 / 100,
+                            child: Wrap(
+                              spacing: 15,
+                              runSpacing: 10,
+                              // alignment: WrapAlignment.spaceBetween,
+                              children: List.generate(propertyTypeList.length,
+                                  (index) {
+                                return Column(
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        selectedPropTypeId =
+                                            propertyTypeList[index]
+                                                ['property_type_id'];
+                                        Navigator.pop(context);
+                                        propertyBookingsApiCall(
+                                            userId,
+                                            propertyTypeList[index]
+                                                ['property_type_id']);
+                                      },
+                                      child: Container(
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                26 /
+                                                100,
+                                        height:
+                                            MediaQuery.of(context).size.width *
+                                                26 /
+                                                100,
+                                        // padding:
+                                        //     const EdgeInsets.only(left: 15),
+                                        decoration: BoxDecoration(
+                                          image: DecorationImage(
+                                            image: propertyTypeList[index]
+                                                        ['image'] !=
+                                                    null
+                                                ? NetworkImage(
+                                                    "${AppConfigProvider.imageURL}${propertyTypeList[index]['image']}")
+                                                : const AssetImage(
+                                                        AppImage.dummyIcon)
+                                                    as ImageProvider,
+                                            fit: BoxFit.cover,
+                                            colorFilter: (selectedPropTypeId ==
+                                                    propertyTypeList[index]
+                                                        ['property_type_id'])
+                                                ? ColorFilter.mode(
+                                                    Colors.black.withOpacity(
+                                                        0.4), // Adjust the opacity
+                                                    BlendMode
+                                                        .darken, // You can change the BlendMode if needed
+                                                  )
+                                                : ColorFilter.mode(
+                                                    Colors.black.withOpacity(
+                                                        0.0), // Adjust the opacity
+                                                    BlendMode
+                                                        .darken, // You can change the BlendMode if needed
+                                                  ),
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(15),
+                                        ),
+                                        child: (selectedPropTypeId ==
+                                                propertyTypeList[index]
+                                                    ['property_type_id'])
+                                            ? Center(
+                                                child: SizedBox(
+                                                  width: MediaQuery.of(context)
+                                                          .size
+                                                          .width *
+                                                      8 /
+                                                      100,
+                                                  height: MediaQuery.of(context)
+                                                          .size
+                                                          .width *
+                                                      8 /
+                                                      100,
+                                                  child: Image.asset(
+                                                      AppImage.checkIcon),
+                                                ),
+                                              )
+                                            : Container(),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                1 /
+                                                100),
+                                    Container(
+                                      width: MediaQuery.of(context).size.width *
+                                          26 /
+                                          100,
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        propertyTypeList[index]
+                                                    ['property_type_label']
+                                                [language] ??
+                                            '',
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                            color: AppColor.primaryColor,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            fontFamily: AppFont.fontFamily),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }),
+                            ),
+                          ),
+                          SizedBox(
+                              height:
+                                  MediaQuery.of(context).size.height * 2 / 100),
+                        ],
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            );
+          },
         );
       },
     );

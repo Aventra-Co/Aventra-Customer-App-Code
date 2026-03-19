@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:boatapp/view/other_screen/publicBookingFlow/public_trip_details.dart';
-import 'package:boatapp/view/property_screens/property_booking_details.dart';
 import 'package:boatapp/view/property_screens/property_bookinghistory_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -34,6 +33,7 @@ class BookingHistory extends StatefulWidget {
 
 class _BookingHistoryState extends State<BookingHistory> {
   List<dynamic> bookingHistoryList = [];
+  List<dynamic> propBookingHistoryList = [];
   bool isApiCalling = false;
   bool isLoading = true;
   int userId = 0;
@@ -66,6 +66,7 @@ class _BookingHistoryState extends State<BookingHistory> {
     }
 
     getBookingHistoryApi(userId);
+    getPropBookingHistoryApi(userId);
     setState(() {});
   }
 
@@ -134,6 +135,71 @@ class _BookingHistoryState extends State<BookingHistory> {
     }
   }
 
+//=============================GET FAQS DETAILS===================================//
+  Future<void> getPropBookingHistoryApi(userId) async {
+    Uri url = Uri.parse(
+        "${AppConfigProvider.apiUrl}get_property_history_booking?user_id=$userId");
+    print("url $url");
+
+    String token = AppConstant.token;
+
+    if (token.isEmpty) {
+      print("Token is missing!");
+      return;
+    }
+
+    Map<String, String> headers = {
+      'Authorization': 'Bearer $token', // Use 'Bearer' if required
+    };
+
+    setState(() {
+      isLoading = true;
+    });
+
+    print("headers $headers");
+
+    try {
+      final response = await http.get(url, headers: headers);
+      print("response $response");
+
+      if (response.statusCode == 200) {
+        dynamic res = jsonDecode(response.body);
+        print("res $res");
+
+        if (res['success'] == true) {
+          var item = res['data'];
+          propBookingHistoryList = (item != "NA") ? item : [];
+
+          setState(() {
+            isLoading = false;
+          });
+        } else {
+          if (res['active_status'] == 0) {
+            SnackBarToastMessage.showSnackBar(
+                context, res['message'][language]);
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const Login()),
+            );
+          }
+          setState(() {
+            isLoading = false;
+          });
+        }
+      } else {
+        print("Error: ${response.statusCode}");
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      print("Exception: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
   var refreshKey = GlobalKey<RefreshIndicatorState>();
 
   //--------------------REFRESH FUNCION-----------------------//
@@ -145,26 +211,6 @@ class _BookingHistoryState extends State<BookingHistory> {
     return null;
   }
 
-  final List<Map<String, dynamic>> propertyList = [
-    {
-      'property_name': 'Palm Resort',
-      'date': '05-01-2025',
-      'total_amount': '170',
-      'trip_status': 2, // 2 = Completed, 3 = Cancelled
-      'property_image': AppImage.houseIcon,
-      'trip_booking_id': '12345',
-      'trip_id': '1',
-    },
-    {
-      'property_name': 'Sunset Farmhouse',
-      'date': '05-01-2025',
-      'total_amount': '170',
-      'trip_status': 3, // Cancelled
-      'property_image': AppImage.houseIcon,
-      'trip_booking_id': '12346',
-      'trip_id': '2',
-    },
-  ];
   int selectedTab = 0;
   String selectedOption = "Sea";
   @override
@@ -499,7 +545,7 @@ class _BookingHistoryState extends State<BookingHistory> {
                                                             child: Row(
                                                               children: [
                                                                 Text(
-                                                                  "KWD ${bookingHistoryList[index]["total_amount"].toString()}",
+                                                                  "${bookingHistoryList[index]["total_amount"].toString()} KWD",
                                                                   style: const TextStyle(
                                                                       color: AppColor
                                                                           .hintTextinputColor,
@@ -668,35 +714,39 @@ class _BookingHistoryState extends State<BookingHistory> {
 
     return Column(
       children: List.generate(
-        propertyList.length,
+        propBookingHistoryList.length,
         (index) {
-          final property = propertyList[index];
-          final isCompleted = property['trip_status'] == 2;
-          final isCancelled = property['trip_status'] == 3;
+          final property = propBookingHistoryList[index];
+          final isCompleted = property['booking_status'] == 2;
+          final isCancelled = property['booking_status'] == 3;
 
           return Padding(
             padding: EdgeInsets.only(bottom: size.height * 0.015),
             child: InkWell(
               onTap: () {
-                if (isCompleted)
+                if (isCompleted) {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => PropertyBookingHistoryDetailScreen(
+                        propertyBookingId: property['property_booking_id'],
                         iscompleted: true,
                       ),
                     ),
                   );
-                if (isCancelled)
+                }
+                if (isCancelled) {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => PropertyBookingHistoryDetailScreen(
+                        propertyBookingId: 1,
                         iscompleted: false,
                         cancelReason: "",
                       ),
                     ),
                   );
+                }
               },
               child: Container(
                 width: size.width * 0.90,
@@ -716,13 +766,35 @@ class _BookingHistoryState extends State<BookingHistory> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Property image
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.asset(
-                        property['property_image'],
-                        width: size.width * 0.20,
-                        height: size.width * 0.20,
-                        fit: BoxFit.cover,
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width * 20 / 100,
+                      height: MediaQuery.of(context).size.width * 20 / 100,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: property['cover_image'] != null
+                            ? Image.network(
+                                '${AppConfigProvider.imageURL}${property['cover_image']}',
+                                fit: BoxFit.cover,
+                                loadingBuilder: (BuildContext context,
+                                    Widget child,
+                                    ImageChunkEvent? loadingProgress) {
+                                  if (loadingProgress == null) {
+                                    return child;
+                                  } else {
+                                    return Shimmer.fromColors(
+                                      baseColor: Colors.grey.shade300,
+                                      highlightColor: Colors.grey.shade100,
+                                      child: Container(
+                                        color: Colors.grey.shade300,
+                                      ),
+                                    );
+                                  }
+                                },
+                              )
+                            : Image.asset(
+                                AppImage.imageFrameImage,
+                                fit: BoxFit.cover,
+                              ),
                       ),
                     ),
 
@@ -735,7 +807,7 @@ class _BookingHistoryState extends State<BookingHistory> {
                         children: [
                           // Property name
                           Text(
-                            property['property_name'],
+                            property['property_name_english'] ?? "",
                             style: const TextStyle(
                               fontSize: 16,
                               fontFamily: AppFont.fontFamily,
@@ -748,7 +820,7 @@ class _BookingHistoryState extends State<BookingHistory> {
 
                           // Date
                           Text(
-                            property['date'],
+                            property['checkin_date'] ?? "",
                             style: TextStyle(
                               fontSize: 14,
                               fontFamily: AppFont.fontFamily,
@@ -764,7 +836,7 @@ class _BookingHistoryState extends State<BookingHistory> {
                             children: [
                               // Amount
                               Text(
-                                "${property['total_amount']} KWD",
+                                "${property['total_amount'] ?? "NA"} KWD",
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontFamily: AppFont.fontFamily,

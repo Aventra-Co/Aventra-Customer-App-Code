@@ -138,7 +138,7 @@ class _MyFooterPageState extends State<MyFooterPage> {
         onPageChanged: _onPageChanged,
         children: <Widget>[
           const Explore(),
-          const MyTrip(selectedTab: 1),
+          const MyTrip(selectedTab: 0),
           const Inbox(),
           const Favourites(),
           const Profile()

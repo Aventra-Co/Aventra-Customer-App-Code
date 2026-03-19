@@ -16,8 +16,14 @@ import '../authentication/login_screen.dart';
 
 class CancelBooking extends StatefulWidget {
   static String routeName = "./CancelBooking";
+  final int cancelType;
   final String tripBookingId;
-  const CancelBooking({super.key, required this.tripBookingId});
+  final int propertyBookingId;
+  const CancelBooking(
+      {super.key,
+      required this.tripBookingId,
+      required this.propertyBookingId,
+      required this.cancelType});
 
   @override
   State<CancelBooking> createState() => CancelBookingState();
@@ -58,7 +64,11 @@ class CancelBookingState extends State<CancelBooking> {
           context, AppLanguage.reasonCancelMsg[language]);
       return false;
     } else {
-      cancelTripApiCall(reason);
+      if (widget.cancelType == 1) {
+        cancelTripApiCall(reason);
+      } else {
+        cancelPropertyCall(reason);
+      }
     }
   }
 
@@ -78,6 +88,72 @@ class CancelBookingState extends State<CancelBooking> {
       var body = {
         'user_id': userId.toString(),
         'trip_booking_id': widget.tripBookingId,
+        'cancle_reason': reason,
+      };
+
+      print("body $body");
+
+      http.Response response = await http.post(
+        url,
+        headers: headers,
+        body: body,
+      );
+      print("response--> $response");
+      var res = jsonDecode(response.body);
+
+      print("res333 : $res");
+
+      if (response.statusCode == 200) {
+        final res = json.decode(response.body);
+        setState(() {
+          isApiCalling = false;
+        });
+        if (res['success'] == true) {
+          SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
+          AppConstant.selectFooterIndex = 1;
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const MyFooterPage()),
+          );
+        } else {
+          SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
+          if (res['active_status'] == 0) {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const Login()));
+          }
+        }
+      } else {
+        setState(() {
+          isApiCalling = false;
+        });
+
+        throw Exception('Album loading failed!');
+      }
+    } catch (e) {
+      setState(() {
+        isApiCalling = false;
+      });
+
+      print("Call Update Api");
+    }
+  }
+
+  //---------------------------------DELETE ACCOUNT API CALL---------------------------//
+  cancelPropertyCall(String reason) async {
+    Uri url = Uri.parse("${AppConfigProvider.apiUrl}cancel_property_status");
+    print("Url $url");
+    setState(() {
+      isApiCalling = true;
+    });
+    String token = AppConstant.token;
+    try {
+      var headers = {
+        'Authorization': 'Bearer $token',
+      };
+
+      var body = {
+        'user_id': userId.toString(),
+        'property_booking_id': widget.propertyBookingId.toString(),
         'cancle_reason': reason,
       };
 

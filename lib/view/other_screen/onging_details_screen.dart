@@ -1491,7 +1491,9 @@ class _OngoingDetailsScreen extends State<OngoingDetailsScreen> {
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) => CancelBooking(
+                                          cancelType: 1,
                                               tripBookingId: widget.tripId,
+                                              propertyBookingId: 1,
                                             )));
                               },
                               child: Container(

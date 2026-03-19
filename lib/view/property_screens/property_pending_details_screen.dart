@@ -1,30 +1,154 @@
-
-import 'package:boatapp/view/property_screens/property_bookinghistory_screen.dart';
+import 'dart:convert';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../controller/app_color.dart';
+import '../../controller/app_config_provider.dart';
 import '../../controller/app_constant.dart';
 import '../../controller/app_font.dart';
 import '../../controller/app_image.dart';
 import '../../controller/app_language.dart';
+import '../../controller/app_loader.dart';
+import '../../controller/app_snack_bar_toast_message.dart';
+import '../authentication/login_screen.dart';
+import '../other_screen/cancel_booking.dart';
+import 'property_detail_screen.dart';
 import 'view_property_details_screen.dart';
 
-class PropertyPendingDetailsScreen extends StatelessWidget {
-  PropertyPendingDetailsScreen({super.key});
+class PropertyPendingDetailsScreen extends StatefulWidget {
+  final int propertyBookingId;
+  const PropertyPendingDetailsScreen(
+      {super.key, required this.propertyBookingId});
 
-  final List<String> amenities = [
-    'TV',
-    'Wifi',
-    'AC',
-    'Fridge',
-    'Bedding',
-    'Microwave',
-    'Kettle',
-    'Coffee Machine'
-  ];
+  @override
+  State<PropertyPendingDetailsScreen> createState() =>
+      _PropertyPendingDetailsScreenState();
+}
+
+class _PropertyPendingDetailsScreenState
+    extends State<PropertyPendingDetailsScreen> {
+  dynamic bookingDetails = {};
+  String allActivity = "";
+  bool isApiCalling = true;
+  int selectedImageInd = 0;
+  String showFormattedDates = '';
+  List<dynamic> tripImages = [];
+  List<dynamic> offerings = [];
+  dynamic userDetails;
+  int userId = 0;
+
+  //map
+  double longitudex = 77.4126;
+  double latitudex = 23.2599;
+  GoogleMapController? mapController;
+  LatLng initialPosition = const LatLng(23.2599, 77.4126);
+
+  @override
+  void initState() {
+    super.initState();
+    getUserDetails();
+  }
+
+//--------------------GET USER DETAILS-----------------------//
+  Future<dynamic> getUserDetails() async {
+    final prefs = await SharedPreferences.getInstance();
+    userDetails = prefs.getString("userDetails");
+    setState(() {
+      isApiCalling = true;
+    });
+
+    // print("userDetails $userDetails");
+    if (userDetails != null) {
+      dynamic data = json.decode(userDetails);
+      print("up $data");
+      userId = data['user_id'];
+    }
+    setState(() {
+      isApiCalling = false;
+    });
+    getAdDetailsApi(userId);
+    setState(() {});
+  }
+
+  //=============================GET Advertisement DETAILS===================================//
+  Future<void> getAdDetailsApi(userId) async {
+    Uri url = Uri.parse(
+        "${AppConfigProvider.apiUrl}view_property_booking_by_bookingid?user_id=$userId&property_booking_id=${widget.propertyBookingId}");
+    print("url $url");
+
+    String token = AppConstant.token;
+
+    if (token.isEmpty) {
+      print("Token is missing!");
+      return;
+    }
+
+    Map<String, String> headers = {
+      'Authorization': 'Bearer $token', // Use 'Bearer' if required
+    };
+
+    setState(() {
+      isApiCalling = true;
+    });
+
+    print("headers $headers");
+
+    try {
+      final response = await http.get(url, headers: headers);
+      print("response $response");
+
+      if (response.statusCode == 200) {
+        dynamic res = jsonDecode(response.body);
+        print("res $res");
+
+        if (res['success'] == true) {
+          var item = res['data'];
+          bookingDetails = (item != "NA") ? item : [];
+          offerings = bookingDetails['amenities'] ?? [];
+          latitudex = double.parse(bookingDetails['latitude']);
+          longitudex = double.parse(bookingDetails['longitude']);
+          initialPosition = LatLng(latitudex, longitudex);
+          setState(() {
+            isApiCalling = false;
+          });
+        } else {
+          if (res['active_status'] == 0) {
+            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const Login()),
+            );
+          }
+          setState(() {
+            isApiCalling = false;
+          });
+        }
+      } else {
+        print("Error: ${response.statusCode}");
+        setState(() {
+          isApiCalling = false;
+        });
+      }
+    } catch (e) {
+      print("Exception: $e");
+      setState(() {
+        isApiCalling = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    return ProgressHUD(
+        inAsyncCall: isApiCalling,
+        opacity: 0.5,
+        child: _buildUIScreen(context));
+  }
+
+  Widget _buildUIScreen(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
@@ -65,7 +189,7 @@ class PropertyPendingDetailsScreen extends StatelessWidget {
                           fontWeight: FontWeight.w600,
                           fontFamily: AppFont.fontFamily)),
                   const Spacer(),
-                  Text("ID : #4567687687",
+                  Text("ID: #${bookingDetails['booking_random_id'] ?? ""}",
                       style: const TextStyle(
                           color: AppColor.primaryColor,
                           fontSize: 12,
@@ -74,315 +198,408 @@ class PropertyPendingDetailsScreen extends StatelessWidget {
                 ],
               ),
             ),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: size.height * 0.02),
-                    SizedBox(height: size.height * 0.02),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                          vertical: 12, horizontal: size.width * 0.05),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      AppLanguage.pendingText[language],
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        fontFamily: AppFont.fontFamily,
-                                        color: AppColor.pendingColor,
-                                      ),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                const ViewPropertyDetailsScreen(),
-                                          ),
-                                        );
-                                      },
-                                      child: Text(
-                                        AppLanguage.viewDetailsText[language],
-                                        style: TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w500,
-                                            fontFamily: AppFont.fontFamily,
-                                            color: Color(0xFF17A2B8),
-                                            decoration:
-                                                TextDecoration.underline,
-                                            decorationColor:
-                                                AppColor.completedColor),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      AppLanguage
-                                          .oceanExplorer3000Text[language],
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w600,
-                                        fontFamily: AppFont.fontFamily,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Luxury Yacht • Fintas Beach',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500,
-                                        fontFamily: AppFont.fontFamily,
-                                        color: Colors.grey.shade600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.asset(
-                              AppImage.shipImage,
-                              width: size.width * 0.18,
-                              height: size.width * 0.18,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    SizedBox(height: size.height * 0.02),
-
-                    Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: size.width * 0.05),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Location Address
-                          Text(
-                            AppLanguage.locationAddressText[language],
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              fontFamily: AppFont.fontFamily,
-                              color: Colors.black,
-                            ),
-                          ),
-                          SizedBox(height: size.height * 0.01),
-                          Text(
-                            'Fintas, Kuwait, along the Arabian \nGulf coast',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              fontFamily: AppFont.fontFamily,
-                              color: Colors.grey.shade700,
-                            ),
-                          ),
-                          SizedBox(height: size.height * 0.02),
-
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.asset(
-                              AppImage.mapImage,
-                            ),
-                          ),
-
-                          SizedBox(height: size.height * 0.04),
-
-                          // Booking Details
-                          Text(
-                            AppLanguage.bookingDetailsText[language],
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: AppFont.fontFamily,
-                              // color: Colors.black,
-                            ),
-                          ),
-                          SizedBox(height: size.height * 0.02),
-
-                          _detailRow(
-                              context,
-                              size,
-                              Icons.calendar_today_outlined,
-                              'Jan 06,2025',
-                              AppLanguage.bookingDate[language],
-                              'Change',
-                              0),
-                          SizedBox(height: size.height * 0.02),
-                          GestureDetector(
-                            onTap: () {},
-                            child: _detailRow(context, size, Icons.access_time,
-                                'One Day', 'Booking Time', 'Change', 1),
-                          ),
-                          SizedBox(height: size.height * 0.02),
-                          _detailRow(
-                              context,
-                              size,
-                              Icons.people_outline,
-                              '4 Adults • 2 Children',
-                              AppLanguage.guestText[language],
-                              'Change',
-                              2),
-                          SizedBox(height: size.height * 0.03),
-
-                          // Description
-                          Text(
-                            AppLanguage.descriptionText[language],
-                            style: TextStyle(
-                              fontSize: 21,
-                              fontWeight: FontWeight.w500,
-                              fontFamily: AppFont.fontFamily,
-                              color: Colors.black,
-                            ),
-                          ),
-                          SizedBox(height: size.height * 0.015),
-                          Text(
-                            'Blue Nature is a 5 star complemented with 80 well bedroom and suit, modern residence with prime location within the city center.',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w400,
-                              fontFamily: AppFont.fontFamily,
-                              color: Colors.grey.shade700,
-                              height: 1.5,
-                            ),
-                          ),
-                          SizedBox(height: size.height * 3 / 100),
-
-                          Text(
-                            AppLanguage.whatThisplaceOfferText[language],
-                            style: TextStyle(
-                              fontSize: 21,
-                              fontWeight: FontWeight.w500,
-                              fontFamily: AppFont.fontFamily,
-                              color: Colors.black,
-                            ),
-                          ),
-                          SizedBox(height: size.height * 0.01),
-                          _amenitiesGrid(context),
-
-                          SizedBox(height: size.height * 0.02),
-
-                          GestureDetector(
-                            onTap: () => _showCancellationPolicyDialog(context),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Image.asset(
-                                  AppImage.cancellationPolicyicon,
-                                  width: size.width * 0.045,
-                                ),
-                                SizedBox(width: size.width * 0.02),
-                                Text(
-                                  AppLanguage.cancellationPolicyText[language],
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    fontFamily: AppFont.fontFamily,
-                                    color: AppColor.themeColor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: size.height * 0.03),
-
-                    // Billing Details
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                          vertical: size.height * 0.02,
-                          horizontal: size.width * 0.04),
-                      color: AppColor.lightGreen,
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(height: size.height * 0.018),
-                            Text(
-                              AppLanguage.billingDetailsText[language],
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                fontFamily: AppFont.fontFamily,
-                                color: Colors.black,
-                              ),
-                            ),
-                            SizedBox(height: size.height * 2 / 100),
-                            _billingRow(size, '1 Day', '64 KWD', ''),
-                            Divider(height: size.height * 2 / 100),
-                            _billingRow(size, 'Grand Total', '64 KWD', '',
-                                isBold: true),
-                            Divider(height: size.height * 2 / 100),
-                            SizedBox(height: size.height * 0.02),
-                          ]),
-                    ),
-
-                    SizedBox(height: size.height * 0.02),
-
-                    // Cancel Booking
-                    InkWell(
-                      onTap: () {
-                        _showCancelBookingModal(context);
-                      },
-                      child: Container(
+            if (bookingDetails.isNotEmpty)
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: size.height * 0.01),
+                      Container(
                         padding: EdgeInsets.symmetric(
-                            vertical: size.height * 0.014,
-                            horizontal: size.width * 0.05),
+                            vertical: 12, horizontal: size.width * 0.05),
                         decoration: BoxDecoration(
                           color: Colors.grey.shade100,
                         ),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              children: [
-                                Text(
-                                  'Cancel Booking',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    fontFamily: AppFont.fontFamily,
-                                    // color: Colors.grey,
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        AppLanguage.pendingText[language],
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          fontFamily: AppFont.fontFamily,
+                                          color: AppColor.pendingColor,
+                                        ),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  ViewPropertyDetailsScreen(
+                                                      adDetails:
+                                                          bookingDetails),
+                                            ),
+                                          );
+                                        },
+                                        child: Text(
+                                          AppLanguage.viewDetailsText[language],
+                                          style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w500,
+                                              fontFamily: AppFont.fontFamily,
+                                              color: Color(0xFF17A2B8),
+                                              decoration:
+                                                  TextDecoration.underline,
+                                              decorationColor:
+                                                  AppColor.completedColor),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                SizedBox(width: size.width * 0.015),
-                                Icon(Icons.info_outline,
-                                    size: 16, color: Colors.grey),
-                              ],
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        bookingDetails[
+                                                'property_name_english'] ??
+                                            "",
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w600,
+                                          fontFamily: AppFont.fontFamily,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        bookingDetails['property_type_name']
+                                                [language] ??
+                                            "",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          fontFamily: AppFont.fontFamily,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        "${AppLanguage.guardText[language]} \u2022 ${language == 0 ? (((bookingDetails['guard_name_english'] ?? "").toString().trim().isEmpty) ? "NA" : bookingDetails['guard_name_english'] ?? "") : (((bookingDetails['guard_name_arabic'] ?? "").toString().trim().isEmpty) ? "N/A" : bookingDetails['guard_name_arabic'] ?? "")}",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          fontFamily: AppFont.fontFamily,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
-                            Icon(Icons.chevron_right),
+                            const SizedBox(width: 8),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                "${AppConfigProvider.imageURL}${bookingDetails['cover_image']}",
+                                width: size.width * 0.18,
+                                height: size.width * 0.18,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                    ),
-                    SizedBox(height: size.height * 0.05),
-                  ],
+
+                      SizedBox(height: size.height * 0.02),
+
+                      Padding(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: size.width * 0.05),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Location Address
+                            Text(
+                              AppLanguage.locationAddressText[language],
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                fontFamily: AppFont.fontFamily,
+                                color: Colors.black,
+                              ),
+                            ),
+                            SizedBox(height: size.height * 0.01),
+                            SizedBox(
+                              width:
+                                  MediaQuery.of(context).size.width * 90 / 100,
+                              child: Text(
+                                bookingDetails['address'] ?? '',
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  fontFamily: AppFont.fontFamily,
+                                  color: Colors.grey.shade700,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: size.height * 0.02),
+
+                            //!Map
+                            Stack(children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: SizedBox(
+                                  height: MediaQuery.of(context).size.height *
+                                      18 /
+                                      100,
+                                  width: MediaQuery.of(context).size.width *
+                                      90 /
+                                      100,
+                                  child: GoogleMap(
+                                    mapToolbarEnabled: false,
+                                    zoomGesturesEnabled: false,
+                                    rotateGesturesEnabled: true,
+                                    myLocationEnabled: false,
+                                    myLocationButtonEnabled: false,
+                                    compassEnabled: true,
+                                    initialCameraPosition: CameraPosition(
+                                      target: initialPosition,
+                                      zoom: 10.0,
+                                    ),
+                                    onMapCreated: (controller) {
+                                      //method called when map is created
+                                      setState(() {
+                                        mapController = controller;
+                                      });
+                                    },
+                                    markers: {
+                                      Marker(
+                                        markerId: const MarkerId(''),
+                                        position: LatLng(latitudex, longitudex),
+                                        draggable: true,
+                                        onDragEnd: (value) {
+                                          // value is the new position
+                                        },
+                                      ),
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ]),
+
+                            SizedBox(height: size.height * 0.03),
+
+                            // Booking Details
+                            Text(
+                              AppLanguage.bookingDetailsText[language],
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: AppFont.fontFamily,
+                                // color: Colors.black,
+                              ),
+                            ),
+                            SizedBox(height: size.height * 0.02),
+
+                            _detailRow(
+                                context,
+                                AppImage.callenderIcon,
+                                bookingDetails['booking_date'] ?? '',
+                                AppLanguage.checkInDateText[language],
+                                AppLanguage.changeText[language],
+                                0, () {
+                              Navigator.pop(context);
+                            }),
+                            SizedBox(height: size.height * 0.02),
+
+                            _detailRow(
+                                context,
+                                AppImage.clockIcon,
+                                bookingDetails['booking_time_label'] ?? "",
+                                // '$totalDates ${AppLanguage.daysText[language]}',
+                                AppLanguage.bookingDays[language],
+                                AppLanguage.changeText[language],
+                                0, () {
+                              Navigator.pop(context);
+                            }),
+                            SizedBox(height: size.height * 0.02),
+
+                            _detailRow(
+                                context,
+                                AppImage.guestsIcon,
+                                '${bookingDetails['max_adult'] ?? "0"} ${AppLanguage.adultText[language]} \u2022 ${bookingDetails['max_child'] ?? "0"} ${AppLanguage.childrenText[language]}',
+                                AppLanguage.guestsText[language],
+                                AppLanguage.changeText[language],
+                                0, () {
+                              Navigator.pop(context);
+                            }),
+                            SizedBox(height: size.height * 0.03),
+
+                            // Description
+                            Text(
+                              AppLanguage.descriptionText[language],
+                              style: const TextStyle(
+                                fontSize: 21,
+                                fontWeight: FontWeight.w500,
+                                fontFamily: AppFont.fontFamily,
+                                color: Colors.black,
+                              ),
+                            ),
+                            SizedBox(height: size.height * 0.015),
+                            Text(
+                              (bookingDetails['description_english'][language]
+                                          ?.toString()
+                                          .trim()
+                                          .isNotEmpty ??
+                                      false)
+                                  ? bookingDetails['description_english']
+                                      [language]
+                                  : "NA",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w400,
+                                fontFamily: AppFont.fontFamily,
+                                color: Colors.grey.shade700,
+                                height: 1.5,
+                              ),
+                            ),
+                            SizedBox(height: size.height * 3 / 100),
+
+                            Text(
+                              AppLanguage.whatThisplaceOfferText[language],
+                              style: const TextStyle(
+                                fontSize: 21,
+                                fontWeight: FontWeight.w500,
+                                fontFamily: AppFont.fontFamily,
+                                color: Colors.black,
+                              ),
+                            ),
+                            SizedBox(height: size.height * 0.01),
+                            _amenitiesGrid(context),
+
+                            SizedBox(height: size.height * 0.03),
+
+                            GestureDetector(
+                              onTap: () =>
+                                  _showCancellationPolicyDialog(context),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Image.asset(
+                                    AppImage.cancellationPolicyicon,
+                                    width: size.width * 0.045,
+                                  ),
+                                  SizedBox(width: size.width * 0.02),
+                                  Text(
+                                    AppLanguage
+                                        .cancellationPolicyText[language],
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      fontFamily: AppFont.fontFamily,
+                                      color: AppColor.themeColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: size.height * 0.03),
+
+                      // Billing Details
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                            vertical: size.height * 0.02,
+                            horizontal: size.width * 0.04),
+                        color: AppColor.lightGreen,
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(height: size.height * 0.018),
+                              Text(
+                                AppLanguage.billingDetailsText[language],
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  fontFamily: AppFont.fontFamily,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              SizedBox(height: size.height * 2 / 100),
+                              _billingRow(
+                                  size,
+                                  bookingDetails['booking_time_label'] ?? "",
+                                  '${bookingDetails['total_amount'] ?? "0"} KWD',
+                                  ''),
+                              Divider(height: size.height * 2 / 100),
+                              _billingRow(
+                                  size,
+                                  'Grand Total',
+                                  '${bookingDetails['total_amount'] ?? "0"} KWD',
+                                  '',
+                                  isBold: true),
+                              Divider(height: size.height * 2 / 100),
+                              SizedBox(height: size.height * 0.02),
+                            ]),
+                      ),
+
+                      SizedBox(height: size.height * 0.02),
+
+                      // Cancel Booking
+                      InkWell(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => CancelBooking(
+                                        cancelType: 2,
+                                        tripBookingId: "0",
+                                        propertyBookingId:
+                                            widget.propertyBookingId,
+                                      )));
+                          // _showCancelBookingModal(context);
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                              vertical: size.height * 0.014,
+                              horizontal: size.width * 0.05),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  const Text(
+                                    'Cancel Booking',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      fontFamily: AppFont.fontFamily,
+                                      // color: Colors.grey,
+                                    ),
+                                  ),
+                                  SizedBox(width: size.width * 0.015),
+                                  const Icon(Icons.info_outline,
+                                      size: 16, color: Colors.grey),
+                                ],
+                              ),
+                              const Icon(Icons.chevron_right),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: size.height * 0.05),
+                    ],
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),
@@ -390,166 +607,74 @@ class PropertyPendingDetailsScreen extends StatelessWidget {
   }
 
   Widget _amenitiesGrid(context) {
-    final size = MediaQuery.of(context).size;
-    return GridView.builder(
-      padding: EdgeInsets.zero,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: amenities.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 6,
-      ),
-      itemBuilder: (context, index) {
-        final amenity = amenities[index];
-        Widget iconWidget;
-        switch (amenity) {
-          case 'TV':
-            iconWidget = Image.asset(AppImage.tvIcon,
-                width: size.width * 0.045,
-                height: size.width * 0.045,
-                color: AppColor.primaryColor);
-            break;
-          case 'Wifi':
-            iconWidget = Image.asset(AppImage.wifiIcon,
-                width: size.width * 0.045,
-                height: size.width * 0.045,
-                color: AppColor.primaryColor);
-            break;
-          case 'AC':
-            iconWidget = Image.asset(AppImage.acIcon,
-                width: size.width * 0.045,
-                height: size.width * 0.045,
-                color: AppColor.primaryColor);
-            break;
-          case 'Fridge':
-            iconWidget = Image.asset(AppImage.fridgeIcon,
-                width: size.width * 0.045,
-                height: size.width * 0.045,
-                color: AppColor.primaryColor);
-            break;
-          case 'Bedding':
-            iconWidget = Image.asset(AppImage.beddingIcon,
-                width: size.width * 0.045,
-                height: size.width * 0.045,
-                color: AppColor.primaryColor);
-            break;
-          case 'Microwave':
-            iconWidget = Image.asset(AppImage.microwaveIcon,
-                width: size.width * 0.045,
-                height: size.width * 0.045,
-                color: AppColor.primaryColor);
-            break;
-          case 'Kettle':
-            iconWidget = Image.asset(AppImage.kettleIcon,
-                width: size.width * 0.045,
-                height: size.width * 0.045,
-                color: AppColor.primaryColor);
-            break;
-          case 'Coffee Machine':
-            iconWidget = Image.asset(AppImage.coffeeIcon,
-                width: size.width * 0.045,
-                height: size.width * 0.045,
-                color: AppColor.primaryColor);
-            break;
-          default:
-            iconWidget = Image.asset(AppImage.tvIcon,
-                width: size.width * 0.045,
-                height: size.width * 0.045,
-                color: AppColor.primaryColor);
-        }
-
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            iconWidget,
-            SizedBox(width: size.width * 0.015),
-            Expanded(
-              child: Text(
-                amenity,
-                style:const TextStyle(
-                  fontSize: 13,
-                  fontFamily: AppFont.fontFamily,
-                  color: AppColor.primaryColor,
-                  fontWeight: FontWeight.w500
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        );
-      },
+    return Wrap(
+      runSpacing: 10,
+      spacing: 20,
+      children: List.generate(offerings.length, (index) {
+        var sub = offerings[index];
+        final amenityName = sub['name']?.toString() ?? '';
+        final image = sub['amenity_icon']?.toString() ?? '';
+        return SizedBox(
+            width: MediaQuery.of(context).size.width * 42 / 100,
+            child: FeatureItem(title: amenityName, icon: image));
+      }),
     );
   }
 
-  Widget _detailRow(
-    BuildContext context,
-    Size size,
-    IconData icon,
-    String value,
-    String label,
-    String action,
-    index,
-  ) {
-    return Row(
-      children: [
-        Container(
-          padding: EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: Color(0xFF17A2B8).withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
+  Widget _detailRow(BuildContext context, String image, String value,
+      String label, String action, int isAction, VoidCallback onTap) {
+    return SizedBox(
+      width: MediaQuery.of(context).size.width * 90 / 100,
+      child: Row(
+        children: [
+          Image.asset(
+            image,
+            width: MediaQuery.of(context).size.width * 9 / 100,
+            height: MediaQuery.of(context).size.width * 9 / 100,
           ),
-          child: Icon(icon, size: 20, color: Color(0xFF17A2B8)),
-        ),
-        SizedBox(width: size.width * 0.03),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                  fontFamily: AppFont.fontFamily,
-                  // color: Colors.black,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                    fontFamily: AppFont.fontFamily,
+                    // color: Colors.black,
+                  ),
                 ),
-              ),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  fontFamily: AppFont.fontFamily,
+                const SizedBox(height: 2),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    fontFamily: AppFont.fontFamily,
+                    color: Colors.grey.shade600,
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
-        TextButton(
-          onPressed: () {
-            if (index == 0) {
-              _showCalenderDateModal(context);
-            } else if (index == 1) {
-              _showBookingTimeModal(context);
-            } else if (index == 2) {
-              _showGuestModal(context);
-            }
-          },
-          child: Text(
-            action,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              fontFamily: AppFont.fontFamily,
-              color: AppColor.primaryColor,
-              decoration: TextDecoration.underline,
+              ],
             ),
           ),
-        ),
-      ],
+          if (isAction == 1)
+            TextButton(
+              onPressed: onTap,
+              child: Text(
+                action,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: AppFont.fontFamily,
+                  color: AppColor.primaryColor,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -595,7 +720,7 @@ class PropertyPendingDetailsScreen extends StatelessWidget {
             ),
             Text(
               amount,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 fontFamily: AppFont.fontFamily,
@@ -607,7 +732,7 @@ class PropertyPendingDetailsScreen extends StatelessWidget {
           SizedBox(height: size.height * 0.005),
           Text(
             subtitle,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w500,
               fontFamily: AppFont.fontFamily,
@@ -643,7 +768,7 @@ class PropertyPendingDetailsScreen extends StatelessWidget {
               children: [
                 Text(
                   AppLanguage.cancellationPolicyText[language],
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     fontFamily: AppFont.fontFamily,
@@ -651,7 +776,7 @@ class PropertyPendingDetailsScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: size.height * 0.015),
-                Text(
+                const Text(
                   'Cancellations made more than 5 days before the check-in date will receive a full refund of the total booking amount. Cancellations made between 2 to 5 days before the check-in date will receive a 50% refund. No refunds will be issued for cancellations made within 2 days of the check-in date.',
                   style: TextStyle(
                     fontSize: 13.8,
@@ -676,7 +801,7 @@ class PropertyPendingDetailsScreen extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w400,
             fontFamily: AppFont.fontFamily,
@@ -684,7 +809,7 @@ class PropertyPendingDetailsScreen extends StatelessWidget {
         ),
         Text(
           amount,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
             fontFamily: AppFont.fontFamily,
@@ -820,7 +945,7 @@ class PropertyPendingDetailsScreen extends StatelessWidget {
                                     children: [
                                       Text(
                                         option['title']!,
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w500,
                                           fontFamily: AppFont.fontFamily,
@@ -829,7 +954,7 @@ class PropertyPendingDetailsScreen extends StatelessWidget {
                                       ),
                                       Text(
                                         option['price']!,
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w600,
                                           fontFamily: AppFont.fontFamily,
@@ -1001,7 +1126,7 @@ class PropertyPendingDetailsScreen extends StatelessWidget {
                                   ),
                                   Text(
                                     DateFormat('yyyy').format(date),
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
                                       fontFamily: AppFont.fontFamily,
@@ -1031,7 +1156,7 @@ class PropertyPendingDetailsScreen extends StatelessWidget {
                                   color: Colors.grey.shade200,
                                   borderRadius: BorderRadius.circular(20),
                                 ),
-                                child: Icon(Icons.chevron_left,
+                                child: const Icon(Icons.chevron_left,
                                     color: AppColor.themeColor, size: 20),
                               ),
                               SizedBox(width: size.width * 0.01),
@@ -1044,7 +1169,7 @@ class PropertyPendingDetailsScreen extends StatelessWidget {
                                   color: Colors.grey.shade200,
                                   borderRadius: BorderRadius.circular(20),
                                 ),
-                                child: Icon(Icons.chevron_right,
+                                child: const Icon(Icons.chevron_right,
                                     color: AppColor.themeColor, size: 20),
                               ),
                             ],
@@ -1359,7 +1484,7 @@ class PropertyPendingDetailsScreen extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w700,
             fontFamily: AppFont.fontFamily,
@@ -1445,7 +1570,7 @@ class PropertyPendingDetailsScreen extends StatelessWidget {
                         SizedBox(height: size.height * 0.01),
 
                         // Title
-                        Center(
+                        const Center(
                           child: Text(
                             'Cancel Reasons',
                             style: TextStyle(
@@ -1502,7 +1627,7 @@ class PropertyPendingDetailsScreen extends StatelessWidget {
                                   SizedBox(width: size.width * 0.03),
                                   Text(
                                     reason,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
                                       fontFamily: AppFont.fontFamily,
@@ -1518,7 +1643,7 @@ class PropertyPendingDetailsScreen extends StatelessWidget {
                         SizedBox(height: size.height * 0.02),
 
                         // Describe the issue label
-                        Text(
+                        const Text(
                           'Describe the issue',
                           style: TextStyle(
                             fontSize: 14,
@@ -1539,7 +1664,7 @@ class PropertyPendingDetailsScreen extends StatelessWidget {
                           child: TextField(
                             controller: descController,
                             maxLines: 4,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 13,
                               fontFamily: AppFont.fontFamily,
                               color: Colors.black87,
@@ -1565,13 +1690,15 @@ class PropertyPendingDetailsScreen extends StatelessWidget {
                           width: double.infinity,
                           height: size.height * 0.06,
                           child: ElevatedButton(
-                            onPressed: () => Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    PropertyBookingHistoryDetailScreen(iscompleted: false)
-                              ),
-                            ),
+                            onPressed: () {
+                              // Navigator.pushReplacement(
+                              //   context,
+                              //   MaterialPageRoute(
+                              //       builder: (context) =>
+                              //           PropertyBookingHistoryDetailScreen(
+                              //               iscompleted: false)),
+                              // );
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColor.themeColor,
                               shape: RoundedRectangleBorder(

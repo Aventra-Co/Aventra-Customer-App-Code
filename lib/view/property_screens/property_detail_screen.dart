@@ -16,6 +16,8 @@ import 'package:table_calendar/table_calendar.dart';
 import '../../controller/app_config_provider.dart';
 import '../../controller/app_loader.dart';
 import '../../controller/app_snack_bar_toast_message.dart';
+import '../../service/date_selection_service.dart';
+import '../../service/pricing_service.dart';
 import '../authentication/login_screen.dart';
 import '../other_screen/review.dart';
 import 'property_booking_details.dart';
@@ -31,10 +33,14 @@ class PropertyDetailsScreen extends StatefulWidget {
 class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   int currentImageIndex = 0;
   DateTime _focusedDay = DateTime.now();
-  DateTime? _selectedDay;
-  Set<DateTime> _selectedDays = {};
   int imageSelected = 0;
-  int isSelected = 1;
+  DateTime? _rangeStart;
+  DateTime? _rangeEnd;
+  int _totalNights = 0;
+  double _grandTotal = 0;
+
+  final DateSelectionService _dateSelectionService = DateSelectionService();
+  final PricingService _pricingService = PricingService();
 
   // ── Time slot state ───────────────────────────────────────────────────
   // ─────────────────────────────────────────────────────────────────────
@@ -86,103 +92,90 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     return result;
   }
 
-  bool _isPastDate(DateTime day) {
-    final today = _normalise(DateTime.now());
-    return day.isBefore(today);
-  }
-
-  bool _isWeekdayAllowed(DateTime day) =>
-      day.weekday == DateTime.sunday ||
-      day.weekday == DateTime.monday ||
-      day.weekday == DateTime.tuesday ||
-      day.weekday == DateTime.wednesday;
-
-  bool _isWeekendAllowed(DateTime day) =>
-      day.weekday == DateTime.thursday ||
-      day.weekday == DateTime.friday ||
-      day.weekday == DateTime.saturday;
-
-  bool _canStartFullWeek(DateTime day) {
-    if (_isUnavailable(day)) {
-      return false;
-    }
-    for (int i = 0; i < 7; i++) {
-      final checkDay = _normalise(day.add(Duration(days: i)));
-      if (_isUnavailable(checkDay)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   bool _isSelectableDate(DateTime day) {
-    if (_isPastDate(day)) {
+    final today = _normalise(DateTime.now());
+    final lastAllowed = today.add(const Duration(days: 365));
+    final normalisedDay = _normalise(day);
+    if (normalisedDay.isBefore(today) || normalisedDay.isAfter(lastAllowed)) {
       return false;
     }
     if (_isUnavailable(day)) {
       return false;
     }
-    if (isSelected == 2) {
-      return _isWeekdayAllowed(day);
-    }
-    if (isSelected == 3) {
-      return _isWeekendAllowed(day);
-    }
-    if (isSelected == 4) {
-      return _canStartFullWeek(day);
-    }
     return true;
   }
 
-  bool _isSelectedDay(DateTime day) =>
-      _selectedDays.any((d) => isSameDay(d, day));
-
-  Set<DateTime> _buildFullWeekRange(DateTime start) {
-    return List.generate(
-      7,
-      (index) => _normalise(start.add(Duration(days: index))),
-    ).toSet();
-  }
-
-  void _logSelectedDays(String source) {
-    final formattedDays = _selectedDays
-        .map((d) => DateFormat('yyyy-MM-dd').format(d))
-        .toList()
-      ..sort();
-    debugPrint("PropertyDetails _selectedDays ($source): $formattedDays");
-  }
-
-  void _setInitialSelectionForMode() {
+  DateTime _clampFocusedDay(DateTime day) {
     final today = _normalise(DateTime.now());
-    if (!_isSelectableDate(today)) {
-      _selectedDay = null;
-      _selectedDays = {};
-      _logSelectedDays("setInitialSelectionForMode");
-      return;
+    final lastAllowed = today.add(const Duration(days: 365));
+    if (day.isBefore(today)) {
+      return today;
     }
-
-    if (isSelected == 4) {
-      if (_canStartFullWeek(today)) {
-        _selectedDay = today;
-        _selectedDays = _buildFullWeekRange(today);
-      } else {
-        _selectedDay = null;
-        _selectedDays = {};
-      }
-      _logSelectedDays("setInitialSelectionForMode");
-      return;
+    if (day.isAfter(lastAllowed)) {
+      return lastAllowed;
     }
-
-    _selectedDay = today;
-    _selectedDays = {today};
-    _logSelectedDays("setInitialSelectionForMode");
+    return day;
   }
 
-  void _updateSelectionMode(int mode) {
+  void _applyRangeSelection(
+    DateTime? start,
+    DateTime? end, {
+    DateTime? focusedDay,
+    bool showErrors = true,
+  }) {
+    final result = _dateSelectionService.evaluateRange(
+      start: start,
+      end: end,
+      today: _normalise(DateTime.now()),
+      unavailableDates: _unavailableDates,
+      maxNights: 30,
+      maxDays: 365,
+    );
+
     setState(() {
-      isSelected = mode;
-      _setInitialSelectionForMode();
+      if (focusedDay != null) {
+        _focusedDay = focusedDay;
+      }
+      _rangeStart = result.checkIn;
+      _rangeEnd = result.checkOut;
+      _totalNights = result.totalNights;
+      _recalculateGrandTotal();
     });
+
+    if (showErrors && result.errorMessage != null) {
+      SnackBarToastMessage.showSnackBar(context, result.errorMessage!);
+    }
+  }
+
+  void _recalculateGrandTotal() {
+    if (_rangeStart == null ||
+        _rangeEnd == null ||
+        _totalNights < 1 ||
+        adDetails is! Map) {
+      _grandTotal = 0;
+      return;
+    }
+
+    final weekdayPrice = _asDouble(adDetails['weekday_price']);
+    final weekendPrice = _asDouble(adDetails['weekend_price']);
+    final fullWeekPrice = _asDouble(adDetails['full_week_price']);
+    _grandTotal = _pricingService.calculateRangeTotal(
+      checkIn: _rangeStart!,
+      checkOut: _rangeEnd!,
+      weekdayPrice: weekdayPrice,
+      weekendPrice: weekendPrice,
+      fullWeekPrice: fullWeekPrice,
+    );
+  }
+
+  double _asDouble(dynamic value) {
+    if (value == null) {
+      return 0;
+    }
+    if (value is num) {
+      return value.toDouble();
+    }
+    return double.tryParse(value.toString()) ?? 0;
   }
 
   dynamic adDetails = {};
@@ -198,7 +191,6 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    _setInitialSelectionForMode();
     getUserDetails();
   }
 
@@ -260,21 +252,10 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           if (adDetails is Map && adDetails['unavailable_dates'] != null) {
             _unavailableDates =
                 _buildUnavailableDates(adDetails['unavailable_dates']);
-            final hasInvalidSelection =
-                _selectedDays.any((d) => !_isSelectableDate(d));
-            if (hasInvalidSelection || _selectedDays.isEmpty) {
-              _setInitialSelectionForMode();
+            if (_rangeStart != null || _rangeEnd != null) {
+              _applyRangeSelection(_rangeStart, _rangeEnd, showErrors: false);
             }
           }
-          isSelected = adDetails['one_day_active'] == 1
-              ? 1
-              : adDetails['weekday_active'] == 1
-                  ? 2
-                  : adDetails['weekend_active'] == 1
-                      ? 3
-                      : adDetails['full_week_active'] == 1
-                          ? 4
-                          : 0;
           if (adDetails['property_images'] != "NA") {
             tripImages.addAll(adDetails['property_images']);
             offerings = adDetails['amenities'] ?? [];
@@ -622,6 +603,26 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                               _amenitiesGrid(offerings),
                               SizedBox(height: size.height * 0.03),
 
+                              // Checkin checkout time
+                              Text(
+                                "${AppLanguage.timingText[language]}:",
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w700,
+                                  fontFamily: AppFont.fontFamily,
+                                ),
+                              ),
+                              SizedBox(height: size.height * 0.01),
+                              Text(
+                                AppLanguage.checkinCheckoutTimeText[language],
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w400,
+                                  fontFamily: AppFont.fontFamily,
+                                ),
+                              ),
+                              SizedBox(height: size.height * 0.03),
+
                               // Price
                               Text(
                                 AppLanguage.priceText[language],
@@ -631,314 +632,37 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                   fontFamily: AppFont.fontFamily,
                                 ),
                               ),
-                              SizedBox(height: size.height * 0.03),
+                              SizedBox(height: size.height * 0.01),
 
-                              //! One Day Pricing
-                              if (adDetails['one_day_price'] > 0) ...[
-                                GestureDetector(
-                                  onTap: () => _updateSelectionMode(1),
-                                  child: Container(
-                                    margin: EdgeInsets.only(
-                                        bottom: size.height * 0.03),
-                                    child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Container(
-                                          width: size.width * 0.05,
-                                          height: size.width * 0.05,
-                                          decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              border: Border.all(
-                                                  color: AppColor.themeColor,
-                                                  width: 2)),
-                                          child: isSelected == 1
-                                              ? Center(
-                                                  child: Container(
-                                                    width: size.width * 0.025,
-                                                    height: size.width * 0.025,
-                                                    decoration:
-                                                        const BoxDecoration(
-                                                            color: AppColor
-                                                                .themeColor,
-                                                            shape: BoxShape
-                                                                .circle),
-                                                  ),
-                                                )
-                                              : null,
-                                        ),
-                                        SizedBox(width: size.width * 0.04),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Container(
-                                                width: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    90 /
-                                                    100,
-                                                color: AppColor.white,
-                                                child: Text(
-                                                    AppLanguage
-                                                        .oneDayText[language],
-                                                    style: const TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.w400,
-                                                        fontFamily:
-                                                            AppFont.fontFamily,
-                                                        height: 1.4)),
-                                              ),
-                                              SizedBox(
-                                                  height: size.height * 0.005),
-                                              Text(
-                                                  "${adDetails['one_day_price']?.toString() ?? "0"} KWD",
-                                                  style: const TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      fontFamily:
-                                                          AppFont.fontFamily)),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
+                              // if (adDetails['one_day_price'] > 0) ...[
+                              //   _priceRow(
+                              //     title: AppLanguage.oneDayText[language],
+                              //     price:
+                              //         "${adDetails['one_day_price']?.toString() ?? "0"} KWD",
+                              //   ),
+                              // ],
 
-                              //! Week Day Pricing
                               if (adDetails['weekday_price'] > 0) ...[
-                                GestureDetector(
-                                  onTap: () => _updateSelectionMode(2),
-                                  child: Container(
-                                    margin: EdgeInsets.only(
-                                        bottom: size.height * 0.03),
-                                    child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Container(
-                                          width: size.width * 0.05,
-                                          height: size.width * 0.05,
-                                          decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              border: Border.all(
-                                                  color: AppColor.themeColor,
-                                                  width: 2)),
-                                          child: isSelected == 2
-                                              ? Center(
-                                                  child: Container(
-                                                    width: size.width * 0.025,
-                                                    height: size.width * 0.025,
-                                                    decoration:
-                                                        const BoxDecoration(
-                                                            color: AppColor
-                                                                .themeColor,
-                                                            shape: BoxShape
-                                                                .circle),
-                                                  ),
-                                                )
-                                              : null,
-                                        ),
-                                        SizedBox(width: size.width * 0.04),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Container(
-                                                width: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    90 /
-                                                    100,
-                                                color: AppColor.white,
-                                                child: Text(
-                                                    AppLanguage
-                                                        .weekDaysText[language],
-                                                    style: const TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.w400,
-                                                        fontFamily:
-                                                            AppFont.fontFamily,
-                                                        height: 1.4)),
-                                              ),
-                                              SizedBox(
-                                                  height: size.height * 0.005),
-                                              Text(
-                                                  "${adDetails['weekday_price']?.toString() ?? "0"} KWD",
-                                                  style: const TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      fontFamily:
-                                                          AppFont.fontFamily)),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                _priceRow(
+                                  title: AppLanguage.weekDaysText[language],
+                                  price:
+                                      "${adDetails['weekday_price']?.toString() ?? "0"} KWD${AppLanguage.perDayText[language]}",
                                 ),
                               ],
 
-                              //! Weekend Day Pricing
                               if (adDetails['weekend_price'] > 0) ...[
-                                GestureDetector(
-                                  onTap: () => _updateSelectionMode(3),
-                                  child: Container(
-                                    margin: EdgeInsets.only(
-                                        bottom: size.height * 0.03),
-                                    child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Container(
-                                          width: size.width * 0.05,
-                                          height: size.width * 0.05,
-                                          decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              border: Border.all(
-                                                  color: AppColor.themeColor,
-                                                  width: 2)),
-                                          child: isSelected == 3
-                                              ? Center(
-                                                  child: Container(
-                                                    width: size.width * 0.025,
-                                                    height: size.width * 0.025,
-                                                    decoration:
-                                                        const BoxDecoration(
-                                                            color: AppColor
-                                                                .themeColor,
-                                                            shape: BoxShape
-                                                                .circle),
-                                                  ),
-                                                )
-                                              : null,
-                                        ),
-                                        SizedBox(width: size.width * 0.04),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Container(
-                                                width: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    90 /
-                                                    100,
-                                                color: AppColor.white,
-                                                child: Text(
-                                                    AppLanguage.weekendDaysText[
-                                                        language],
-                                                    style: const TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.w400,
-                                                        fontFamily:
-                                                            AppFont.fontFamily,
-                                                        height: 1.4)),
-                                              ),
-                                              SizedBox(
-                                                  height: size.height * 0.005),
-                                              Text(
-                                                  "${adDetails['weekend_price']?.toString() ?? "0"} KWD",
-                                                  style: const TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      fontFamily:
-                                                          AppFont.fontFamily)),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                _priceRow(
+                                  title: AppLanguage.weekendDaysText[language],
+                                  price:
+                                      "${adDetails['weekend_price']?.toString() ?? "0"} KWD${AppLanguage.perDayText[language]}",
                                 ),
                               ],
 
-                              //! Full Week Pricing
                               if (adDetails['full_week_price'] > 0) ...[
-                                GestureDetector(
-                                  onTap: () => _updateSelectionMode(4),
-                                  child: Container(
-                                    margin: EdgeInsets.only(
-                                        bottom: size.height * 0.03),
-                                    child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Container(
-                                          width: size.width * 0.05,
-                                          height: size.width * 0.05,
-                                          decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              border: Border.all(
-                                                  color: AppColor.themeColor,
-                                                  width: 2)),
-                                          child: isSelected == 4
-                                              ? Center(
-                                                  child: Container(
-                                                    width: size.width * 0.025,
-                                                    height: size.width * 0.025,
-                                                    decoration:
-                                                        const BoxDecoration(
-                                                            color: AppColor
-                                                                .themeColor,
-                                                            shape: BoxShape
-                                                                .circle),
-                                                  ),
-                                                )
-                                              : null,
-                                        ),
-                                        SizedBox(width: size.width * 0.04),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Container(
-                                                width: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    90 /
-                                                    100,
-                                                color: AppColor.white,
-                                                child: Text(
-                                                    AppLanguage
-                                                            .fullWeekDaysText[
-                                                        language],
-                                                    style: const TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.w400,
-                                                        fontFamily:
-                                                            AppFont.fontFamily,
-                                                        height: 1.4)),
-                                              ),
-                                              SizedBox(
-                                                  height: size.height * 0.005),
-                                              Text(
-                                                  "${adDetails['full_week_price']?.toString() ?? "0"} KWD",
-                                                  style: const TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      fontFamily:
-                                                          AppFont.fontFamily)),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                _priceRow(
+                                  title: AppLanguage.fullWeekDaysText[language],
+                                  price:
+                                      "${adDetails['full_week_price']?.toString() ?? "0"} KWD${AppLanguage.perDayText[language]}",
                                 ),
                               ],
 
@@ -970,12 +694,13 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceEvenly,
                                 children: [
+                                  _legendItem('Available', Colors.black87),
+                                  SizedBox(width: size.width * 0.05),
                                   _legendItem(
-                                      AppLanguage.bookNowText[language], null),
-                                  SizedBox(width: size.width * 0.08),
+                                      'Unavailable', const Color(0xFFE57373)),
+                                  SizedBox(width: size.width * 0.05),
                                   _legendItem(
-                                      'Availability', const Color(0xFF009FE3)),
-                                  _legendItem('Selected', AppColor.themeColor),
+                                      'Selected Range', AppColor.themeColor),
                                 ],
                               ),
                               SizedBox(height: size.height * 0.02),
@@ -984,9 +709,46 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                               _buildCalendar(size),
 
                               SizedBox(height: size.height * 0.03),
-
-                              // ── TIME SLOT PICKER ────────────────────────────────
-
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: AppColor.themeColor.withOpacity(0.08),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                      color:
+                                          AppColor.themeColor.withOpacity(0.2)),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      _totalNights > 0
+                                          ? '${AppLanguage.forText[language]} $_totalNights ${AppLanguage.nightsText[language]}'
+                                          : AppLanguage
+                                              .selectDatesText[language],
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        fontFamily: AppFont.fontFamily,
+                                      ),
+                                    ),
+                                    Text(
+                                      _totalNights > 0
+                                          ? '${_grandTotal.toStringAsFixed(2)} KWD'
+                                          : '--',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        fontFamily: AppFont.fontFamily,
+                                        color: AppColor.themeColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                               SizedBox(height: size.height * 0.03),
 
                               // Guests
@@ -1013,9 +775,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                   setState(() => adultCount++);
                                 }
                               }),
-
                               Divider(
-                                  color: Colors.grey.shade200,
+                                  color: AppColor.boaderColor,
                                   height: size.height * 0.04),
 
                               _guestCounterRow(
@@ -1039,8 +800,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                 width: double.infinity,
                                 child: ElevatedButton(
                                   onPressed: () {
-                                    if (_selectedDays.isEmpty ||
-                                        _selectedDay == null) {
+                                    if (_rangeStart == null ||
+                                        _rangeEnd == null ||
+                                        _totalNights < 1) {
                                       SnackBarToastMessage.showSnackBar(context,
                                           AppLanguage.selectDateMsg[language]);
                                       return;
@@ -1060,22 +822,11 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                           adDetails: adDetails,
                                           adultCount: adultCount,
                                           childCount: childCount,
-                                          priceType: isSelected,
-                                          selectedDays: _selectedDays,
                                           propertyAdId: widget.propertyAdId,
-                                          perDayPrice: isSelected == 1
-                                              ? adDetails['one_day_price']
-                                                  .toString()
-                                              : isSelected == 2
-                                                  ? adDetails['weekday_price']
-                                                      .toString()
-                                                  : isSelected == 3
-                                                      ? adDetails[
-                                                              'weekend_price']
-                                                          .toString()
-                                                      : adDetails[
-                                                              'full_week_price']
-                                                          .toString(),
+                                          checkinDate: _rangeStart!,
+                                          checkoutDate: _rangeEnd!,
+                                          totalNights: _totalNights,
+                                          grandTotal: _grandTotal,
                                         ),
                                       ),
                                     );
@@ -1128,42 +879,42 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   // CALENDAR — matches Figma design
   // ────────────────────────────────────────────────────────────────────────
   Widget _buildCalendar(Size size) {
+    final today = _normalise(DateTime.now());
+    final lastAllowed = today.add(const Duration(days: 365));
     return TableCalendar(
-      firstDay: DateTime.utc(2020, 1, 1),
-      lastDay: DateTime.utc(2030, 12, 31),
+      firstDay: today,
+      lastDay: lastAllowed,
       focusedDay: _focusedDay,
       availableGestures: AvailableGestures.none,
-      selectedDayPredicate: (day) => _isSelectedDay(day),
       enabledDayPredicate: (day) => _isSelectableDate(day),
+      rangeSelectionMode: RangeSelectionMode.toggledOn,
+      rangeStartDay: _rangeStart,
+      rangeEndDay: _rangeEnd,
       onDaySelected: (selectedDay, focusedDay) {
         final normalisedDay = _normalise(selectedDay);
         if (!_isSelectableDate(normalisedDay)) {
           return;
         }
-        setState(() {
-          _focusedDay = focusedDay;
-          if (isSelected == 1) {
-            _selectedDay = normalisedDay;
-            _selectedDays = {normalisedDay};
-          } else if (isSelected == 2 || isSelected == 3) {
-            final alreadySelected =
-                _selectedDays.any((d) => isSameDay(d, normalisedDay));
-            if (alreadySelected) {
-              _selectedDays.removeWhere((d) => isSameDay(d, normalisedDay));
-            } else {
-              _selectedDays.add(normalisedDay);
-            }
-            _selectedDay = normalisedDay;
-          } else if (isSelected == 4) {
-            if (_canStartFullWeek(normalisedDay)) {
-              _selectedDay = normalisedDay;
-              _selectedDays = _buildFullWeekRange(normalisedDay);
-            }
-          }
-          _logSelectedDays("onDaySelected");
-        });
+
+        if (_rangeStart == null || _rangeEnd != null) {
+          setState(() {
+            _focusedDay = focusedDay;
+            _rangeStart = normalisedDay;
+            _rangeEnd = null;
+            _totalNights = 0;
+            _recalculateGrandTotal();
+          });
+          return;
+        }
+
+        _applyRangeSelection(_rangeStart, normalisedDay,
+            focusedDay: focusedDay);
       },
-      onPageChanged: (focusedDay) => setState(() => _focusedDay = focusedDay),
+      onRangeSelected: (start, end, focusedDay) {
+        _applyRangeSelection(start, end, focusedDay: focusedDay);
+      },
+      onPageChanged: (focusedDay) =>
+          setState(() => _focusedDay = _clampFocusedDay(focusedDay)),
       calendarFormat: CalendarFormat.month,
       availableCalendarFormats: const {CalendarFormat.month: 'Month'},
 
@@ -1179,8 +930,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                 // Left chevron
                 GestureDetector(
                   onTap: () => setState(() {
-                    _focusedDay =
+                    final target =
                         DateTime(_focusedDay.year, _focusedDay.month - 1, 1);
+                    _focusedDay = _clampFocusedDay(target);
                   }),
                   child: const Icon(Icons.chevron_left,
                       color: AppColor.primaryColor, size: 22),
@@ -1208,8 +960,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                 // Right chevron
                 GestureDetector(
                   onTap: () => setState(() {
-                    _focusedDay =
+                    final target =
                         DateTime(_focusedDay.year, _focusedDay.month + 1, 1);
+                    _focusedDay = _clampFocusedDay(target);
                   }),
                   child: const Icon(Icons.chevron_right,
                       color: AppColor.primaryColor, size: 22),
@@ -1221,13 +974,6 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 
         // Default day cell
         defaultBuilder: (context, day, focusedDay) {
-          if (_isSelectableDate(day)) {
-            return _dayCell(
-              day,
-              bgColor: const Color(0xFF009FE3),
-              textColor: Colors.white,
-            );
-          }
           return _dayCell(day, bgColor: null, textColor: Colors.black87);
         },
 
@@ -1250,13 +996,47 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           );
         },
 
+        // Range start
+        rangeStartBuilder: (context, day, focusedDay) {
+          return _dayCell(
+            day,
+            bgColor: AppColor.themeColor,
+            textColor: Colors.white,
+          );
+        },
+
+        // Range end
+        rangeEndBuilder: (context, day, focusedDay) {
+          return _dayCell(
+            day,
+            bgColor: AppColor.themeColor,
+            textColor: Colors.white,
+          );
+        },
+
+        // Days in range
+        withinRangeBuilder: (context, day, focusedDay) {
+          return _dayCell(
+            day,
+            bgColor: AppColor.themeColor.withOpacity(0.15),
+            textColor: Colors.black87,
+          );
+        },
+
         // Outside-month days
         outsideBuilder: (context, day, focusedDay) {
           return _dayCell(day, bgColor: null, textColor: Colors.grey.shade400);
         },
 
-        // Disabled days (unavailable or not allowed by mode)
+        // Disabled days (unavailable or out of range)
         disabledBuilder: (context, day, focusedDay) {
+          if (_isUnavailable(day)) {
+            return _dayCell(
+              day,
+              bgColor: const Color(0xFFE57373).withOpacity(0.2),
+              textColor: const Color(0xFFE57373),
+            );
+          }
           return _dayCell(day, bgColor: null, textColor: Colors.grey.shade500);
         },
       ),
@@ -1358,8 +1138,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         SizedBox(height: size.height * 0.03),
         _detailRow(AppLanguage.poolText[language], adDetails['pool'] ?? "NA"),
         SizedBox(height: size.height * 0.03),
-        _detailRow(
-            AppLanguage.guardText[language], adDetails['guard_name_english']),
+        _detailRow("${AppLanguage.guardText[language]}:",
+            adDetails['guard_name_english']),
         SizedBox(height: size.height * 0.03),
         _detailRow(
             AppLanguage.petFriendlyCOLONText[language],
@@ -1446,59 +1226,36 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     );
   }
 
-  Widget _priceOption({
+  Widget _priceRow({
     required String title,
     required String price,
-    required bool isSelected,
-    required VoidCallback onTap,
   }) {
     final size = MediaQuery.of(context).size;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: EdgeInsets.only(bottom: size.height * 0.03),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(
-              width: size.width * 0.05,
-              height: size.width * 0.05,
-              decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColor.themeColor, width: 2)),
-              child: isSelected
-                  ? Center(
-                      child: Container(
-                        width: size.width * 0.025,
-                        height: size.width * 0.025,
-                        decoration: const BoxDecoration(
-                            color: AppColor.themeColor, shape: BoxShape.circle),
-                      ),
-                    )
-                  : null,
+    return Container(
+      margin: EdgeInsets.only(bottom: size.height * 0.03),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
+                        fontFamily: AppFont.fontFamily,
+                        height: 1.4)),
+                SizedBox(height: size.height * 0.005),
+                Text(price,
+                    style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: AppFont.fontFamily)),
+              ],
             ),
-            SizedBox(width: size.width * 0.04),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title,
-                      style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                          fontFamily: AppFont.fontFamily,
-                          height: 1.4)),
-                  SizedBox(height: size.height * 0.005),
-                  Text(price,
-                      style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          fontFamily: AppFont.fontFamily)),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

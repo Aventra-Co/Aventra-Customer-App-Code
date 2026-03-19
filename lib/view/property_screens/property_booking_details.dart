@@ -17,24 +17,28 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../controller/app_config_provider.dart';
 import '../../controller/app_footer.dart';
 import '../../controller/app_loader.dart';
+import '../../service/date_selection_service.dart';
 import '../authentication/login_screen.dart';
+import 'view_property_details_screen.dart';
 
 class PropertyBookingDetails extends StatefulWidget {
   final dynamic adDetails;
   final int adultCount;
   final int childCount;
-  final Set<DateTime> selectedDays;
-  final int priceType;
-  final String perDayPrice;
+  final DateTime checkinDate;
+  final DateTime checkoutDate;
+  final int totalNights;
+  final double grandTotal;
   final int propertyAdId;
   const PropertyBookingDetails(
       {super.key,
       required this.adDetails,
       required this.adultCount,
       required this.childCount,
-      required this.selectedDays,
-      required this.priceType,
-      required this.perDayPrice,
+      required this.checkinDate,
+      required this.checkoutDate,
+      required this.totalNights,
+      required this.grandTotal,
       required this.propertyAdId});
 
   @override
@@ -89,7 +93,7 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
 
   Future<void> checkCouponApi(userId, couponCode, propertyAdId) async {
     Uri url = Uri.parse(
-        "${AppConfigProvider.apiUrl}check_coupon_discount?user_id=$userId&coupon_code=$couponCode&trip_id=$propertyAdId");
+        "${AppConfigProvider.apiUrl}check_property_coupon_discount?user_id=$userId&coupon_code=$couponCode&property_ad_id=$propertyAdId");
 
     String token = AppConstant.token;
     if (token.isEmpty) {
@@ -151,24 +155,26 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
     try {
       http.MultipartRequest formData = http.MultipartRequest('POST', url);
 
-      final totalDates = widget.selectedDays.length;
-      final baseTotal = totalDates * double.parse(widget.perDayPrice);
+      // final totalDates = widget.totalNights;
+      final baseTotal = widget.grandTotal;
       final grandTotal = isDiscountApplied
           ? (baseTotal - (baseTotal * (couponDiscount / 100)))
           : baseTotal;
 
       formData.fields['user_id'] = userId.toString();
       formData.fields['property_ad_id'] = widget.propertyAdId.toString();
-      formData.fields['pricing_type'] = widget.priceType.toString();
+      formData.fields['pricing_type'] = "0";
       formData.fields['total_amount'] = baseTotal.toStringAsFixed(2);
       formData.fields['max_child'] = widget.childCount.toString();
       formData.fields['max_adult'] = widget.adultCount.toString();
       formData.fields['grand_total'] = grandTotal.toStringAsFixed(2);
-      formData.fields['checkin_date'] = _firstSelectedDateForApi();
-      formData.fields['checkout_date'] = _lastSelectedDateForApi();
+      formData.fields['checkin_date'] = _checkInDateForApi();
+      formData.fields['checkout_date'] = _checkOutDateForApi();
       formData.fields['selected_dates'] = _selectedDatesForApi();
       formData.fields['coupon_code'] = couponCode;
       formData.fields['coupon_discount'] = couponDiscount.toString();
+      formData.fields['discount_percentage'] =
+          widget.adDetails['discount_percentage'].toString();
       log("response--==> ${formData.fields}");
       // print("response--==> ${formData.files}");
       http.StreamedResponse response = await formData.send();
@@ -224,9 +230,9 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
   Widget _buildUIScreen(BuildContext context) {
     final size = MediaQuery.of(context).size;
     double screenWidth = MediaQuery.of(context).size.width;
-    final totalDates = widget.selectedDays.length;
-    final selectedDateText = _firstSelectedDateText();
-    final baseTotal = totalDates * double.parse(widget.perDayPrice);
+    final totalDates = widget.totalNights;
+    final selectedDateText = _checkInDateText();
+    final baseTotal = widget.grandTotal;
     final grandTotal = isDiscountApplied
         ? (baseTotal - (baseTotal * (couponDiscount / 100)))
         : baseTotal;
@@ -261,7 +267,14 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
                       children: [
                         InkWell(
                           onTap: () {
-                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ViewPropertyDetailsScreen(
+                                  adDetails: adDetails,
+                                ),
+                              ),
+                            );
                           },
                           child: Text(
                             AppLanguage.viewDetailsText[language],
@@ -774,35 +787,23 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
     );
   }
 
-  String _firstSelectedDateText() {
-    if (widget.selectedDays.isEmpty) {
-      return "N/A";
-    }
-    final days = widget.selectedDays.toList()..sort((a, b) => a.compareTo(b));
-    return DateFormat('MMM dd, yyyy').format(days.first);
+  String _checkInDateText() {
+    return DateFormat('MMM dd, yyyy').format(widget.checkinDate);
   }
 
-  String _firstSelectedDateForApi() {
-    if (widget.selectedDays.isEmpty) {
-      return "";
-    }
-    final days = widget.selectedDays.toList()..sort((a, b) => a.compareTo(b));
-    return DateFormat('yyyy-MM-dd').format(days.first);
+  String _checkInDateForApi() {
+    return DateFormat('yyyy-MM-dd').format(widget.checkinDate);
   }
 
-  String _lastSelectedDateForApi() {
-    if (widget.selectedDays.isEmpty) {
-      return "";
-    }
-    final days = widget.selectedDays.toList()..sort((a, b) => a.compareTo(b));
-    return DateFormat('yyyy-MM-dd').format(days.last);
+  String _checkOutDateForApi() {
+    return DateFormat('yyyy-MM-dd').format(widget.checkoutDate);
   }
 
   String _selectedDatesForApi() {
-    if (widget.selectedDays.isEmpty) {
-      return "";
-    }
-    final days = widget.selectedDays.toList()..sort((a, b) => a.compareTo(b));
+    final days = DateSelectionService().buildSelectedDates(
+      start: widget.checkinDate,
+      end: widget.checkoutDate,
+    );
     return days.map((d) => DateFormat('yyyy-MM-dd').format(d)).join(',');
   }
 
