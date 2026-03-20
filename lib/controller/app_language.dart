@@ -1025,4 +1025,24 @@ class AppLanguage {
     '/يوم',
   ];
   static const selectProTypeText = ["Select Property Type", "اختر نوع العقار"];
+  static const highToLowText = [
+    "High To Low",
+    "من الأعلى إلى الأدنى",
+  ];
+  static const lowToHighText = [
+    "Low To High",
+    "من الأدنى إلى الأعلى",
+  ];
+  static const costText = [
+    "Cost",
+    "التكلفة",
+  ];
+  static const arrangementsText = [
+    "Arrangements",
+    "الترتيبات",
+  ];
+  static const cleanText = [
+    "Clean",
+    "نظيف",
+  ];
 }

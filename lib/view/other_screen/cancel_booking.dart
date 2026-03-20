@@ -13,6 +13,7 @@ import '../../controller/app_language.dart';
 import '../../controller/app_loader.dart';
 import '../../controller/app_snack_bar_toast_message.dart';
 import '../authentication/login_screen.dart';
+import 'dart:ui' as ui;
 
 class CancelBooking extends StatefulWidget {
   static String routeName = "./CancelBooking";
@@ -216,85 +217,90 @@ class CancelBookingState extends State<CancelBooking> {
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
         statusBarColor: AppColor.secondaryColor,
         statusBarIconBrightness: Brightness.dark));
-    return GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Scaffold(
-        backgroundColor: AppColor.secondaryColor,
-        body: SafeArea(
-          child: Container(
-            height: MediaQuery.of(context).size.height * 100 / 100,
-            width: MediaQuery.of(context).size.width * 100 / 100,
-            color: AppColor.secondaryColor,
-            child: Column(
-              children: [
-                const NoInternetBanner(),
-                AppHeader(
-                    text: AppLanguage.cancelBookingText[language],
-                    onPress: () {
-                      Navigator.pop(context);
-                    }),
-                // SizedBox(
-                //     height: MediaQuery.of(context).size.height * 3 / 100),
-                // Container(
-                //   width: MediaQuery.of(context).size.width * 90 / 100,
-                //   child: Text(AppLanguage.deleteReasonText[language],
-                //       style: const TextStyle(
-                //         fontWeight: FontWeight.w400,
-                //         fontFamily: AppFont.fontFamily,
-                //         color: AppColor.primaryColor,
-                //         fontSize: 12,
-                //       )),
-                // ),
+    return Directionality(
+      textDirection:
+          language == 1 ? ui.TextDirection.rtl : ui.TextDirection.ltr,
+      child: GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: Scaffold(
+          backgroundColor: AppColor.secondaryColor,
+          body: SafeArea(
+            child: Container(
+              height: MediaQuery.of(context).size.height * 100 / 100,
+              width: MediaQuery.of(context).size.width * 100 / 100,
+              color: AppColor.secondaryColor,
+              child: Column(
+                children: [
+                  const NoInternetBanner(),
+                  AppHeader(
+                      text: AppLanguage.cancelBookingText[language],
+                      onPress: () {
+                        Navigator.pop(context);
+                      }),
+                  // SizedBox(
+                  //     height: MediaQuery.of(context).size.height * 3 / 100),
+                  // Container(
+                  //   width: MediaQuery.of(context).size.width * 90 / 100,
+                  //   child: Text(AppLanguage.deleteReasonText[language],
+                  //       style: const TextStyle(
+                  //         fontWeight: FontWeight.w400,
+                  //         fontFamily: AppFont.fontFamily,
+                  //         color: AppColor.primaryColor,
+                  //         fontSize: 12,
+                  //       )),
+                  // ),
 
-                SizedBox(height: MediaQuery.of(context).size.height * 3 / 100),
-                //----------- Message Input -------------
-                Container(
-                  width: MediaQuery.of(context).size.width * 90 / 100,
-                  child: TextFormField(
-                    style: TextStyle(height: 1, color: AppColor.textColor),
-                    keyboardType: TextInputType.multiline,
-                    controller: cancelTextEditingController,
-                    maxLines: 7,
-                    maxLength: AppConstant.describeLength,
-                    decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: AppColor.textinputBorderColor,
+                  SizedBox(
+                      height: MediaQuery.of(context).size.height * 3 / 100),
+                  //----------- Message Input -------------
+                  Container(
+                    width: MediaQuery.of(context).size.width * 90 / 100,
+                    child: TextFormField(
+                      style: TextStyle(height: 1, color: AppColor.textColor),
+                      keyboardType: TextInputType.multiline,
+                      controller: cancelTextEditingController,
+                      maxLines: 7,
+                      maxLength: AppConstant.describeLength,
+                      decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: AppColor.textinputBorderColor,
+                            ),
+                            borderRadius: BorderRadius.all(Radius.circular(11)),
                           ),
-                          borderRadius: BorderRadius.all(Radius.circular(11)),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: AppColor.textinputBorderColor,
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: AppColor.textinputBorderColor,
+                            ),
+                            borderRadius: BorderRadius.all(Radius.circular(11)),
                           ),
-                          borderRadius: BorderRadius.all(Radius.circular(11)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: AppColor.textinputBorderColor,
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: AppColor.textinputBorderColor,
+                            ),
+                            borderRadius: BorderRadius.all(Radius.circular(11)),
                           ),
-                          borderRadius: BorderRadius.all(Radius.circular(11)),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 18, horizontal: 15),
-                        fillColor: AppColor.secondaryColor,
-                        filled: true,
-                        counterText: '',
-                        hintText: AppLanguage.cancelReasonText[language],
-                        hintStyle: AppConstant.textFilledStyle),
+                          contentPadding: const EdgeInsets.symmetric(
+                              vertical: 18, horizontal: 15),
+                          fillColor: AppColor.secondaryColor,
+                          filled: true,
+                          counterText: '',
+                          hintText: AppLanguage.cancelReasonText[language],
+                          hintStyle: AppConstant.textFilledStyle),
+                    ),
                   ),
-                ),
 
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 4 / 100,
-                ),
-                AppButton(
-                  text: AppLanguage.submitButtonText[language],
-                  onPress: () {
-                    reasonValidation(cancelTextEditingController.text);
-                  },
-                ),
-              ],
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 4 / 100,
+                  ),
+                  AppButton(
+                    text: AppLanguage.submitButtonText[language],
+                    onPress: () {
+                      reasonValidation(cancelTextEditingController.text);
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),

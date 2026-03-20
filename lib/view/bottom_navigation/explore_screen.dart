@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:boatapp/view/property_screens/property_screen.dart';
 import 'package:boatapp/view/property_screens/viewAll_property_screen.dart';
 import 'package:boatapp/view/property_screens/property_detail_screen.dart';
@@ -181,16 +182,16 @@ class _ExploreState extends State<Explore> {
             var hasTripDestinationData = res['destination_arr_active'];
             hasTripDestinationsList =
                 (hasTripDestinationData != "NA") ? hasTripDestinationData : [];
-            item = res['boat_arr'];
             categoryList = (item != "NA") ? item : [];
+            promotionsList =
+                (res['banner_arr'] != "NA") ? res['banner_arr'] : [];
           } else {
             propertyTypeTabs = res['property_type_arr_active'] ?? [];
             popularPropertiesList = res['property_advertisement_arr'] ?? [];
+            _propertyBanners =
+                (res['banner_arr'] != "NA") ? res['banner_arr'] : [];
           }
           notificationCount = res['notificationCount'];
-          promotionsList = (res['banner_arr'] != "NA") ? res['banner_arr'] : [];
-          _propertyBanners =
-              (res['banner_arr'] != "NA") ? res['banner_arr'] : [];
 
           setState(() => isLoading = false);
         } else {
@@ -619,6 +620,67 @@ class _ExploreState extends State<Explore> {
     }
   }
 
+//=============add favorite trip API================//
+  Future<void> addFavoriteApiCall(index, tripId, int entity) async {
+    Uri url = Uri.parse("${AppConfigProvider.apiUrl}add_favourite");
+    setState(() {
+      isApiCalling = false;
+    });
+    String token = AppConstant.token;
+    try {
+      var headers = {
+        'Authorization': 'Bearer $token',
+      };
+
+      var body = {
+        'user_id': userId.toString(),
+        'trip_id': tripId.toString(),
+        'entity_type': entity.toString(),
+      };
+
+      log("body==== $body $index");
+
+      http.Response response = await http.post(
+        url,
+        headers: headers,
+        body: body,
+      );
+      var res = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        if (res['success'] == true) {
+          setState(() {
+            popularPropertiesList[index]['favourite_status'] =
+                res['favourite_status'];
+          });
+
+          SnackBarToastMessage.showSnackBar(context, res['message'][language]);
+          setState(() {
+            isApiCalling = false;
+          });
+        } else {
+          setState(() {
+            isApiCalling = false;
+          });
+          // ignore: use_build_context_synchronously
+          SnackBarToastMessage.showSnackBar(context, res['message'][language]);
+          if (res['active_flag'] == 0) {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const Login()));
+          }
+        }
+      } else {
+        setState(() {
+          isApiCalling = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        isApiCalling = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ProgressHUD(
@@ -640,126 +702,140 @@ class _ExploreState extends State<Explore> {
       canPop: false,
       onPopInvoked: (didPop) =>
           SystemChannels.platform.invokeMethod('SystemNavigator.pop'),
-      child: Scaffold(
-        body: SafeArea(
-          child: Directionality(
-            textDirection:
-                language == 1 ? ui.TextDirection.rtl : ui.TextDirection.ltr,
-            child: RefreshIndicator(
-              onRefresh: _refreshPage,
-              color: AppColor.themeColor,
-              child: Container(
-                color: AppColor.secondaryColor,
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height,
-                child: Column(
-                  children: [
-                    const NoInternetBanner(),
-                    isLoading
-                        ? exploreShimmerEffect(context)
-                        : Expanded(
-                            child: SingleChildScrollView(
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              child: Column(
-                                children: [
-                                  // Header
-                                  _buildHeader(context, screenWidth),
-                                  SizedBox(
-                                      height:
-                                          MediaQuery.of(context).size.height *
-                                              4 /
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: const SystemUiOverlayStyle(
+          statusBarColor: AppColor.secondaryColor,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.dark,
+        ),
+        child: Scaffold(
+          body: SafeArea(
+            child: Directionality(
+              textDirection:
+                  language == 1 ? ui.TextDirection.rtl : ui.TextDirection.ltr,
+              child: RefreshIndicator(
+                onRefresh: _refreshPage,
+                color: AppColor.themeColor,
+                child: Container(
+                  color: AppColor.secondaryColor,
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height,
+                  child: Column(
+                    children: [
+                      const NoInternetBanner(),
+                      isLoading
+                          ? exploreShimmerEffect(context)
+                          : Expanded(
+                              child: SingleChildScrollView(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                child: Column(
+                                  children: [
+                                    // Header
+                                    _buildHeader(context, screenWidth),
+                                    SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                4 /
+                                                100),
+
+                                    // Sea & Property selection cards
+                                    _buildCategoryCards(context, screenWidth),
+                                    SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                4 /
+                                                100),
+
+                                    // ══════════════ SEA SECTION ══════════════
+                                    if (_showSea && activitiesList.isNotEmpty)
+                                      _buildActivityTabs(context, screenWidth),
+                                    if (_showSea && activitiesList.isNotEmpty)
+                                      SizedBox(
+                                          height: MediaQuery.of(context)
+                                                  .size
+                                                  .height *
+                                              2 /
                                               100),
-
-                                  // Sea & Property selection cards
-                                  _buildCategoryCards(context, screenWidth),
-                                  SizedBox(
-                                      height:
-                                          MediaQuery.of(context).size.height *
-                                              4 /
+                                    if (_showSea && promotionsList.isNotEmpty)
+                                      _buildPromotionsSection(
+                                          context, screenWidth, promotionsList),
+                                    if (_showSea && promotionsList.isNotEmpty)
+                                      SizedBox(
+                                          height: MediaQuery.of(context)
+                                                  .size
+                                                  .height *
+                                              3 /
                                               100),
+                                    if (_showSea)
+                                      _buildPopularDestinationsHeader(
+                                          context, screenWidth),
+                                    if (_showSea)
+                                      SizedBox(
+                                          height: MediaQuery.of(context)
+                                                  .size
+                                                  .height *
+                                              2 /
+                                              100),
+                                    if (_showSea &&
+                                        hasTripDestinationsList.isNotEmpty)
+                                      _buildDestinationsList(
+                                          context, screenWidth),
+                                    if (_showSea &&
+                                        hasTripDestinationsList.isEmpty)
+                                      _buildNoDestinationMsg(context),
 
-                                  // ══════════════ SEA SECTION ══════════════
-                                  if (_showSea && activitiesList.isNotEmpty)
-                                    _buildActivityTabs(context, screenWidth),
-                                  if (_showSea && activitiesList.isNotEmpty)
-                                    SizedBox(
-                                        height:
-                                            MediaQuery.of(context).size.height *
-                                                2 /
-                                                100),
-                                  if (_showSea && promotionsList.isNotEmpty)
-                                    _buildPromotionsSection(
-                                        context, screenWidth),
-                                  if (_showSea && promotionsList.isNotEmpty)
-                                    SizedBox(
-                                        height:
-                                            MediaQuery.of(context).size.height *
-                                                3 /
-                                                100),
-                                  if (_showSea)
-                                    _buildPopularDestinationsHeader(
-                                        context, screenWidth),
-                                  if (_showSea)
-                                    SizedBox(
-                                        height:
-                                            MediaQuery.of(context).size.height *
-                                                2 /
-                                                100),
-                                  if (_showSea &&
-                                      hasTripDestinationsList.isNotEmpty)
-                                    _buildDestinationsList(
-                                        context, screenWidth),
-                                  if (_showSea &&
-                                      hasTripDestinationsList.isEmpty)
-                                    _buildNoDestinationMsg(context),
+                                    // ══════════════ PROPERTY SECTION ══════════
+                                    // 1) Property type tabs (pill row)
+                                    isLoading
+                                        ? exploreShimmerEffect(context)
+                                        : Column(
+                                            children: [
+                                              if (_showProperty)
+                                                _buildPropertyTypeTabs(
+                                                    context, screenWidth),
+                                              if (_showProperty)
+                                                SizedBox(
+                                                    height:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .height *
+                                                            2 /
+                                                            100),
 
-                                  // ══════════════ PROPERTY SECTION ══════════
-                                  // 1) Property type tabs (pill row)
-                                  isLoading
-                                      ? exploreShimmerEffect(context)
-                                      : Column(
-                                          children: [
-                                            if (_showProperty)
-                                              _buildPropertyTypeTabs(
-                                                  context, screenWidth),
-                                            if (_showProperty)
+                                              // 2) Property banner carousel (uses local asset images)
+                                              if (_showProperty)
+                                                _buildPropertyCarousel(
+                                                    context,
+                                                    screenWidth,
+                                                    _propertyBanners),
+                                              if (_showProperty)
+                                                SizedBox(
+                                                    height:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .height *
+                                                            3 /
+                                                            100),
+
+                                              // 3) Popular properties horizontal list (filtered by tab)
+                                              if (_showProperty)
+                                                _buildPopularPropertiesSection(
+                                                    context),
+
                                               SizedBox(
                                                   height: MediaQuery.of(context)
                                                           .size
                                                           .height *
                                                       2 /
                                                       100),
-
-                                            // 2) Property banner carousel (uses local asset images)
-                                            if (_showProperty)
-                                              _buildPropertyCarousel(
-                                                  context, screenWidth),
-                                            if (_showProperty)
-                                              SizedBox(
-                                                  height: MediaQuery.of(context)
-                                                          .size
-                                                          .height *
-                                                      3 /
-                                                      100),
-
-                                            // 3) Popular properties horizontal list (filtered by tab)
-                                            if (_showProperty)
-                                              _buildPopularPropertiesSection(
-                                                  context),
-
-                                            SizedBox(
-                                                height: MediaQuery.of(context)
-                                                        .size
-                                                        .height *
-                                                    2 /
-                                                    100),
-                                          ],
-                                        )
-                                ],
+                                            ],
+                                          )
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -1088,7 +1164,8 @@ class _ExploreState extends State<Explore> {
   /// Swap these out with a real API list when the backend is ready.
   List<dynamic> _propertyBanners = [];
 
-  Widget _buildPropertyCarousel(BuildContext context, double screenWidth) {
+  Widget _buildPropertyCarousel(
+      BuildContext context, double screenWidth, List<dynamic> bannerList) {
     return Column(
       children: [
         SizedBox(
@@ -1107,7 +1184,7 @@ class _ExploreState extends State<Explore> {
           child: Column(
             children: [
               CarouselSlider(
-                items: _propertyBanners.asMap().entries.map((entry) {
+                items: bannerList.asMap().entries.map((entry) {
                   int index = entry.key;
                   bool isCenter =
                       hasInitialized && index == _propertyCarouselStatus;
@@ -1130,7 +1207,7 @@ class _ExploreState extends State<Explore> {
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
                                 child: Image.network(
-                                    '${AppConfigProvider.imageURL}${_propertyBanners[index]['image']}',
+                                    '${AppConfigProvider.imageURL}${bannerList[index]['image']}',
                                     fit: BoxFit.cover,
                                     loadingBuilder: (context, child, progress) {
                                   if (progress == null) return child;
@@ -1184,9 +1261,10 @@ class _ExploreState extends State<Explore> {
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(promotionsList.length, (index) {
+                children: List.generate(bannerList.length, (index) {
                   return GestureDetector(
-                    onTap: () => carouselController.animateToPage(index),
+                    onTap: () =>
+                        _propertyCarouselController.animateToPage(index),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 5),
                       child: Container(
@@ -1280,7 +1358,8 @@ class _ExploreState extends State<Explore> {
   // ────────────────────────────────────────────────────────────────────────
   // SEA: PROMOTIONS CAROUSEL
   // ────────────────────────────────────────────────────────────────────────
-  Widget _buildPromotionsSection(BuildContext context, double screenWidth) {
+  Widget _buildPromotionsSection(
+      BuildContext context, double screenWidth, List<dynamic> bannerList) {
     return Column(
       children: [
         SizedBox(
@@ -1299,9 +1378,10 @@ class _ExploreState extends State<Explore> {
           child: Column(
             children: [
               CarouselSlider(
-                items: promotionsList.asMap().entries.map((entry) {
+                items: bannerList.asMap().entries.map((entry) {
                   int index = entry.key;
-                  bool isCenter = hasInitialized && index == status;
+                  bool isCenter =
+                      hasInitialized && index == status; // status = sea index
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 100),
                     margin: EdgeInsets.only(
@@ -1321,7 +1401,7 @@ class _ExploreState extends State<Explore> {
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
                                 child: Image.network(
-                                    '${AppConfigProvider.imageURL}${promotionsList[index]['image']}',
+                                    '${AppConfigProvider.imageURL}${bannerList[index]['image']}',
                                     fit: BoxFit.cover,
                                     loadingBuilder: (context, child, progress) {
                                   if (progress == null) return child;
@@ -1375,7 +1455,7 @@ class _ExploreState extends State<Explore> {
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(promotionsList.length, (index) {
+                children: List.generate(bannerList.length, (index) {
                   return GestureDetector(
                     onTap: () => carouselController.animateToPage(index),
                     child: Padding(
@@ -1887,7 +1967,13 @@ class _ExploreState extends State<Explore> {
                                   ),
                                   const Spacer(),
                                   GestureDetector(
-                                    onTap: () {},
+                                    onTap: () {
+                                      addFavoriteApiCall(
+                                          index,
+                                          popularPropertiesList[realIndex]
+                                              ['property_ad_id'],
+                                          1);
+                                    },
                                     child: Image.asset(
                                       (popularPropertiesList[realIndex]
                                                   ['favourite_status'] ==
@@ -2705,13 +2791,12 @@ class _ExploreState extends State<Explore> {
                                       context,
                                       MaterialPageRoute(
                                           builder: (context) => PropertyScreen(
-                                                propertyAdId:
-                                                    _selectedPropertyTab
-                                                        .toString(),
-                                                cityId: cityList[index]
-                                                        ['city_id']
-                                                    .toString(),
-                                              )));
+                                              propertyAdId: propertyAdId,
+                                              cityId: cityList[index]
+                                                  ['city_id'],
+                                              cityName: cityList[index]
+                                                  ['city_name'][language],
+                                              toOpen: "")));
 
                                   // if (selectActivity == 0) {
                                   //   getActivityAccordingDestination(
@@ -2794,73 +2879,4 @@ class _ExploreState extends State<Explore> {
       },
     ).then((_) => onDismiss());
   }
-
-  // ── Property Type Card ────────────────────────────────────────────────
-  // Widget _propertyTypeCard({
-  //   required BuildContext context,
-  //   required StateSetter setModalState,
-  //   required String imagePath,
-  //   required String label,
-  // }) {
-  //   final size = MediaQuery.of(context).size;
-  //   // final isSelected = _selectedPropertyType == label;
-
-  //   return GestureDetector(
-  //     onTap: () {
-  //       Navigator.push(context,
-  //           MaterialPageRoute(builder: (context) => const PropertyScreen()));
-  //     },
-  //     child: Column(
-  //       children: [
-  //         // Image card
-  //         Expanded(
-  //           child: AnimatedContainer(
-  //             duration: const Duration(milliseconds: 180),
-  //             decoration: BoxDecoration(
-  //               borderRadius: BorderRadius.circular(15),
-  //               // border: Border.all(
-  //               //   color: isSelected
-  //               //       ? AppColor.themeColor
-  //               //       : AppColor.boxshadowColor,
-  //               //   width: isSelected ? 2.5 : 1,
-  //               // ),
-  //               // boxShadow: isSelected
-  //               //     ? [
-  //               //         BoxShadow(
-  //               //           color: AppColor.themeColor.withOpacity(0.25),
-  //               //           blurRadius: 8,
-  //               //           spreadRadius: 1,
-  //               //         )
-  //               //       ]
-  //               //     : [],
-  //               image: DecorationImage(
-  //                 image: AssetImage(imagePath),
-  //                 fit: BoxFit.cover,
-  //                 // Darken slightly when NOT selected so selected pops
-  //                 // colorFilter: isSelected
-  //                 //     ? null
-  //                 //     : ColorFilter.mode(
-  //                 //         Colors.black.withOpacity(0.15),
-  //                 //         BlendMode.darken,
-  //                 //       ),
-  //               ),
-  //             ),
-  //           ),
-  //         ),
-  //         SizedBox(height: size.height * 0.008),
-  //         // Label
-  //         Text(
-  //           label,
-  //           textAlign: TextAlign.center,
-  //           style: const TextStyle(
-  //             fontSize: 12,
-  //             fontWeight: FontWeight.w500,
-  //             fontFamily: AppFont.fontFamily,
-  //             color: Colors.black87,
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 }

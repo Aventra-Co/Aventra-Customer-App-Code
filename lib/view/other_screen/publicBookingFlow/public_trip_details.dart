@@ -257,6 +257,7 @@ class _PublicTripDetailsScreenState extends State<PublicTripDetailsScreen> {
       var body = {
         'user_id': userId.toString(),
         'trip_id': tripId.toString(),
+        'entity_type': 0.toString(),
       };
 
       print("body $body");
@@ -641,7 +642,7 @@ class _PublicTripDetailsScreenState extends State<PublicTripDetailsScreen> {
                                                 ),
                                               ),
                                             ),
-                                        ],
+                                          ],
                                         ),
                                       )
                                     ],
@@ -696,6 +697,7 @@ class _PublicTripDetailsScreenState extends State<PublicTripDetailsScreen> {
                                                 builder: (context) => Review(
                                                       tripId: widget.tripId,
                                                       tripImages: tripImages,
+                                                      isProperty: false,
                                                     )));
                                       }
                                     },
@@ -955,13 +957,12 @@ class _PublicTripDetailsScreenState extends State<PublicTripDetailsScreen> {
                                             fontWeight: FontWeight.w400,
                                             fontFamily: AppFont.fontFamily),
                                       ),
-                                  SizedBox(
+                                      SizedBox(
                                           height: MediaQuery.of(context)
                                                   .size
                                                   .height *
                                               2 /
                                               100),
-
                                       Row(
                                         children: [
                                           SizedBox(
@@ -1227,7 +1228,6 @@ class _PublicTripDetailsScreenState extends State<PublicTripDetailsScreen> {
                                               fontWeight: FontWeight.w600,
                                               fontFamily: AppFont.fontFamily),
                                         ),
-                                      
                                       ],
                                     ),
                                     Container(
@@ -1523,7 +1523,6 @@ class _PublicTripDetailsScreenState extends State<PublicTripDetailsScreen> {
                               height:
                                   MediaQuery.of(context).size.height * 3 / 100),
 
-                    
                           if (timeSlots.isNotEmpty && selectedDate.isNotEmpty)
                             Column(
                               children: [
@@ -1602,7 +1601,6 @@ class _PublicTripDetailsScreenState extends State<PublicTripDetailsScreen> {
                                                       ['start_time_formated'];
                                             }
                                             setState(() {});
-                                       
                                           }
                                         },
                                         child: Container(
@@ -1670,7 +1668,6 @@ class _PublicTripDetailsScreenState extends State<PublicTripDetailsScreen> {
                           //! Number of people textfield
                           Column(
                             children: [
-                             
                               SizedBox(
                                   height: MediaQuery.of(context).size.height *
                                       1 /

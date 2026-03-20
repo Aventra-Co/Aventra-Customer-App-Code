@@ -156,7 +156,7 @@ class _FavouritesState extends State<Favourites> {
   }
 
   //=============add favorite trip API================//
-  Future<void> addFavoriteApiCall(tripId) async {
+  Future<void> addFavoriteApiCall(tripId, int entity) async {
     Uri url = Uri.parse("${AppConfigProvider.apiUrl}add_favourite");
     setState(() {
       isApiCalling = true;
@@ -170,6 +170,7 @@ class _FavouritesState extends State<Favourites> {
       var body = {
         'user_id': userId.toString(),
         'trip_id': tripId.toString(),
+        'entity_type': entity.toString(),
       };
 
       http.Response response = await http.post(
@@ -495,8 +496,19 @@ class _FavouritesState extends State<Favourites> {
                                       physics:
                                           const AlwaysScrollableScrollPhysics(),
                                       itemBuilder: (context, index) {
-                                        return _propertyCard(properties[index],
-                                            index, screenWidth);
+                                        return Column(
+                                          children: [
+                                            _propertyCard(properties[index],
+                                                index, screenWidth),
+                                            SizedBox(
+                                              height: MediaQuery.of(context)
+                                                      .size
+                                                      .height *
+                                                  2 /
+                                                  100,
+                                            ),
+                                          ],
+                                        );
                                       },
                                     )),
                     ),
@@ -935,7 +947,8 @@ class _FavouritesState extends State<Favourites> {
                                                                       addFavoriteApiCall(
                                                                           favoriteList[index]
                                                                               [
-                                                                              'trip_id']);
+                                                                              'trip_id'],
+                                                                          0);
                                                                     },
                                                                     child:
                                                                         SizedBox(
@@ -1147,7 +1160,8 @@ class _FavouritesState extends State<Favourites> {
                                                                       addFavoriteApiCall(
                                                                           favoriteList[index]
                                                                               [
-                                                                              'trip_id']);
+                                                                              'trip_id'],
+                                                                          0);
                                                                     },
                                                                     child:
                                                                         SizedBox(
@@ -1620,9 +1634,7 @@ class _FavouritesState extends State<Favourites> {
               left: language == 1 ? 42 : null,
               child: GestureDetector(
                 onTap: () {
-                  setState(() {
-                    properties[index]['favourite_status'] = 0;
-                  });
+                  addFavoriteApiCall(property['property_ad_id'], 1);
                 },
                 child: Container(
                   width: iconSize,
@@ -1669,7 +1681,8 @@ class _FavouritesState extends State<Favourites> {
             // Property info
             Positioned(
               bottom: 8,
-              left: 12,
+              left: 8,
+              right: 8,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -1721,7 +1734,7 @@ class _FavouritesState extends State<Favourites> {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      if (property['rating'].toString() != "0.00")
+                      if (property['rating'] != 0)
                         Container(
                           width: screenWidth > 600
                               ? MediaQuery.of(context).size.width * 10 / 100
@@ -1846,7 +1859,8 @@ class _FavouritesState extends State<Favourites> {
               ),
             ),
 
-            if (property['discount'] != null && property['discount'] > 0) ...[
+            if (property['discount_percentage'] != null &&
+                property['discount_percentage'] > 0) ...[
               Positioned(
                 top: language == 0 ? -30 : -30,
                 left: language == 0 ? -22 : null,
@@ -1870,7 +1884,7 @@ class _FavouritesState extends State<Favourites> {
                     // color: Colors.red,
                     width: MediaQuery.of(context).size.width * 30 / 100,
                     child: Text(
-                      "${property['discount']}% ${AppLanguage.offText[language]}",
+                      "${property['discount_percentage']}% ${AppLanguage.offText[language]}",
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                           fontFamily: AppFont.fontFamily,
@@ -2004,7 +2018,7 @@ class _FavouritesState extends State<Favourites> {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    if (property['rating'].toString() != "0.00")
+                    if (property['rating'] != 0)
                       Container(
                         width: screenWidth > 600
                             ? MediaQuery.of(context).size.width * 10 / 100
@@ -2064,7 +2078,9 @@ class _FavouritesState extends State<Favourites> {
                     ),
                     const Spacer(),
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                        addFavoriteApiCall(property['property_ad_id'], 1);
+                      },
                       child: Image.asset(
                         (property['favourite_status'] ?? 0) == 1
                             ? AppImage.removeFavouriteIcon
@@ -2073,7 +2089,9 @@ class _FavouritesState extends State<Favourites> {
                         height: size.width * 0.06,
                       ),
                     ),
-                    const Spacer(),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width * 1 / 100,
+                    ),
                     GestureDetector(
                       onTap: () {
                         deeplinkingProp(context, property['property_ad_id']);

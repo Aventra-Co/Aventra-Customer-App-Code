@@ -44,16 +44,15 @@ class _MyTripState extends State<MyTrip> {
   List activitiesList = <dynamic>[];
   int selectedActivityId = 0;
   int selectedPropTypeId = 0;
+  int selectedTab = 0;
 
   @override
   void initState() {
     super.initState();
     selectedTab = widget.selectedTab;
-
     getUserDetails();
   }
 
-  int selectedTab = 0;
   //----------------------------GET USER DETAILS--------------------------------//
   Future<dynamic> getUserDetails() async {
     setState(() {
@@ -315,7 +314,7 @@ class _MyTripState extends State<MyTrip> {
             isLoading = false;
           });
         } else {
-          propertyBookings = [];
+          propertyTypeList = [];
           setState(() {
             isLoading = false;
           });
@@ -326,13 +325,13 @@ class _MyTripState extends State<MyTrip> {
           }
         }
       } else {
-        propertyBookings = [];
+        propertyTypeList = [];
         setState(() {
           isLoading = false;
         });
       }
     } catch (e) {
-      propertyBookings = [];
+      propertyTypeList = [];
       setState(() {
         isLoading = false;
       });
@@ -368,9 +367,6 @@ class _MyTripState extends State<MyTrip> {
   }
 
   List<dynamic> propertyBookings = [];
-
-  bool get isSeaSelected => selectedOption == AppLanguage.seaText[language];
-  String selectedOption = AppLanguage.seaText[language];
 
   @override
   Widget build(BuildContext context) {
@@ -430,8 +426,7 @@ class _MyTripState extends State<MyTrip> {
                           GestureDetector(
                             onTap: () {
                               selectedTab == 1
-                                  ? showFilterModal(
-                                      context, selectedOption, screenWidth)
+                                  ? showFilterModal(context, screenWidth)
                                   : filterBottomSheet(context, screenWidth);
                             },
                             child: Container(
@@ -1034,42 +1029,42 @@ class _MyTripState extends State<MyTrip> {
     );
   }
 
-  Widget _toggleButton(String option) {
-    final isSelected = selectedOption == option;
-    final size = MediaQuery.of(context).size;
+  // Widget _toggleButton(String option) {
+  //   final isSelected = selectedOption == option;
+  //   final size = MediaQuery.of(context).size;
 
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          selectedOption = option;
-        });
-      },
-      child: Container(
-        width: size.width * 0.45,
-        height: size.height * 0.045,
-        padding: EdgeInsets.symmetric(
-            vertical: size.height * 0.01, horizontal: size.height * 0.02),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColor.themeColor : AppColor.secondaryColor,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: AppColor.themeColor,
-            width: 0.8,
-          ),
-        ),
-        child: Text(
-          option,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            fontFamily: AppFont.fontFamily,
-            color: isSelected ? AppColor.secondaryColor : AppColor.primaryColor,
-          ),
-        ),
-      ),
-    );
-  }
+  //   return GestureDetector(
+  //     onTap: () {
+  //       setState(() {
+  //         selectedOption = option;
+  //       });
+  //     },
+  //     child: Container(
+  //       width: size.width * 0.45,
+  //       height: size.height * 0.045,
+  //       padding: EdgeInsets.symmetric(
+  //           vertical: size.height * 0.01, horizontal: size.height * 0.02),
+  //       decoration: BoxDecoration(
+  //         color: isSelected ? AppColor.themeColor : AppColor.secondaryColor,
+  //         borderRadius: BorderRadius.circular(8),
+  //         border: Border.all(
+  //           color: AppColor.themeColor,
+  //           width: 0.8,
+  //         ),
+  //       ),
+  //       child: Text(
+  //         option,
+  //         textAlign: TextAlign.center,
+  //         style: TextStyle(
+  //           fontSize: 14,
+  //           fontWeight: FontWeight.w700,
+  //           fontFamily: AppFont.fontFamily,
+  //           color: isSelected ? AppColor.secondaryColor : AppColor.primaryColor,
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   String getDatePart(String inputDate, String type) {
     DateTime date = DateFormat("MMM dd, yyyy").parse(inputDate);
@@ -1184,9 +1179,11 @@ class _MyTripState extends State<MyTrip> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  "name static",
-                                  style: TextStyle(
+                                Text(
+                                  propertyBookings[index]
+                                          ['property_name_english'] ??
+                                      "",
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                     fontFamily: AppFont.fontFamily,
@@ -1194,7 +1191,9 @@ class _MyTripState extends State<MyTrip> {
                                   ),
                                 ),
                                 Text(
-                                  "property type static",
+                                  propertyBookings[index]['property_type_name']
+                                          [0] ??
+                                      "",
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
@@ -1519,8 +1518,7 @@ class _MyTripState extends State<MyTrip> {
     );
   }
 
-  void showFilterModal(
-      BuildContext context, String selectedOption, screenWidth) {
+  void showFilterModal(BuildContext context, screenWidth) {
     showModalBottomSheet<void>(
       isScrollControlled: true,
       constraints: BoxConstraints.expand(

@@ -283,7 +283,7 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
   }
 
   //=============add favorite trip API================//
-  Future<void> addFavoriteApiCall(tripId) async {
+  Future<void> addFavoriteApiCall(tripId, int entity) async {
     Uri url = Uri.parse("${AppConfigProvider.apiUrl}add_favourite");
     print("Url $url");
     setState(() {
@@ -298,6 +298,7 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
       var body = {
         'user_id': userId.toString(),
         'trip_id': tripId.toString(),
+        'entity_type': entity.toString(),
       };
 
       print("body $body");
@@ -636,6 +637,7 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
                                                 builder: (context) => Review(
                                                       tripId: widget.tripId,
                                                       tripImages: tripImages,
+                                                      isProperty: false,
                                                     )));
                                       }
                                     },
@@ -744,7 +746,7 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
                                   GestureDetector(
                                     onTap: () {
                                       addFavoriteApiCall(
-                                          tripDetails['trip_id']);
+                                          tripDetails['trip_id'], 0);
                                     },
                                     child: SizedBox(
                                       width: MediaQuery.of(context).size.width *

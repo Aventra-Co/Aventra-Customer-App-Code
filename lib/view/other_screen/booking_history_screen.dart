@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:boatapp/view/other_screen/publicBookingFlow/public_trip_details.dart';
 import 'package:boatapp/view/property_screens/property_bookinghistory_screen.dart';
+import 'package:boatapp/view/property_screens/property_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -868,7 +869,17 @@ class _BookingHistoryState extends State<BookingHistory> {
                               InkWell(
                                 onTap: () {
                                   // Navigate to property details
-                                  print("Rebook: ${property['property_name']}");
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          PropertyDetailsScreen(
+                                        propertyAdId:
+                                            propBookingHistoryList[index]
+                                                ['property_ad_id'],
+                                      ),
+                                    ),
+                                  );
                                 },
                                 child: Container(
                                   padding: EdgeInsets.symmetric(

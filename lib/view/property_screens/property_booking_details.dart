@@ -62,6 +62,32 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
   GoogleMapController? mapController;
   LatLng initialPosition = const LatLng(23.2599, 77.4126);
 
+  double _toDouble(dynamic value) {
+    if (value == null) return 0;
+    if (value is num) return value.toDouble();
+    if (value is String) {
+      return double.tryParse(value.trim()) ?? 0;
+    }
+    return 0;
+  }
+
+  double _discountPercent() {
+    return _toDouble(adDetails['discount_percentage']);
+  }
+
+  double _applyDiscounts(double baseTotal) {
+    double total = baseTotal;
+    final propertyDiscount = _discountPercent();
+    if (propertyDiscount > 0) {
+      total -= total * (propertyDiscount / 100);
+    }
+    if (isDiscountApplied && couponDiscount > 0) {
+      total -= total * (couponDiscount / 100);
+    }
+    if (total < 0) return 0;
+    return total;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -157,9 +183,7 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
 
       // final totalDates = widget.totalNights;
       final baseTotal = widget.grandTotal;
-      final grandTotal = isDiscountApplied
-          ? (baseTotal - (baseTotal * (couponDiscount / 100)))
-          : baseTotal;
+      final grandTotal = _applyDiscounts(baseTotal);
 
       formData.fields['user_id'] = userId.toString();
       formData.fields['property_ad_id'] = widget.propertyAdId.toString();
@@ -233,9 +257,7 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
     final totalDates = widget.totalNights;
     final selectedDateText = _checkInDateText();
     final baseTotal = widget.grandTotal;
-    final grandTotal = isDiscountApplied
-        ? (baseTotal - (baseTotal * (couponDiscount / 100)))
-        : baseTotal;
+    final grandTotal = _applyDiscounts(baseTotal);
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -546,6 +568,34 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
                         ],
                       ),
                     ),
+                    if (adDetails['discount_percentage'] > 0)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(
+                            "+${AppLanguage.withText[language]} ${adDetails['discount_percentage']}% ${AppLanguage.discountText[language]}",
+                            style: const TextStyle(
+                                color: AppColor.primaryColor,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: AppFont.fontFamily),
+                          ),
+                        ],
+                      ),
+                    if (isCouponDiscount)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(
+                            "+${AppLanguage.withText[language]} $couponDiscount% ${AppLanguage.couponDiscountText[language]}",
+                            style: const TextStyle(
+                                color: AppColor.primaryColor,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: AppFont.fontFamily),
+                          ),
+                        ],
+                      ),
                     SizedBox(
                         height: MediaQuery.of(context).size.height * 1 / 100),
                     SizedBox(

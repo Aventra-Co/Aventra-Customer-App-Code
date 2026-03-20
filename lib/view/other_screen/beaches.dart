@@ -331,6 +331,7 @@ class _BeachesState extends State<Beaches> {
   Future<void> getPickUpsApi(userId) async {
     Uri url = Uri.parse(
         "${AppConfigProvider.apiUrl}get_all_pickup_points?user_id=$userId&destination_id=${widget.destinationId}");
+    print("URL: $url");
 
     String token = AppConstant.token;
 
@@ -527,13 +528,13 @@ class _BeachesState extends State<Beaches> {
       for (var i = 0;
           i < (oceanExploreList.length > 3 ? 3 : oceanExploreList.length);
           i++) {
-        var item = oceanExploreList[i];
+        // var item = oceanExploreList[i];
       }
     });
   }
 
   //=============add favorite trip API================//
-  Future<void> addFavoriteApiCall(index, tripId) async {
+  Future<void> addFavoriteApiCall(index, tripId, int entity) async {
     Uri url = Uri.parse("${AppConfigProvider.apiUrl}add_favourite");
     setState(() {
       isApiCalling = false;
@@ -547,6 +548,7 @@ class _BeachesState extends State<Beaches> {
       var body = {
         'user_id': userId.toString(),
         'trip_id': tripId.toString(),
+        'entity_type': entity.toString(),
       };
 
       http.Response response = await http.post(
@@ -1275,6 +1277,8 @@ class _BeachesState extends State<Beaches> {
                         ],
                       ),
                     ),
+                 
+                 
                   isLoading
                       ? tripsShimmerEffect(context)
                       : Expanded(
@@ -1393,7 +1397,7 @@ class _BeachesState extends State<Beaches> {
                                                                     oceanExploreList[
                                                                             index]
                                                                         [
-                                                                        'trip_id']);
+                                                                        'trip_id'], 0);
                                                               },
                                                               child: SizedBox(
                                                                 width: MediaQuery.of(
@@ -2471,7 +2475,7 @@ class _BeachesState extends State<Beaches> {
                                                                     oceanExploreList[
                                                                             index]
                                                                         [
-                                                                        'trip_id']);
+                                                                        'trip_id'], 0);
                                                               },
                                                               child: SizedBox(
                                                                 width: MediaQuery.of(
