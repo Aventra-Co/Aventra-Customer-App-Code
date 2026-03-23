@@ -472,7 +472,7 @@ class _PublicTripDetailsScreenState extends State<PublicTripDetailsScreen> {
   Widget _buildUIScreen(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-        statusBarColor: AppColor.secondaryColor,
+        statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark));
     return GestureDetector(
       onTap: () {

@@ -421,7 +421,7 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
   Widget _buildUIScreen(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-        statusBarColor: AppColor.secondaryColor,
+        statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark));
     return GestureDetector(
       onTap: () {
@@ -897,14 +897,12 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
                                             fontWeight: FontWeight.w400,
                                             fontFamily: AppFont.fontFamily),
                                       ),
-
                                       SizedBox(
                                           height: MediaQuery.of(context)
                                                   .size
                                                   .height *
                                               2 /
                                               100),
-
                                       Row(
                                         children: [
                                           SizedBox(
@@ -1170,7 +1168,6 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
                                               fontWeight: FontWeight.w600,
                                               fontFamily: AppFont.fontFamily),
                                         ),
-                                        
                                       ],
                                     ),
                                     Container(
@@ -1305,7 +1302,6 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
                                 titleCentered: true,
                               ),
                               calendarStyle: const CalendarStyle(
-                           
                                 selectedDecoration: BoxDecoration(
                                   color: AppColor.themeColor,
                                   shape: BoxShape.circle,
@@ -1461,8 +1457,6 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
                               height:
                                   MediaQuery.of(context).size.height * 3 / 100),
 
-                         
-
                           if (timeSlots.isNotEmpty && selectedDate.isNotEmpty)
                             Column(
                               children: [
@@ -1499,7 +1493,6 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
                                     List.generate(timeSlots.length, (index) {
                                   return Column(
                                     children: [
-                                    
                                       GestureDetector(
                                         onTap: () {
                                           if (!timeSlots[index]
@@ -1524,7 +1517,6 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
                                                       ['start_time_formated'];
                                             }
                                             setState(() {});
-                                          
                                           }
                                         },
                                         child: Container(

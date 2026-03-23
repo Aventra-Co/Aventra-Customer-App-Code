@@ -174,444 +174,454 @@ class _PropertyBookingHistoryDetailScreenState
       child: Scaffold(
         backgroundColor: Colors.white,
         body: SafeArea(
-          child: Column(
-            children: [
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 7 / 100,
-                width: MediaQuery.of(context).size.width * 90 / 100,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context);
-                      },
-                      child: Transform.rotate(
-                        angle: language == 1 ? 3.1416 : 0,
-                        child: SizedBox(
-                          height: MediaQuery.of(context).size.width * 5 / 100,
-                          width: MediaQuery.of(context).size.width * 5 / 100,
-                          child: Image.asset(
-                            AppImage.navigateBackIcon,
-                            fit: BoxFit.cover,
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width * 100 / 100,
+            height: MediaQuery.of(context).size.height * 100 / 100,
+            child: Column(
+              children: [
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 7 / 100,
+                  width: MediaQuery.of(context).size.width * 90 / 100,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pop(context);
+                        },
+                        child: Transform.rotate(
+                          angle: language == 1 ? 3.1416 : 0,
+                          child: SizedBox(
+                            height: MediaQuery.of(context).size.width * 5 / 100,
+                            width: MediaQuery.of(context).size.width * 5 / 100,
+                            child: Image.asset(
+                              AppImage.navigateBackIcon,
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    SizedBox(
-                      height: MediaQuery.of(context).size.width * 4 / 100,
-                      width: MediaQuery.of(context).size.width * 4 / 100,
-                    ),
-                    Text(AppLanguage.detailsText[language],
-                        style: const TextStyle(
-                            color: AppColor.primaryColor,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: AppFont.fontFamily)),
-                    const Spacer(),
-                    Text("ID: #${bookingDetails['booking_random_id'] ?? ""}",
-                        style: const TextStyle(
-                            color: AppColor.primaryColor,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
-                            fontFamily: AppFont.fontFamily)),
-                  ],
+                      SizedBox(
+                        height: MediaQuery.of(context).size.width * 4 / 100,
+                        width: MediaQuery.of(context).size.width * 4 / 100,
+                      ),
+                      Text(AppLanguage.detailsText[language],
+                          style: const TextStyle(
+                              color: AppColor.primaryColor,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: AppFont.fontFamily)),
+                      const Spacer(),
+                      Text("ID: #${bookingDetails['booking_random_id'] ?? ""}",
+                          style: const TextStyle(
+                              color: AppColor.primaryColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                              fontFamily: AppFont.fontFamily)),
+                    ],
+                  ),
                 ),
-              ),
-              if (bookingDetails.isNotEmpty)
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(height: size.height * 0.01),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                              vertical: 12, horizontal: size.width * 0.05),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        if (widget.iscompleted == 3)
-                                          Container(
+                if (bookingDetails.isNotEmpty)
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: size.height * 0.01),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                                vertical: 12, horizontal: size.width * 0.05),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          if (widget.iscompleted == 3)
+                                            Container(
+                                              child: Text(
+                                                AppLanguage
+                                                    .cancelledText[language],
+                                                style: const TextStyle(
+                                                    fontFamily:
+                                                        AppFont.fontFamily,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w500,
+                                                    color: AppColor.redcolor),
+                                              ),
+                                            ),
+                                          if (widget.iscompleted != 3)
+                                            Text(
+                                              AppLanguage
+                                                  .completedText[language],
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                                fontFamily: AppFont.fontFamily,
+                                                color: AppColor.themeColor,
+                                              ),
+                                            ),
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      ViewPropertyDetailsScreen(
+                                                          adDetails:
+                                                              bookingDetails),
+                                                ),
+                                              );
+                                            },
                                             child: Text(
                                               AppLanguage
-                                                  .cancelledText[language],
+                                                  .viewDetailsText[language],
                                               style: const TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w500,
                                                   fontFamily:
                                                       AppFont.fontFamily,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w500,
-                                                  color: AppColor.redcolor),
+                                                  color: Color(0xFF17A2B8),
+                                                  decoration:
+                                                      TextDecoration.underline,
+                                                  decorationColor:
+                                                      AppColor.completedColor),
                                             ),
                                           ),
-                                        if (widget.iscompleted != 3)
+                                        ],
+                                      ),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
                                           Text(
-                                            AppLanguage.completedText[language],
+                                            bookingDetails[
+                                                    'property_name_english'] ??
+                                                "",
                                             style: const TextStyle(
-                                              fontSize: 12,
+                                              fontSize: 18,
                                               fontWeight: FontWeight.w600,
                                               fontFamily: AppFont.fontFamily,
-                                              color: AppColor.themeColor,
+                                              color: Colors.black,
                                             ),
                                           ),
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    ViewPropertyDetailsScreen(
-                                                        adDetails:
-                                                            bookingDetails),
-                                              ),
-                                            );
-                                          },
-                                          child: Text(
-                                            AppLanguage
-                                                .viewDetailsText[language],
-                                            style: const TextStyle(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                                fontFamily: AppFont.fontFamily,
-                                                color: Color(0xFF17A2B8),
-                                                decoration:
-                                                    TextDecoration.underline,
-                                                decorationColor:
-                                                    AppColor.completedColor),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            bookingDetails['property_type_name']
+                                                    [language] ??
+                                                "",
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                              fontFamily: AppFont.fontFamily,
+                                              color: Colors.grey.shade600,
+                                            ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          bookingDetails[
-                                                  'property_name_english'] ??
-                                              "",
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w600,
-                                            fontFamily: AppFont.fontFamily,
-                                            color: Colors.black,
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            "${AppLanguage.guardText[language]} \u2022 ${language == 0 ? (((bookingDetails['guard_name_english'] ?? "").toString().trim().isEmpty) ? "NA" : bookingDetails['guard_name_english'] ?? "") : (((bookingDetails['guard_name_arabic'] ?? "").toString().trim().isEmpty) ? "N/A" : bookingDetails['guard_name_arabic'] ?? "")}",
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                              fontFamily: AppFont.fontFamily,
+                                              color: Colors.grey.shade600,
+                                            ),
                                           ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          bookingDetails['property_type_name']
-                                                  [language] ??
-                                              "",
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
-                                            fontFamily: AppFont.fontFamily,
-                                            color: Colors.grey.shade600,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          "${AppLanguage.guardText[language]} \u2022 ${language == 0 ? (((bookingDetails['guard_name_english'] ?? "").toString().trim().isEmpty) ? "NA" : bookingDetails['guard_name_english'] ?? "") : (((bookingDetails['guard_name_arabic'] ?? "").toString().trim().isEmpty) ? "N/A" : bookingDetails['guard_name_arabic'] ?? "")}",
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
-                                            fontFamily: AppFont.fontFamily,
-                                            color: Colors.grey.shade600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.network(
-                                  "${AppConfigProvider.imageURL}${bookingDetails['cover_image']}",
-                                  width: size.width * 0.18,
-                                  height: size.width * 0.18,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        SizedBox(height: size.height * 0.02),
-
-                        Padding(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: size.width * 0.05),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Location Address
-                              Text(
-                                AppLanguage.locationAddressText[language],
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  fontFamily: AppFont.fontFamily,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              SizedBox(height: size.height * 0.01),
-                              SizedBox(
-                                width: MediaQuery.of(context).size.width *
-                                    90 /
-                                    100,
-                                child: Text(
-                                  bookingDetails['address'] ?? '',
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                    fontFamily: AppFont.fontFamily,
-                                    color: Colors.grey.shade700,
+                                        ],
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ),
-                              SizedBox(height: size.height * 0.02),
-
-                              //!Map
-                              Stack(children: [
+                                const SizedBox(width: 8),
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(12),
-                                  child: SizedBox(
-                                    height: MediaQuery.of(context).size.height *
-                                        18 /
-                                        100,
-                                    width: MediaQuery.of(context).size.width *
-                                        90 /
-                                        100,
-                                    child: GoogleMap(
-                                      mapToolbarEnabled: false,
-                                      zoomGesturesEnabled: false,
-                                      rotateGesturesEnabled: true,
-                                      myLocationEnabled: false,
-                                      myLocationButtonEnabled: false,
-                                      compassEnabled: true,
-                                      initialCameraPosition: CameraPosition(
-                                        target: initialPosition,
-                                        zoom: 10.0,
-                                      ),
-                                      onMapCreated: (controller) {
-                                        //method called when map is created
-                                        setState(() {
-                                          mapController = controller;
-                                        });
-                                      },
-                                      markers: {
-                                        Marker(
-                                          markerId: const MarkerId(''),
-                                          position:
-                                              LatLng(latitudex, longitudex),
-                                          draggable: true,
-                                          onDragEnd: (value) {
-                                            // value is the new position
-                                          },
-                                        ),
-                                      },
-                                    ),
+                                  child: Image.network(
+                                    "${AppConfigProvider.imageURL}${bookingDetails['cover_image']}",
+                                    width: size.width * 0.18,
+                                    height: size.width * 0.18,
+                                    fit: BoxFit.cover,
                                   ),
                                 ),
-                              ]),
-
-                              SizedBox(height: size.height * 0.03),
-
-                              // Booking Details
-                              Text(
-                                AppLanguage.bookingDetailsText[language],
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  fontFamily: AppFont.fontFamily,
-                                  // color: Colors.black,
-                                ),
-                              ),
-                              SizedBox(height: size.height * 0.02),
-
-                              _detailRow(
-                                  context,
-                                  AppImage.callenderIcon,
-                                  bookingDetails['booking_date'] ?? '',
-                                  AppLanguage.checkInDateText[language],
-                                  AppLanguage.changeText[language],
-                                  0, () {
-                                Navigator.pop(context);
-                              }),
-                              SizedBox(height: size.height * 0.02),
-
-                              _detailRow(
-                                  context,
-                                  AppImage.clockIcon,
-                                  bookingDetails['booking_time_label'] ?? "",
-                                  // '$totalDates ${AppLanguage.daysText[language]}',
-                                  AppLanguage.bookingDays[language],
-                                  AppLanguage.changeText[language],
-                                  0, () {
-                                Navigator.pop(context);
-                              }),
-                              SizedBox(height: size.height * 0.02),
-
-                              _detailRow(
-                                  context,
-                                  AppImage.guestsIcon,
-                                  '${bookingDetails['max_adult'] ?? "0"} ${AppLanguage.adultText[language]} \u2022 ${bookingDetails['max_child'] ?? "0"} ${AppLanguage.childrenText[language]}',
-                                  AppLanguage.guestsText[language],
-                                  AppLanguage.changeText[language],
-                                  0, () {
-                                Navigator.pop(context);
-                              }),
-                              SizedBox(height: size.height * 0.03),
-
-                              // Description
-                              Text(
-                                AppLanguage.descriptionText[language],
-                                style: const TextStyle(
-                                  fontSize: 21,
-                                  fontWeight: FontWeight.w500,
-                                  fontFamily: AppFont.fontFamily,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              SizedBox(height: size.height * 0.015),
-                              Text(
-                                (bookingDetails['description_english'][language]
-                                            ?.toString()
-                                            .trim()
-                                            .isNotEmpty ??
-                                        false)
-                                    ? bookingDetails['description_english']
-                                        [language]
-                                    : "NA",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w400,
-                                  fontFamily: AppFont.fontFamily,
-                                  color: Colors.grey.shade700,
-                                  height: 1.5,
-                                ),
-                              ),
-                              SizedBox(height: size.height * 3 / 100),
-
-                              Text(
-                                AppLanguage.whatThisplaceOfferText[language],
-                                style: const TextStyle(
-                                  fontSize: 21,
-                                  fontWeight: FontWeight.w500,
-                                  fontFamily: AppFont.fontFamily,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              SizedBox(height: size.height * 0.01),
-                              _amenitiesGrid(context),
-
-                              SizedBox(height: size.height * 0.03),
-
-                              // GestureDetector(
-                              //   onTap: () =>
-                              //       _showCancellationPolicyDialog(context),
-                              //   child: Row(
-                              //     mainAxisAlignment: MainAxisAlignment.start,
-                              //     children: [
-                              //       Image.asset(
-                              //         AppImage.cancellationPolicyicon,
-                              //         width: size.width * 0.045,
-                              //       ),
-                              //       SizedBox(width: size.width * 0.02),
-                              //       Text(
-                              //         AppLanguage
-                              //             .cancellationPolicyText[language],
-                              //         style: const TextStyle(
-                              //           fontSize: 14,
-                              //           fontWeight: FontWeight.w500,
-                              //           fontFamily: AppFont.fontFamily,
-                              //           color: AppColor.themeColor,
-                              //         ),
-                              //       ),
-                              //     ],
-                              //   ),
-                              // ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        SizedBox(height: size.height * 0.03),
 
-                        // Billing Details
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                              vertical: size.height * 0.02,
-                              horizontal: size.width * 0.04),
-                          color: AppColor.lightGreen,
-                          child: Column(
+                          SizedBox(height: size.height * 0.02),
+
+                          Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: size.width * 0.05),
+                            child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                SizedBox(height: size.height * 0.018),
+                                // Location Address
                                 Text(
-                                  AppLanguage.billingDetailsText[language],
+                                  AppLanguage.locationAddressText[language],
                                   style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
                                     fontFamily: AppFont.fontFamily,
                                     color: Colors.black,
                                   ),
                                 ),
-                                SizedBox(height: size.height * 2 / 100),
-                                _billingRow(
-                                    size,
-                                    bookingDetails['booking_time_label'] ?? "",
-                                    '${bookingDetails['total_amount'] ?? "0"} KWD',
-                                    ''),
-                                Divider(height: size.height * 2 / 100),
-                                _billingRow(
-                                    size,
-                                    'Grand Total',
-                                    '${bookingDetails['total_amount'] ?? "0"} KWD',
-                                    '',
-                                    isBold: true),
-                                Divider(height: size.height * 2 / 100),
-                                SizedBox(height: size.height * 0.02),
-                              ]),
-                        ),
-
-                        SizedBox(height: size.height * 0.02),
-
-                        Center(
-                          child: AppButton(
-                              text: AppLanguage.rateNowText[language],
-                              onPress: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => RateNowProperty(
-                                      propertyBookingId:
-                                          widget.propertyBookingId,
-                                      propertyAdId:
-                                          bookingDetails['property_ad_id'],
-                                      ownerId: bookingDetails['owner_id'],
+                                SizedBox(height: size.height * 0.01),
+                                SizedBox(
+                                  width: MediaQuery.of(context).size.width *
+                                      90 /
+                                      100,
+                                  child: Text(
+                                    bookingDetails['address'] ?? '',
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      fontFamily: AppFont.fontFamily,
+                                      color: Colors.grey.shade700,
                                     ),
                                   ),
-                                );
-                              }),
-                        ),
+                                ),
+                                SizedBox(height: size.height * 0.02),
 
-                        SizedBox(height: size.height * 0.05),
-                      ],
+                                //!Map
+                                Stack(children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: SizedBox(
+                                      height:
+                                          MediaQuery.of(context).size.height *
+                                              18 /
+                                              100,
+                                      width: MediaQuery.of(context).size.width *
+                                          90 /
+                                          100,
+                                      child: GoogleMap(
+                                        mapToolbarEnabled: false,
+                                        zoomGesturesEnabled: false,
+                                        rotateGesturesEnabled: true,
+                                        myLocationEnabled: false,
+                                        myLocationButtonEnabled: false,
+                                        compassEnabled: true,
+                                        initialCameraPosition: CameraPosition(
+                                          target: initialPosition,
+                                          zoom: 10.0,
+                                        ),
+                                        onMapCreated: (controller) {
+                                          //method called when map is created
+                                          setState(() {
+                                            mapController = controller;
+                                          });
+                                        },
+                                        markers: {
+                                          Marker(
+                                            markerId: const MarkerId(''),
+                                            position:
+                                                LatLng(latitudex, longitudex),
+                                            draggable: true,
+                                            onDragEnd: (value) {
+                                              // value is the new position
+                                            },
+                                          ),
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ]),
+
+                                SizedBox(height: size.height * 0.03),
+
+                                // Booking Details
+                                Text(
+                                  AppLanguage.bookingDetailsText[language],
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    fontFamily: AppFont.fontFamily,
+                                    // color: Colors.black,
+                                  ),
+                                ),
+                                SizedBox(height: size.height * 0.02),
+
+                                _detailRow(
+                                    context,
+                                    AppImage.callenderIcon,
+                                    bookingDetails['booking_date'] ?? '',
+                                    AppLanguage.checkInDateText[language],
+                                    AppLanguage.changeText[language],
+                                    0, () {
+                                  Navigator.pop(context);
+                                }),
+                                SizedBox(height: size.height * 0.02),
+
+                                _detailRow(
+                                    context,
+                                    AppImage.clockIcon,
+                                    bookingDetails['booking_time_label'] ?? "",
+                                    // '$totalDates ${AppLanguage.daysText[language]}',
+                                    AppLanguage.bookingDays[language],
+                                    AppLanguage.changeText[language],
+                                    0, () {
+                                  Navigator.pop(context);
+                                }),
+                                SizedBox(height: size.height * 0.02),
+
+                                _detailRow(
+                                    context,
+                                    AppImage.guestsIcon,
+                                    '${bookingDetails['max_adult'] ?? "0"} ${AppLanguage.adultText[language]} \u2022 ${bookingDetails['max_child'] ?? "0"} ${AppLanguage.childrenText[language]}',
+                                    AppLanguage.guestsText[language],
+                                    AppLanguage.changeText[language],
+                                    0, () {
+                                  Navigator.pop(context);
+                                }),
+                                SizedBox(height: size.height * 0.03),
+
+                                // Description
+                                Text(
+                                  AppLanguage.descriptionText[language],
+                                  style: const TextStyle(
+                                    fontSize: 21,
+                                    fontWeight: FontWeight.w500,
+                                    fontFamily: AppFont.fontFamily,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                SizedBox(height: size.height * 0.015),
+                                Text(
+                                  (bookingDetails['description_english']
+                                                  [language]
+                                              ?.toString()
+                                              .trim()
+                                              .isNotEmpty ??
+                                          false)
+                                      ? bookingDetails['description_english']
+                                          [language]
+                                      : "NA",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w400,
+                                    fontFamily: AppFont.fontFamily,
+                                    color: Colors.grey.shade700,
+                                    height: 1.5,
+                                  ),
+                                ),
+                                SizedBox(height: size.height * 3 / 100),
+
+                                Text(
+                                  AppLanguage.whatThisplaceOfferText[language],
+                                  style: const TextStyle(
+                                    fontSize: 21,
+                                    fontWeight: FontWeight.w500,
+                                    fontFamily: AppFont.fontFamily,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                SizedBox(height: size.height * 0.01),
+                                _amenitiesGrid(context),
+
+                                SizedBox(height: size.height * 0.03),
+
+                                // GestureDetector(
+                                //   onTap: () =>
+                                //       _showCancellationPolicyDialog(context),
+                                //   child: Row(
+                                //     mainAxisAlignment: MainAxisAlignment.start,
+                                //     children: [
+                                //       Image.asset(
+                                //         AppImage.cancellationPolicyicon,
+                                //         width: size.width * 0.045,
+                                //       ),
+                                //       SizedBox(width: size.width * 0.02),
+                                //       Text(
+                                //         AppLanguage
+                                //             .cancellationPolicyText[language],
+                                //         style: const TextStyle(
+                                //           fontSize: 14,
+                                //           fontWeight: FontWeight.w500,
+                                //           fontFamily: AppFont.fontFamily,
+                                //           color: AppColor.themeColor,
+                                //         ),
+                                //       ),
+                                //     ],
+                                //   ),
+                                // ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: size.height * 0.03),
+
+                          // Billing Details
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                                vertical: size.height * 0.02,
+                                horizontal: size.width * 0.04),
+                            color: AppColor.lightGreen,
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(height: size.height * 0.018),
+                                  Text(
+                                    AppLanguage.billingDetailsText[language],
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      fontFamily: AppFont.fontFamily,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  SizedBox(height: size.height * 2 / 100),
+                                  _billingRow(
+                                      size,
+                                      bookingDetails['booking_time_label'] ??
+                                          "",
+                                      '${bookingDetails['total_amount'] ?? "0"} KWD',
+                                      ''),
+                                  Divider(height: size.height * 2 / 100),
+                                  _billingRow(
+                                      size,
+                                      'Grand Total',
+                                      '${bookingDetails['total_amount'] ?? "0"} KWD',
+                                      '',
+                                      isBold: true),
+                                  Divider(height: size.height * 2 / 100),
+                                  SizedBox(height: size.height * 0.02),
+                                ]),
+                          ),
+
+                          SizedBox(height: size.height * 0.02),
+
+                          Center(
+                            child: AppButton(
+                                text: AppLanguage.rateNowText[language],
+                                onPress: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => RateNowProperty(
+                                        propertyBookingId:
+                                            widget.propertyBookingId,
+                                        propertyAdId:
+                                            bookingDetails['property_ad_id'],
+                                        ownerId: bookingDetails['owner_id'],
+                                      ),
+                                    ),
+                                  );
+                                }),
+                          ),
+
+                          SizedBox(height: size.height * 0.05),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

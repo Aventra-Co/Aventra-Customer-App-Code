@@ -163,14 +163,40 @@ class _OngoingDetailsScreen extends State<OngoingDetailsScreen> {
   }
 
   //!Open Map
-  void openMap(String latitude, String longitude) async {
-    String url =
-        "https://www.google.com/maps/search/?api=1&query=$latitude,$longitude";
+  //!Open Map
+  Future<void> openMap(String latitude, String longitude) async {
+    final String device = AppConstant.deviceType;
 
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      throw 'Could not launch $url';
+    Uri? appUri;
+    final Uri webUri = Uri.parse(
+      "https://www.google.com/maps/search/?api=1&query=$latitude,$longitude",
+    );
+
+    if (device == "android") {
+      // Google Maps app (Android)
+      appUri = Uri.parse("google.navigation:q=$latitude,$longitude");
+    } else if (device == "ios") {
+      // Apple Maps (iOS)
+      appUri = Uri.parse("maps://?q=$latitude,$longitude");
+    }
+
+    try {
+      if (appUri != null && await canLaunchUrl(appUri)) {
+        await launchUrl(
+          appUri,
+          mode: LaunchMode.externalApplication,
+        );
+      } else {
+        await launchUrl(
+          webUri,
+          mode: LaunchMode.externalApplication,
+        );
+      }
+    } catch (e) {
+      await launchUrl(
+        webUri,
+        mode: LaunchMode.externalApplication,
+      );
     }
   }
 
@@ -1681,4 +1707,6 @@ class _OngoingDetailsScreen extends State<OngoingDetailsScreen> {
       }
     });
   }
+
+
 }

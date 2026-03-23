@@ -188,7 +188,7 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
       formData.fields['user_id'] = userId.toString();
       formData.fields['property_ad_id'] = widget.propertyAdId.toString();
       formData.fields['pricing_type'] = "0";
-      formData.fields['total_amount'] = baseTotal.toStringAsFixed(2);
+      formData.fields['total_amount'] = grandTotal.toStringAsFixed(2);
       formData.fields['max_child'] = widget.childCount.toString();
       formData.fields['max_adult'] = widget.adultCount.toString();
       formData.fields['grand_total'] = grandTotal.toStringAsFixed(2);

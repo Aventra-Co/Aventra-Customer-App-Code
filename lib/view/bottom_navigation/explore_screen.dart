@@ -185,14 +185,19 @@ class _ExploreState extends State<Explore> {
             categoryList = (item != "NA") ? item : [];
             promotionsList =
                 (res['banner_arr'] != "NA") ? res['banner_arr'] : [];
+            if (promotionsList.length == 1) {
+              promotionsList.add(promotionsList[0]);
+            }
           } else {
             propertyTypeTabs = res['property_type_arr_active'] ?? [];
             popularPropertiesList = res['property_advertisement_arr'] ?? [];
             _propertyBanners =
                 (res['banner_arr'] != "NA") ? res['banner_arr'] : [];
+            if (_propertyBanners.length == 1) {
+              _propertyBanners.add(_propertyBanners[0]);
+            }
           }
           notificationCount = res['notificationCount'];
-
           setState(() => isLoading = false);
         } else {
           if (res['active_status'] == 0) {
@@ -991,7 +996,7 @@ class _ExploreState extends State<Explore> {
   // ────────────────────────────────────────────────────────────────────────
   Widget _buildCategoryCards(BuildContext context, double screenWidth) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _categoryCard(
           context: context,
@@ -1006,6 +1011,9 @@ class _ExploreState extends State<Explore> {
             //     ? _CardSelection.none
             //     : _CardSelection.sea;
           }),
+        ),
+        SizedBox(
+          width: MediaQuery.of(context).size.width * 1 / 100,
         ),
         _categoryCard(
           context: context,
@@ -1057,7 +1065,7 @@ class _ExploreState extends State<Explore> {
             alignment: Alignment.bottomLeft,
             children: [
               Image.asset(image,
-                  width: MediaQuery.of(context).size.width * 45 / 100,
+                  width: MediaQuery.of(context).size.width * 44 / 100,
                   height: MediaQuery.of(context).size.height * 15 / 100,
                   fit: BoxFit.cover),
               Padding(
