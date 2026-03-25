@@ -1,4 +1,7 @@
 import 'dart:convert';
+import 'package:boatapp/view/property_screens/property_bookinghistory_screen.dart';
+import 'package:boatapp/view/property_screens/property_ongoing_details_screen.dart';
+import 'package:boatapp/view/property_screens/property_pending_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
@@ -325,6 +328,97 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
   }
 
+  Future<void> checkPropStatusApiCall(propBookingId) async {
+    Uri url = Uri.parse(
+        "${AppConfigProvider.apiUrl}get_booking_status?user_id=$userId&property_booking_id=$propBookingId");
+    print("url $url");
+    // setState(() {
+    //   isApiCalling = true;
+    // });
+    String token = AppConstant.token;
+
+    if (token.isEmpty) {
+      print("Token is missing!");
+      // return;
+    }
+
+    Map<String, String> headers = {'Authorization': 'Bearer $token'};
+
+    try {
+      final response = await http.get(url, headers: headers);
+      print("response $response");
+
+      if (response.statusCode == 200) {
+        dynamic res = jsonDecode(response.body);
+        print("res $res");
+
+        if (res['success'] == true) {
+          if (res['data']['booking_status'] == 0) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PropertyPendingDetailsScreen(
+                  propertyBookingId: propBookingId,
+                ),
+              ),
+            );
+          } else if (res['data']['booking_status'] == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PropertyOngoingDetailScreen(
+                  propertyBookingId: propBookingId,
+                ),
+              ),
+            );
+          } else if (res['data']['booking_status'] == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PropertyBookingHistoryDetailScreen(
+                  propertyBookingId: propBookingId,
+                  iscompleted: true,
+                ),
+              ),
+            );
+          } else if (res['data']['booking_status'] == 3) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PropertyBookingHistoryDetailScreen(
+                  propertyBookingId: propBookingId,
+                  iscompleted: false,
+                ),
+              ),
+            );
+          }
+
+          setState(() {
+            isApiCalling = false;
+          });
+        } else {
+          setState(() {
+            isApiCalling = false;
+          });
+          // ignore: use_build_context_synchronously
+          if (res['active_status'] == 0) {
+            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const Login()));
+          }
+        }
+      } else {
+        setState(() {
+          isApiCalling = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        isApiCalling = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ProgressHUD(
@@ -375,15 +469,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       SizedBox(
                         width: MediaQuery.of(context).size.width * 3 / 100,
                       ),
-                      Container(
-                        child: Text(
-                          AppLanguage.notificationsText[language],
-                          style: const TextStyle(
-                              color: AppColor.primaryColor,
-                              fontFamily: AppFont.fontFamily,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 20),
-                        ),
+                      Text(
+                        AppLanguage.notificationsText[language],
+                        style: const TextStyle(
+                            color: AppColor.primaryColor,
+                            fontFamily: AppFont.fontFamily,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 20),
                       ),
                       const Spacer(),
                       GestureDetector(
@@ -450,6 +542,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                         notificationarraylist[index]
                                                 ['action_id']
                                             .toString());
+                                  } else if (notificationarraylist[index]
+                                          ['action'] ==
+                                      "property_booking") {
+                                    checkPropStatusApiCall(
+                                        notificationarraylist[index]
+                                            ['action_id']);
                                   } else if (notificationarraylist[index]
                                           ['action'] ==
                                       "Broadcast") {
@@ -683,7 +781,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                 width: MediaQuery.of(context).size.width *
                                     90 /
                                     100,
-                                child: Divider(
+                                child: const Divider(
                                   thickness: 1,
                                   color: AppColor.boaderColor,
                                 ),

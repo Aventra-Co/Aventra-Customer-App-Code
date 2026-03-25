@@ -129,8 +129,8 @@ class _CompletedDetailsScreen extends State<CompletedDetailsScreen> {
             isApiCalling = false;
           });
           // ignore: use_build_context_synchronously
-          SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
           if (res['active_status'] == 0) {
+            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
             Navigator.push(context,
                 MaterialPageRoute(builder: (context) => const Login()));
           }

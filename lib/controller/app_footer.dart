@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_const_literals_to_create_immutables
 import 'dart:developer';
 import 'package:boatapp/view/other_screen/publicBookingFlow/public_redirection_trip_details.dart';
+import 'package:boatapp/view/property_screens/redirection_property_details.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -90,23 +91,37 @@ class _MyFooterPageState extends State<MyFooterPage> {
     log("pathsegments $pathSegments");
     String postId = pathSegments[0].toString(); // Extract the post ID
     int advertisementType = int.parse(pathSegments[2]); // Extract the post ID
+    int entityType = int.parse(pathSegments[2]); // Extract the post ID
     log("Post ID: $postId");
     log("Workingadfadfad");
+    log("Entity Typw $entityType");
     // Wait for UI to be ready before navigating
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (advertisementType == 0) {
+      if (entityType == 1) {
+        log("not entering");
         navigatorKey.currentState?.push(
           MaterialPageRoute(
-            builder: (context) => PrivateRedirectionTripDetails(tripId: postId),
+            builder: (context) => RedirectionPropertyDetailsScreen(
+                propertyAdId: int.parse(postId)),
           ),
         );
       } else {
-        navigatorKey.currentState?.push(
-          MaterialPageRoute(
-            builder: (context) => PublicRedirectionTripDetails(tripId: postId),
-          ),
-        );
+        if (advertisementType == 0) {
+          navigatorKey.currentState?.push(
+            MaterialPageRoute(
+              builder: (context) =>
+                  PrivateRedirectionTripDetails(tripId: postId),
+            ),
+          );
+        } else {
+          navigatorKey.currentState?.push(
+            MaterialPageRoute(
+              builder: (context) =>
+                  PublicRedirectionTripDetails(tripId: postId),
+            ),
+          );
+        }
       }
 
       // Reset deep link after navigation

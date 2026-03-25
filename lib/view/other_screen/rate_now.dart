@@ -258,94 +258,97 @@ class _RateNowState extends State<RateNow> {
         statusBarColor: AppColor.secondaryColor,
         statusBarIconBrightness: Brightness.dark));
 
-    return Scaffold(
-      body: SafeArea(
-        child: Container(
-          color: AppColor.secondaryColor,
-          width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height,
-          child: Column(
-            children: [
-              const NoInternetBanner(),
-              AppHeader(
-                text: AppLanguage.rateNowText[language],
-                onPress: () => Navigator.pop(context),
-              ),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      // Profile
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.90,
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 28,
-                              backgroundImage: (profileImage != "NA")
-                                  ? NetworkImage(
-                                      '${AppConfigProvider.imageURL}$profileImage')
-                                  : const AssetImage(
-                                          AppImage.profilePlaceholderImage)
-                                      as ImageProvider,
-                            ),
-                            const SizedBox(width: 10),
-                            Text(fullName,
-                                style: const TextStyle(
-                                    color: AppColor.primaryColor,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600)),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      // ⭐ Total Avg Rating Display
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.90,
-                        child: Row(
-                          children: [
-                            Text(AppLanguage.totalRatingsText[language],
-                                style: const TextStyle(
-                                    color: AppColor.primaryColor,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500)),
-                            const SizedBox(width: 10),
-                            RatingBarIndicator(
-                              rating: totalRating,
-                              itemCount: 5,
-                              itemSize: 24,
-                              unratedColor: Colors.grey.shade400,
-                              itemBuilder: (context, _) => const Icon(
-                                Icons.star,
-                                color: AppColor.yellowColor,
-                              ),
-                            ),
-                            const SizedBox(width: 5),
-                            Text("($totalRating)",
-                                style: const TextStyle(
-                                    color: AppColor.primaryColor,
-                                    fontWeight: FontWeight.w600)),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 10),
-                      divider(),
-
-                      // ⭐ Rating Section
-                      ratingSection(context),
-
-                      divider(),
-
-                      // Comment Section
-                      commentSection(context),
-                    ],
-                  ),
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        body: SafeArea(
+          child: Container(
+            color: AppColor.secondaryColor,
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+            child: Column(
+              children: [
+                const NoInternetBanner(),
+                AppHeader(
+                  text: AppLanguage.rateNowText[language],
+                  onPress: () => Navigator.pop(context),
                 ),
-              )
-            ],
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        // Profile
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.90,
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 28,
+                                backgroundImage: (profileImage != "NA")
+                                    ? NetworkImage(
+                                        '${AppConfigProvider.imageURL}$profileImage')
+                                    : const AssetImage(
+                                            AppImage.profilePlaceholderImage)
+                                        as ImageProvider,
+                              ),
+                              const SizedBox(width: 10),
+                              Text(fullName,
+                                  style: const TextStyle(
+                                      color: AppColor.primaryColor,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600)),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        // ⭐ Total Avg Rating Display
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.90,
+                          child: Row(
+                            children: [
+                              Text(AppLanguage.totalRatingsText[language],
+                                  style: const TextStyle(
+                                      color: AppColor.primaryColor,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500)),
+                              const SizedBox(width: 10),
+                              RatingBarIndicator(
+                                rating: totalRating,
+                                itemCount: 5,
+                                itemSize: 24,
+                                unratedColor: Colors.grey.shade400,
+                                itemBuilder: (context, _) => const Icon(
+                                  Icons.star,
+                                  color: AppColor.yellowColor,
+                                ),
+                              ),
+                              const SizedBox(width: 5),
+                              Text("($totalRating)",
+                                  style: const TextStyle(
+                                      color: AppColor.primaryColor,
+                                      fontWeight: FontWeight.w600)),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 10),
+                        divider(),
+
+                        // ⭐ Rating Section
+                        ratingSection(context),
+
+                        divider(),
+
+                        // Comment Section
+                        commentSection(context),
+                      ],
+                    ),
+                  ),
+                )
+              ],
+            ),
           ),
         ),
       ),

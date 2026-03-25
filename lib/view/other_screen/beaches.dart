@@ -594,7 +594,7 @@ class _BeachesState extends State<Beaches> {
 
   deeplinking(BuildContext context, tripId, advertisementType) async {
     var shareUrl =
-        "${AppConfigProvider.apiUrl}deepLink?link=aventra://trip_id/${Uri.encodeComponent(tripId.toString())}/advertisement_type/${Uri.encodeComponent(advertisementType.toString())}";
+        "${AppConfigProvider.apiUrl}deepLink?link=aventra://trip_id/${Uri.encodeComponent(tripId.toString())}/advertisement_type/${Uri.encodeComponent(advertisementType.toString())}/entity/${Uri.encodeComponent(0.toString())}";
     final RenderBox box = context.findRenderObject() as RenderBox;
     await Share.share("Aventra App! $shareUrl",
         sharePositionOrigin: box.localToGlobal(Offset.zero) & box.size);

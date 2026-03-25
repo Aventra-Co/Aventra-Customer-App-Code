@@ -452,36 +452,45 @@ class _PropertyPendingDetailsScreenState
                                 SizedBox(height: size.height * 0.03),
 
                                 // Description
-                                Text(
-                                  AppLanguage.descriptionText[language],
-                                  style: const TextStyle(
-                                    fontSize: 21,
-                                    fontWeight: FontWeight.w500,
-                                    fontFamily: AppFont.fontFamily,
-                                    color: Colors.black,
+                                if (bookingDetails['description_english']
+                                            [language] !=
+                                        null &&
+                                    bookingDetails['description_english']
+                                            [language]
+                                        .isNotEmpty &&
+                                    bookingDetails['description_english']
+                                            [language] !=
+                                        "NA") ...[
+                                  Text(
+                                    AppLanguage.descriptionText[language],
+                                    style: const TextStyle(
+                                      fontSize: 21,
+                                      fontWeight: FontWeight.w500,
+                                      fontFamily: AppFont.fontFamily,
+                                      color: Colors.black,
+                                    ),
                                   ),
-                                ),
-                                SizedBox(height: size.height * 0.015),
-                                Text(
-                                  (bookingDetails['description_english']
-                                                  [language]
-                                              ?.toString()
-                                              .trim()
-                                              .isNotEmpty ??
-                                          false)
-                                      ? bookingDetails['description_english']
-                                          [language]
-                                      : "NA",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w400,
-                                    fontFamily: AppFont.fontFamily,
-                                    color: Colors.grey.shade700,
-                                    height: 1.5,
+                                  SizedBox(height: size.height * 0.015),
+                                  Text(
+                                    (bookingDetails['description_english']
+                                                    [language]
+                                                ?.toString()
+                                                .trim()
+                                                .isNotEmpty ??
+                                            false)
+                                        ? bookingDetails['description_english']
+                                            [language]
+                                        : "NA",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w400,
+                                      fontFamily: AppFont.fontFamily,
+                                      color: Colors.grey.shade700,
+                                      height: 1.5,
+                                    ),
                                   ),
-                                ),
-                                SizedBox(height: size.height * 3 / 100),
-
+                                  SizedBox(height: size.height * 3 / 100),
+                                ],
                                 Text(
                                   AppLanguage.whatThisplaceOfferText[language],
                                   style: const TextStyle(

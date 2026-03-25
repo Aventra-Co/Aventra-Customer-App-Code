@@ -65,13 +65,74 @@ class _ReviewState extends State<Review> {
     setState(() {
       isApiCalling = false;
     });
-    getAllReviewsApiCall(userId);
+    if (widget.isProperty) {
+      getAllPropReviewsApiCall(userId);
+    } else {
+      getAllReviewsApiCall(userId);
+    }
     setState(() {});
   }
 
   Future<void> getAllReviewsApiCall(userId) async {
     Uri url = Uri.parse(
         "${AppConfigProvider.apiUrl}get_all_ratings_user?user_id=$userId&trip_id=${widget.tripId}");
+    print("url $url");
+    setState(() {
+      isApiCalling = true;
+    });
+    String token = AppConstant.token;
+
+    if (token.isEmpty) {
+      print("Token is missing!");
+      // return;
+    }
+
+    Map<String, String> headers = {'Authorization': 'Bearer $token'};
+
+    try {
+      final response = await http.get(url, headers: headers);
+      print("response $response");
+
+      if (response.statusCode == 200) {
+        dynamic res = jsonDecode(response.body);
+        print("res $res");
+
+        if (res['success'] == true) {
+          var item = res['rating_array'];
+          reviewList = (item != "NA") ? item : [];
+
+          setState(() {
+            isApiCalling = false;
+          });
+        } else {
+          reviewList = [];
+          setState(() {
+            isApiCalling = false;
+          });
+          // ignore: use_build_context_synchronously
+          if (res['active_status'] == 0) {
+            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const Login()));
+          }
+        }
+      } else {
+        reviewList = [];
+        setState(() {
+          isApiCalling = false;
+        });
+      }
+    } catch (e) {
+      reviewList = [];
+      setState(() {
+        isApiCalling = false;
+      });
+    }
+  }
+
+  Future<void> getAllPropReviewsApiCall(userId) async {
+    Uri url = Uri.parse(
+        "${AppConfigProvider.apiUrl}get_all_ratings_property?user_id=$userId&property_ad_id=${widget.tripId}");
     print("url $url");
     setState(() {
       isApiCalling = true;
@@ -138,9 +199,10 @@ class _ReviewState extends State<Review> {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-        statusBarColor: AppColor.secondaryColor,
+        statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark));
     return Scaffold(
+      backgroundColor: AppColor.secondaryColor,
       body: SafeArea(
           child: Container(
         color: AppColor.secondaryColor,
@@ -509,122 +571,126 @@ class _ReviewState extends State<Review> {
                                     children: [
                                       Row(
                                         children: [
-                                          ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(100),
-                                            child: SizedBox(
-                                              width: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  12 /
-                                                  100,
-                                              height: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  12 /
-                                                  100,
-                                              child: ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                child: reviewList[index]
-                                                            ['image'] !=
-                                                        null
-                                                    ? Image.network(
-                                                        '${AppConfigProvider.imageURL}${reviewList[index]['image']}',
-                                                        fit: BoxFit.cover,
-                                                        loadingBuilder:
-                                                            (BuildContext
-                                                                    context,
-                                                                Widget child,
-                                                                ImageChunkEvent?
-                                                                    loadingProgress) {
-                                                          if (loadingProgress ==
-                                                              null) {
-                                                            return child;
-                                                          } else {
-                                                            return Shimmer
-                                                                .fromColors(
-                                                              baseColor: Colors
-                                                                  .grey
-                                                                  .shade300,
-                                                              highlightColor:
-                                                                  Colors.grey
-                                                                      .shade100,
-                                                              child: Container(
-                                                                color: Colors
+                                          if (!widget.isProperty)
+                                            ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(100),
+                                              child: SizedBox(
+                                                width: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    12 /
+                                                    100,
+                                                height: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    12 /
+                                                    100,
+                                                child: ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  child: reviewList[index]
+                                                              ['image'] !=
+                                                          null
+                                                      ? Image.network(
+                                                          '${AppConfigProvider.imageURL}${reviewList[index]['image']}',
+                                                          fit: BoxFit.cover,
+                                                          loadingBuilder:
+                                                              (BuildContext
+                                                                      context,
+                                                                  Widget child,
+                                                                  ImageChunkEvent?
+                                                                      loadingProgress) {
+                                                            if (loadingProgress ==
+                                                                null) {
+                                                              return child;
+                                                            } else {
+                                                              return Shimmer
+                                                                  .fromColors(
+                                                                baseColor: Colors
                                                                     .grey
                                                                     .shade300,
-                                                              ),
-                                                            );
-                                                          }
-                                                        },
-                                                      )
-                                                    : Image.asset(
-                                                        AppImage
-                                                            .profilePlaceholderImage,
-                                                        fit: BoxFit.cover,
-                                                      ),
+                                                                highlightColor:
+                                                                    Colors.grey
+                                                                        .shade100,
+                                                                child:
+                                                                    Container(
+                                                                  color: Colors
+                                                                      .grey
+                                                                      .shade300,
+                                                                ),
+                                                              );
+                                                            }
+                                                          },
+                                                        )
+                                                      : Image.asset(
+                                                          AppImage
+                                                              .profilePlaceholderImage,
+                                                          fit: BoxFit.cover,
+                                                        ),
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                          ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(100),
-                                            child: SizedBox(
-                                              width: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  12 /
-                                                  100,
-                                              height: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  12 /
-                                                  100,
-                                              child: ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                child: reviewList[index]
-                                                            ['image_path'] !=
-                                                        null
-                                                    ? Image.network(
-                                                        '${AppConfigProvider.imageURL}${reviewList[index]['image_path']}',
-                                                        fit: BoxFit.cover,
-                                                        loadingBuilder:
-                                                            (BuildContext
-                                                                    context,
-                                                                Widget child,
-                                                                ImageChunkEvent?
-                                                                    loadingProgress) {
-                                                          if (loadingProgress ==
-                                                              null) {
-                                                            return child;
-                                                          } else {
-                                                            return Shimmer
-                                                                .fromColors(
-                                                              baseColor: Colors
-                                                                  .grey
-                                                                  .shade300,
-                                                              highlightColor:
-                                                                  Colors.grey
-                                                                      .shade100,
-                                                              child: Container(
-                                                                color: Colors
+                                          if (widget.isProperty)
+                                            ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(100),
+                                              child: SizedBox(
+                                                width: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    12 /
+                                                    100,
+                                                height: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    12 /
+                                                    100,
+                                                child: ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  child: reviewList[index]
+                                                              ['image_path'] !=
+                                                          null
+                                                      ? Image.network(
+                                                          '${AppConfigProvider.imageURL}${reviewList[index]['image_path']}',
+                                                          fit: BoxFit.cover,
+                                                          loadingBuilder:
+                                                              (BuildContext
+                                                                      context,
+                                                                  Widget child,
+                                                                  ImageChunkEvent?
+                                                                      loadingProgress) {
+                                                            if (loadingProgress ==
+                                                                null) {
+                                                              return child;
+                                                            } else {
+                                                              return Shimmer
+                                                                  .fromColors(
+                                                                baseColor: Colors
                                                                     .grey
                                                                     .shade300,
-                                                              ),
-                                                            );
-                                                          }
-                                                        },
-                                                      )
-                                                    : Image.asset(
-                                                        AppImage
-                                                            .profilePlaceholderImage,
-                                                        fit: BoxFit.cover,
-                                                      ),
+                                                                highlightColor:
+                                                                    Colors.grey
+                                                                        .shade100,
+                                                                child:
+                                                                    Container(
+                                                                  color: Colors
+                                                                      .grey
+                                                                      .shade300,
+                                                                ),
+                                                              );
+                                                            }
+                                                          },
+                                                        )
+                                                      : Image.asset(
+                                                          AppImage
+                                                              .profilePlaceholderImage,
+                                                          fit: BoxFit.cover,
+                                                        ),
+                                                ),
                                               ),
                                             ),
-                                          ),
                                           SizedBox(
                                               width: MediaQuery.of(context)
                                                       .size

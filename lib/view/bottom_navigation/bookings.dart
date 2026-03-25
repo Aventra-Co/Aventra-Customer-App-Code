@@ -483,7 +483,7 @@ class _MyTripState extends State<MyTrip> {
                                 ),
                               ),
                               child: Text(
-                                "Sea",
+                                AppLanguage.seaText[language],
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 14,
@@ -521,7 +521,7 @@ class _MyTripState extends State<MyTrip> {
                                 ),
                               ),
                               child: Text(
-                                "Property",
+                                AppLanguage.propertyText[language],
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 14,
@@ -546,17 +546,41 @@ class _MyTripState extends State<MyTrip> {
                     isLoading
                         ? myTripShimmerEffect(context)
                         : Expanded(
-                            child: ListView.builder(
-                              itemCount: propertyBookings.length,
-                              itemBuilder: (context, index) {
-                                return Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: size.width * 0.05),
-                                  child: _propertyBookingCard(
-                                      propertyBookings[index], index),
-                                );
-                              },
-                            ),
+                            child: propertyBookings.isEmpty
+                                ? Column(
+                                    children: [
+                                      SizedBox(
+                                          height: MediaQuery.of(context)
+                                                  .size
+                                                  .height *
+                                              30 /
+                                              100),
+                                      SizedBox(
+                                        width: screenWidth * 75 / 100,
+                                        child: Text(
+                                          AppLanguage
+                                              .myBookingsNoDataMsg[language],
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                              fontFamily: AppFont.fontFamily,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColor.primaryColor),
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : ListView.builder(
+                                    itemCount: propertyBookings.length,
+                                    itemBuilder: (context, index) {
+                                      return Padding(
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: size.width * 0.05),
+                                        child: _propertyBookingCard(
+                                            propertyBookings[index], index),
+                                      );
+                                    },
+                                  ),
                           ),
                   if (selectedTab == 0)
                     isLoading
@@ -1019,7 +1043,8 @@ class _MyTripState extends State<MyTrip> {
                                     ),
                                 ],
                               ),
-                            ))
+                            ),
+                          ),
                 ],
               ),
             ),

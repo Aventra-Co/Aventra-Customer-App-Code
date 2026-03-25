@@ -140,7 +140,7 @@ class _ExploreState extends State<Explore> {
 
   deeplinkingProp(BuildContext context, propertyAdId) async {
     var shareUrl =
-        "${AppConfigProvider.apiUrl}deepLink?link=aventra://property_ad_id/${Uri.encodeComponent(propertyAdId.toString())}";
+        "${AppConfigProvider.apiUrl}deepLink?link=aventra://property_ad_id/${Uri.encodeComponent(propertyAdId.toString())}/entity/${Uri.encodeComponent(1.toString())}";
     Rect? shareOrigin;
     final renderObject = context.findRenderObject();
     if (renderObject is RenderBox) {

@@ -108,14 +108,18 @@ class _EditProfileState extends State<EditProfile> {
       if (data['city_name'] != "NA") {
         cityId = data['city_name']['city_id'] ?? 1;
       }
-      print('86$userId');
+
       if (data["mobile"] == null) {
         mobileTextEditingController.text = "";
       } else {
         mobileTextEditingController.text = data["mobile"].toString();
       }
-      countryTextEditingController.text = data['country']['country_name'] ?? "";
-      cityTextEditingController.text = data['city_name']['city_name'] ?? "";
+      print('86$userId');
+      log("data['country']['country_name'] ${data['country']?['country_name'][language] ?? ""}");
+      countryTextEditingController.text =
+          data['country']?['country_name'][language] ?? "";
+      cityTextEditingController.text =
+          data['city_name']?['city_name'][language] ?? "";
       if (data['dob'] != null) {
         date = data["dob"] ?? '';
         dobTextEditingController.text = date;
@@ -327,9 +331,11 @@ class _EditProfileState extends State<EditProfile> {
       formData.fields['l_name'] = lastNameTextEditingController.text;
       formData.fields['email'] = emailTextEditingController.text;
       formData.fields['mobile'] = mobileTextEditingController.text;
-      formData.fields['country_id'] = isPayment == 0 ? "89" : countryId.toString();
+      formData.fields['country_id'] =
+          isPayment == 0 ? "89" : countryId.toString();
       formData.fields['city_id'] = isPayment == 0 ? "120" : cityId.toString();
-      formData.fields['dob'] = isPayment == 0 ? "2024-12-24" : sendDate.toString();
+      formData.fields['dob'] =
+          isPayment == 0 ? "2024-12-24" : sendDate.toString();
 
       if (_imageSelect != null) {
         XFile image1 = _imageSelect!;
@@ -1280,7 +1286,6 @@ class _EditProfileState extends State<EditProfile> {
                                 height: MediaQuery.of(context).size.height *
                                     3 /
                                     100),
-                          
 
                             AppButton(
                               text: AppLanguage.updateButtonText[language],
@@ -1661,6 +1666,7 @@ class _EditProfileState extends State<EditProfile> {
       countryId = id;
       countryName = name;
       cityTextEditingController.clear();
+      cityId = 0;
       getCities();
       countryTextEditingController.text = countryName;
     });

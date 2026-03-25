@@ -479,6 +479,7 @@ class _PublicTripDetailsScreenState extends State<PublicTripDetailsScreen> {
         FocusManager.instance.primaryFocus?.unfocus();
       },
       child: Scaffold(
+        backgroundColor: AppColor.secondaryColor,
         body: SafeArea(
             child: Directionality(
           textDirection:

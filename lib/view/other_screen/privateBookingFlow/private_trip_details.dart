@@ -428,6 +428,7 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
         FocusManager.instance.primaryFocus?.unfocus();
       },
       child: Scaffold(
+        backgroundColor: AppColor.secondaryColor,
         body: SafeArea(
             child: Directionality(
           textDirection:

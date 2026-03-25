@@ -1045,4 +1045,8 @@ class AppLanguage {
     "Clean",
     "نظيف",
   ];
+  static const myBookingsNoDataMsg = [
+    "No bookings added. Ready to explore? Add your first booking today.",
+    "لا توجد حجوزات مضافة. هل أنت مستعد للاستكشاف؟ أضف حجزك الأول اليوم.",
+  ];
 }

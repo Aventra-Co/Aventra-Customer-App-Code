@@ -126,8 +126,8 @@ class _OngoingDetailsScreen extends State<OngoingDetailsScreen> {
             isApiCalling = false;
           });
           // ignore: use_build_context_synchronously
-          SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
           if (res['active_status'] == 0) {
+            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
             Navigator.push(context,
                 MaterialPageRoute(builder: (context) => const Login()));
           }
@@ -1517,7 +1517,7 @@ class _OngoingDetailsScreen extends State<OngoingDetailsScreen> {
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) => CancelBooking(
-                                          cancelType: 1,
+                                              cancelType: 1,
                                               tripBookingId: widget.tripId,
                                               propertyBookingId: 1,
                                             )));
@@ -1707,6 +1707,4 @@ class _OngoingDetailsScreen extends State<OngoingDetailsScreen> {
       }
     });
   }
-
-
 }

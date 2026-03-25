@@ -192,7 +192,7 @@ class _PropertyScreenState extends State<PropertyScreen> {
 
   deeplinkingProp(BuildContext context, propertyAdId) async {
     var shareUrl =
-        "${AppConfigProvider.apiUrl}deepLink?link=aventra://property_ad_id/${Uri.encodeComponent(propertyAdId.toString())}";
+        "${AppConfigProvider.apiUrl}deepLink?link=aventra://property_ad_id/${Uri.encodeComponent(propertyAdId.toString())}/entity/${Uri.encodeComponent(1.toString())}";
     final RenderBox box = context.findRenderObject() as RenderBox;
     await Share.share("Aventra App! $shareUrl",
         sharePositionOrigin: box.localToGlobal(Offset.zero) & box.size);

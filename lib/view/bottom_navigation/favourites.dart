@@ -212,7 +212,7 @@ class _FavouritesState extends State<Favourites> {
 
   deeplinking(BuildContext context, tripId, advertisementType) async {
     var shareUrl =
-        "${AppConfigProvider.apiUrl}deepLink?link=aventra://trip_id/${Uri.encodeComponent(tripId.toString())}/advertisement_type/${Uri.encodeComponent(advertisementType.toString())}";
+        "${AppConfigProvider.apiUrl}deepLink?link=aventra://trip_id/${Uri.encodeComponent(tripId.toString())}/advertisement_type/${Uri.encodeComponent(advertisementType.toString())}/entity/${Uri.encodeComponent(0.toString())}";
     final RenderBox box = context.findRenderObject() as RenderBox;
     await Share.share("Aventra App! $shareUrl",
         sharePositionOrigin: box.localToGlobal(Offset.zero) & box.size);
@@ -220,7 +220,7 @@ class _FavouritesState extends State<Favourites> {
 
   deeplinkingProp(BuildContext context, propertyAdId) async {
     var shareUrl =
-        "${AppConfigProvider.apiUrl}deepLink?link=aventra://property_ad_id/${Uri.encodeComponent(propertyAdId.toString())}";
+        "${AppConfigProvider.apiUrl}deepLink?link=aventra://property_ad_id/${Uri.encodeComponent(propertyAdId.toString())}/entity/${Uri.encodeComponent(1.toString())}";
     final RenderBox box = context.findRenderObject() as RenderBox;
     await Share.share("Aventra App! $shareUrl",
         sharePositionOrigin: box.localToGlobal(Offset.zero) & box.size);
@@ -453,7 +453,7 @@ class _FavouritesState extends State<Favourites> {
                                     SizedBox(
                                         height:
                                             MediaQuery.of(context).size.height *
-                                                20 /
+                                                30 /
                                                 100),
                                     SizedBox(
                                       width: screenWidth * 70 / 100,
