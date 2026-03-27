@@ -15,6 +15,7 @@ import '../../controller/app_language.dart';
 import '../../controller/app_loader.dart';
 import '../../controller/app_snack_bar_toast_message.dart';
 import '../authentication/login_screen.dart';
+import 'dart:ui' as ui;
 // import 'rate_now.dart';
 
 class Review extends StatefulWidget {
@@ -201,555 +202,578 @@ class _ReviewState extends State<Review> {
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark));
-    return Scaffold(
-      backgroundColor: AppColor.secondaryColor,
-      body: SafeArea(
-          child: Container(
-        color: AppColor.secondaryColor,
-        width: MediaQuery.of(context).size.width * 100 / 100,
-        height: MediaQuery.of(context).size.height * 100 / 100,
-        child: Column(
-          children: [
-            const NoInternetBanner(),
-            AppHeader(
-              text: AppLanguage.reviewText[language],
-              onPress: () {
-                Navigator.pop(context);
-              },
-            ),
-            Expanded(
-                flex: 1,
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      Container(
-                        width: MediaQuery.of(context).size.width * 100 / 100,
-                        // height: MediaQuery.of(context).size.height *  / 100,
-                        alignment: Alignment.center,
-                        decoration:
-                            const BoxDecoration(color: AppColor.creamColor),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          // crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              height: screenHeight * 2 / 100,
-                            ),
-                            //==================IMAGE CODE=====================//
-                            if (widget.tripImages.isNotEmpty &&
-                                !widget.isProperty) ...[
+    return Directionality(
+      textDirection:
+          language == 1 ? ui.TextDirection.rtl : ui.TextDirection.ltr,
+      child: Scaffold(
+        backgroundColor: AppColor.secondaryColor,
+        body: SafeArea(
+            child: Container(
+          color: AppColor.secondaryColor,
+          width: MediaQuery.of(context).size.width * 100 / 100,
+          height: MediaQuery.of(context).size.height * 100 / 100,
+          child: Column(
+            children: [
+              const NoInternetBanner(),
+              AppHeader(
+                text: AppLanguage.reviewText[language],
+                onPress: () {
+                  Navigator.pop(context);
+                },
+              ),
+              Expanded(
+                  flex: 1,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        Container(
+                          width: MediaQuery.of(context).size.width * 100 / 100,
+                          // height: MediaQuery.of(context).size.height *  / 100,
+                          alignment: Alignment.center,
+                          decoration:
+                              const BoxDecoration(color: AppColor.creamColor),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            // crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                               SizedBox(
-                                width: MediaQuery.of(context).size.width *
-                                    90 /
-                                    100,
-                                // alignment: Alignment.center,
-                                height: screenWidth > 600
-                                    ? MediaQuery.of(context).size.height *
-                                        30 /
-                                        100
-                                    : MediaQuery.of(context).size.height *
-                                        20 /
-                                        100,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: Image.network(
-                                    '${AppConfigProvider.imageURL}${widget.tripImages[selectedImageInd]['image']}',
-                                    fit: BoxFit.cover,
-                                    loadingBuilder: (BuildContext context,
-                                        Widget child,
-                                        ImageChunkEvent? loadingProgress) {
-                                      if (loadingProgress == null) {
-                                        return child;
-                                      } else {
-                                        return Shimmer.fromColors(
-                                          baseColor: Colors.grey.shade300,
-                                          highlightColor: Colors.grey.shade100,
-                                          child: Container(
-                                            color: Colors.grey.shade300,
-                                          ),
-                                        );
-                                      }
-                                    },
-                                  ),
-                                ),
+                                height: screenHeight * 2 / 100,
                               ),
-                              SizedBox(
-                                  height: MediaQuery.of(context).size.height *
-                                      2 /
-                                      100),
-
-                              //list
-                              Container(
-                                alignment: Alignment.center,
-                                width: MediaQuery.of(context).size.width *
-                                    100 /
-                                    100,
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: Padding(
-                                    padding: EdgeInsets.only(
-                                        left: screenWidth > 600 ? 38 : 20.0),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      children: List.generate(
-                                          widget.tripImages.length, (index) {
-                                        return Padding(
-                                          padding: const EdgeInsets.only(
-                                              right: 12.0),
-                                          child: Column(
-                                            children: [
-                                              GestureDetector(
-                                                onTap: () {
-                                                  setState(() {
-                                                    selectedImageInd = index;
-                                                  });
-                                                },
-                                                child: SizedBox(
-                                                  width: screenWidth > 600
-                                                      ? MediaQuery.of(context)
-                                                              .size
-                                                              .width *
-                                                          15 /
-                                                          100
-                                                      : MediaQuery.of(context)
-                                                              .size
-                                                              .width *
-                                                          15 /
-                                                          100,
-                                                  height: screenWidth > 600
-                                                      ? MediaQuery.of(context)
-                                                              .size
-                                                              .width *
-                                                          15 /
-                                                          100
-                                                      : MediaQuery.of(context)
-                                                              .size
-                                                              .width *
-                                                          15 /
-                                                          100,
-                                                  child: ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            20),
-                                                    child: Image.network(
-                                                      '${AppConfigProvider.imageURL}${widget.tripImages[index]['image']}',
-                                                      fit: BoxFit.cover,
-                                                      loadingBuilder: (BuildContext
-                                                              context,
-                                                          Widget child,
-                                                          ImageChunkEvent?
-                                                              loadingProgress) {
-                                                        if (loadingProgress ==
-                                                            null) {
-                                                          return child;
-                                                        } else {
-                                                          return Shimmer
-                                                              .fromColors(
-                                                            baseColor: Colors
-                                                                .grey.shade300,
-                                                            highlightColor:
-                                                                Colors.grey
-                                                                    .shade100,
-                                                            child: Container(
-                                                              color: Colors.grey
-                                                                  .shade300,
-                                                            ),
-                                                          );
-                                                        }
-                                                      },
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      }),
+                              //==================IMAGE CODE=====================//
+                              if (widget.tripImages.isNotEmpty &&
+                                  !widget.isProperty) ...[
+                                SizedBox(
+                                  width: MediaQuery.of(context).size.width *
+                                      90 /
+                                      100,
+                                  // alignment: Alignment.center,
+                                  height: screenWidth > 600
+                                      ? MediaQuery.of(context).size.height *
+                                          30 /
+                                          100
+                                      : MediaQuery.of(context).size.height *
+                                          20 /
+                                          100,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Image.network(
+                                      '${AppConfigProvider.imageURL}${widget.tripImages[selectedImageInd]['image']}',
+                                      fit: BoxFit.cover,
+                                      loadingBuilder: (BuildContext context,
+                                          Widget child,
+                                          ImageChunkEvent? loadingProgress) {
+                                        if (loadingProgress == null) {
+                                          return child;
+                                        } else {
+                                          return Shimmer.fromColors(
+                                            baseColor: Colors.grey.shade300,
+                                            highlightColor:
+                                                Colors.grey.shade100,
+                                            child: Container(
+                                              color: Colors.grey.shade300,
+                                            ),
+                                          );
+                                        }
+                                      },
                                     ),
                                   ),
                                 ),
-                              ),
-                              SizedBox(
-                                  height: MediaQuery.of(context).size.height *
-                                      2 /
-                                      100),
+                                SizedBox(
+                                    height: MediaQuery.of(context).size.height *
+                                        2 /
+                                        100),
+
+                                //list
+                                Container(
+                                  alignment: Alignment.center,
+                                  width: MediaQuery.of(context).size.width *
+                                      100 /
+                                      100,
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Padding(
+                                      padding: EdgeInsets.only(
+                                          left: screenWidth > 600 ? 38 : 20.0),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: List.generate(
+                                            widget.tripImages.length, (index) {
+                                          return Padding(
+                                            padding: const EdgeInsets.only(
+                                                right: 12.0),
+                                            child: Column(
+                                              children: [
+                                                GestureDetector(
+                                                  onTap: () {
+                                                    setState(() {
+                                                      selectedImageInd = index;
+                                                    });
+                                                  },
+                                                  child: SizedBox(
+                                                    width: screenWidth > 600
+                                                        ? MediaQuery.of(context)
+                                                                .size
+                                                                .width *
+                                                            15 /
+                                                            100
+                                                        : MediaQuery.of(context)
+                                                                .size
+                                                                .width *
+                                                            15 /
+                                                            100,
+                                                    height: screenWidth > 600
+                                                        ? MediaQuery.of(context)
+                                                                .size
+                                                                .width *
+                                                            15 /
+                                                            100
+                                                        : MediaQuery.of(context)
+                                                                .size
+                                                                .width *
+                                                            15 /
+                                                            100,
+                                                    child: ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              20),
+                                                      child: Image.network(
+                                                        '${AppConfigProvider.imageURL}${widget.tripImages[index]['image']}',
+                                                        fit: BoxFit.cover,
+                                                        loadingBuilder:
+                                                            (BuildContext
+                                                                    context,
+                                                                Widget child,
+                                                                ImageChunkEvent?
+                                                                    loadingProgress) {
+                                                          if (loadingProgress ==
+                                                              null) {
+                                                            return child;
+                                                          } else {
+                                                            return Shimmer
+                                                                .fromColors(
+                                                              baseColor: Colors
+                                                                  .grey
+                                                                  .shade300,
+                                                              highlightColor:
+                                                                  Colors.grey
+                                                                      .shade100,
+                                                              child: Container(
+                                                                color: Colors
+                                                                    .grey
+                                                                    .shade300,
+                                                              ),
+                                                            );
+                                                          }
+                                                        },
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        }),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                    height: MediaQuery.of(context).size.height *
+                                        2 /
+                                        100),
+                              ],
+                              //==================IMAGE CODE=====================//
+                              if (widget.tripImages.isNotEmpty &&
+                                  widget.isProperty) ...[
+                                SizedBox(
+                                  width: MediaQuery.of(context).size.width *
+                                      90 /
+                                      100,
+                                  // alignment: Alignment.center,
+                                  height: screenWidth > 600
+                                      ? MediaQuery.of(context).size.height *
+                                          30 /
+                                          100
+                                      : MediaQuery.of(context).size.height *
+                                          20 /
+                                          100,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Image.network(
+                                      '${AppConfigProvider.imageURL}${widget.tripImages[selectedImageInd]['image_path']}',
+                                      fit: BoxFit.cover,
+                                      loadingBuilder: (BuildContext context,
+                                          Widget child,
+                                          ImageChunkEvent? loadingProgress) {
+                                        if (loadingProgress == null) {
+                                          return child;
+                                        } else {
+                                          return Shimmer.fromColors(
+                                            baseColor: Colors.grey.shade300,
+                                            highlightColor:
+                                                Colors.grey.shade100,
+                                            child: Container(
+                                              color: Colors.grey.shade300,
+                                            ),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                    height: MediaQuery.of(context).size.height *
+                                        2 /
+                                        100),
+
+                                //list
+                                Container(
+                                  alignment: Alignment.center,
+                                  width: MediaQuery.of(context).size.width *
+                                      100 /
+                                      100,
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Padding(
+                                      padding: EdgeInsets.only(
+                                          left: screenWidth > 600 ? 38 : 20.0),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: List.generate(
+                                            widget.tripImages.length, (index) {
+                                          return Padding(
+                                            padding: const EdgeInsets.only(
+                                                right: 12.0),
+                                            child: Column(
+                                              children: [
+                                                GestureDetector(
+                                                  onTap: () {
+                                                    setState(() {
+                                                      selectedImageInd = index;
+                                                    });
+                                                  },
+                                                  child: SizedBox(
+                                                    width: screenWidth > 600
+                                                        ? MediaQuery.of(context)
+                                                                .size
+                                                                .width *
+                                                            15 /
+                                                            100
+                                                        : MediaQuery.of(context)
+                                                                .size
+                                                                .width *
+                                                            15 /
+                                                            100,
+                                                    height: screenWidth > 600
+                                                        ? MediaQuery.of(context)
+                                                                .size
+                                                                .width *
+                                                            15 /
+                                                            100
+                                                        : MediaQuery.of(context)
+                                                                .size
+                                                                .width *
+                                                            15 /
+                                                            100,
+                                                    child: ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              20),
+                                                      child: Image.network(
+                                                        '${AppConfigProvider.imageURL}${widget.tripImages[index]['image_path']}',
+                                                        fit: BoxFit.cover,
+                                                        loadingBuilder:
+                                                            (BuildContext
+                                                                    context,
+                                                                Widget child,
+                                                                ImageChunkEvent?
+                                                                    loadingProgress) {
+                                                          if (loadingProgress ==
+                                                              null) {
+                                                            return child;
+                                                          } else {
+                                                            return Shimmer
+                                                                .fromColors(
+                                                              baseColor: Colors
+                                                                  .grey
+                                                                  .shade300,
+                                                              highlightColor:
+                                                                  Colors.grey
+                                                                      .shade100,
+                                                              child: Container(
+                                                                color: Colors
+                                                                    .grey
+                                                                    .shade300,
+                                                              ),
+                                                            );
+                                                          }
+                                                        },
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        }),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                    height: MediaQuery.of(context).size.height *
+                                        2 /
+                                        100),
+                              ]
                             ],
-                            //==================IMAGE CODE=====================//
-                            if (widget.tripImages.isNotEmpty &&
-                                widget.isProperty) ...[
-                              SizedBox(
-                                width: MediaQuery.of(context).size.width *
-                                    90 /
-                                    100,
-                                // alignment: Alignment.center,
-                                height: screenWidth > 600
-                                    ? MediaQuery.of(context).size.height *
-                                        30 /
-                                        100
-                                    : MediaQuery.of(context).size.height *
-                                        20 /
-                                        100,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: Image.network(
-                                    '${AppConfigProvider.imageURL}${widget.tripImages[selectedImageInd]['image_path']}',
-                                    fit: BoxFit.cover,
-                                    loadingBuilder: (BuildContext context,
-                                        Widget child,
-                                        ImageChunkEvent? loadingProgress) {
-                                      if (loadingProgress == null) {
-                                        return child;
-                                      } else {
-                                        return Shimmer.fromColors(
-                                          baseColor: Colors.grey.shade300,
-                                          highlightColor: Colors.grey.shade100,
-                                          child: Container(
-                                            color: Colors.grey.shade300,
-                                          ),
-                                        );
-                                      }
-                                    },
-                                  ),
-                                ),
-                              ),
-                              SizedBox(
-                                  height: MediaQuery.of(context).size.height *
-                                      2 /
-                                      100),
-
-                              //list
-                              Container(
-                                alignment: Alignment.center,
-                                width: MediaQuery.of(context).size.width *
-                                    100 /
-                                    100,
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: Padding(
-                                    padding: EdgeInsets.only(
-                                        left: screenWidth > 600 ? 38 : 20.0),
-                                    child: Row(
+                          ),
+                        ),
+                        SizedBox(
+                            height:
+                                MediaQuery.of(context).size.height * 2 / 100),
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width * 90 / 100,
+                          child: Wrap(
+                            runSpacing: 15.0,
+                            children: List.generate(reviewList.length, (index) {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 7, horizontal: 9),
+                                decoration: BoxDecoration(
+                                    color: AppColor.secondaryColor,
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                          blurRadius: 7,
+                                          spreadRadius: 3,
+                                          color: AppColor.shadowColor
+                                              .withOpacity(0.3))
+                                    ]),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    RatingBarIndicator(
+                                      rating: reviewList[index]['total_rating']
+                                          .toDouble(),
+                                      itemCount: 5,
+                                      itemSize: 25,
+                                      itemBuilder: (context, _) => const Icon(
+                                        Icons.star,
+                                        color: AppColor.yellowColor,
+                                      ),
+                                    ),
+                                    Text(
+                                      reviewList[index]['review'],
+                                      style: const TextStyle(
+                                          color: AppColor.primaryColor,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w400,
+                                          fontFamily: AppFont.fontFamily),
+                                    ),
+                                    SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                1 /
+                                                100),
+                                    Row(
                                       mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      children: List.generate(
-                                          widget.tripImages.length, (index) {
-                                        return Padding(
-                                          padding: const EdgeInsets.only(
-                                              right: 12.0),
-                                          child: Column(
-                                            children: [
-                                              GestureDetector(
-                                                onTap: () {
-                                                  setState(() {
-                                                    selectedImageInd = index;
-                                                  });
-                                                },
+                                          MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            if (!widget.isProperty)
+                                              ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(100),
                                                 child: SizedBox(
-                                                  width: screenWidth > 600
-                                                      ? MediaQuery.of(context)
-                                                              .size
-                                                              .width *
-                                                          15 /
-                                                          100
-                                                      : MediaQuery.of(context)
-                                                              .size
-                                                              .width *
-                                                          15 /
-                                                          100,
-                                                  height: screenWidth > 600
-                                                      ? MediaQuery.of(context)
-                                                              .size
-                                                              .width *
-                                                          15 /
-                                                          100
-                                                      : MediaQuery.of(context)
-                                                              .size
-                                                              .width *
-                                                          15 /
-                                                          100,
+                                                  width: MediaQuery.of(context)
+                                                          .size
+                                                          .width *
+                                                      12 /
+                                                      100,
+                                                  height: MediaQuery.of(context)
+                                                          .size
+                                                          .width *
+                                                      12 /
+                                                      100,
                                                   child: ClipRRect(
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                            20),
-                                                    child: Image.network(
-                                                      '${AppConfigProvider.imageURL}${widget.tripImages[index]['image_path']}',
-                                                      fit: BoxFit.cover,
-                                                      loadingBuilder: (BuildContext
-                                                              context,
-                                                          Widget child,
-                                                          ImageChunkEvent?
-                                                              loadingProgress) {
-                                                        if (loadingProgress ==
-                                                            null) {
-                                                          return child;
-                                                        } else {
-                                                          return Shimmer
-                                                              .fromColors(
-                                                            baseColor: Colors
-                                                                .grey.shade300,
-                                                            highlightColor:
-                                                                Colors.grey
-                                                                    .shade100,
-                                                            child: Container(
-                                                              color: Colors.grey
-                                                                  .shade300,
-                                                            ),
-                                                          );
-                                                        }
-                                                      },
-                                                    ),
+                                                            8),
+                                                    child: reviewList[index]
+                                                                ['image'] !=
+                                                            null
+                                                        ? Image.network(
+                                                            '${AppConfigProvider.imageURL}${reviewList[index]['image']}',
+                                                            fit: BoxFit.cover,
+                                                            loadingBuilder:
+                                                                (BuildContext
+                                                                        context,
+                                                                    Widget
+                                                                        child,
+                                                                    ImageChunkEvent?
+                                                                        loadingProgress) {
+                                                              if (loadingProgress ==
+                                                                  null) {
+                                                                return child;
+                                                              } else {
+                                                                return Shimmer
+                                                                    .fromColors(
+                                                                  baseColor: Colors
+                                                                      .grey
+                                                                      .shade300,
+                                                                  highlightColor:
+                                                                      Colors
+                                                                          .grey
+                                                                          .shade100,
+                                                                  child:
+                                                                      Container(
+                                                                    color: Colors
+                                                                        .grey
+                                                                        .shade300,
+                                                                  ),
+                                                                );
+                                                              }
+                                                            },
+                                                          )
+                                                        : Image.asset(
+                                                            AppImage
+                                                                .profilePlaceholderImage,
+                                                            fit: BoxFit.cover,
+                                                          ),
                                                   ),
                                                 ),
                                               ),
-                                            ],
-                                          ),
-                                        );
-                                      }),
-                                    ),
-                                  ),
+                                            if (widget.isProperty)
+                                              ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(100),
+                                                child: SizedBox(
+                                                  width: MediaQuery.of(context)
+                                                          .size
+                                                          .width *
+                                                      12 /
+                                                      100,
+                                                  height: MediaQuery.of(context)
+                                                          .size
+                                                          .width *
+                                                      12 /
+                                                      100,
+                                                  child: ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                    child: reviewList[index]
+                                                                ['image'] !=
+                                                            null
+                                                        ? Image.network(
+                                                            '${AppConfigProvider.imageURL}${reviewList[index]['image']}',
+                                                            fit: BoxFit.cover,
+                                                            loadingBuilder:
+                                                                (BuildContext
+                                                                        context,
+                                                                    Widget
+                                                                        child,
+                                                                    ImageChunkEvent?
+                                                                        loadingProgress) {
+                                                              if (loadingProgress ==
+                                                                  null) {
+                                                                return child;
+                                                              } else {
+                                                                return Shimmer
+                                                                    .fromColors(
+                                                                  baseColor: Colors
+                                                                      .grey
+                                                                      .shade300,
+                                                                  highlightColor:
+                                                                      Colors
+                                                                          .grey
+                                                                          .shade100,
+                                                                  child:
+                                                                      Container(
+                                                                    color: Colors
+                                                                        .grey
+                                                                        .shade300,
+                                                                  ),
+                                                                );
+                                                              }
+                                                            },
+                                                          )
+                                                        : Image.asset(
+                                                            AppImage
+                                                                .profilePlaceholderImage,
+                                                            fit: BoxFit.cover,
+                                                          ),
+                                                  ),
+                                                ),
+                                              ),
+                                            SizedBox(
+                                                width: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    2 /
+                                                    100),
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  AppLanguage
+                                                      .reviewByText[language],
+                                                  style: const TextStyle(
+                                                      color:
+                                                          AppColor.primaryColor,
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.w400,
+                                                      fontFamily:
+                                                          AppFont.fontFamily),
+                                                ),
+                                                Text(
+                                                  reviewList[index]['name'],
+                                                  style: const TextStyle(
+                                                      color:
+                                                          AppColor.primaryColor,
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      fontFamily:
+                                                          AppFont.fontFamily),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                        Text(
+                                          reviewList[index]['createtime'],
+                                          style: const TextStyle(
+                                              color: AppColor.primaryColor,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w500,
+                                              fontFamily: AppFont.fontFamily),
+                                        ),
+                                      ],
+                                    )
+                                  ],
                                 ),
-                              ),
-                              SizedBox(
-                                  height: MediaQuery.of(context).size.height *
-                                      2 /
-                                      100),
-                            ]
-                          ],
+                              );
+                            }),
+                          ),
                         ),
-                      ),
-                      SizedBox(
-                          height: MediaQuery.of(context).size.height * 2 / 100),
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width * 90 / 100,
-                        child: Wrap(
-                          runSpacing: 15.0,
-                          children: List.generate(reviewList.length, (index) {
-                            return Container(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 7, horizontal: 9),
-                              decoration: BoxDecoration(
-                                  color: AppColor.secondaryColor,
-                                  borderRadius: BorderRadius.circular(12),
-                                  boxShadow: [
-                                    BoxShadow(
-                                        blurRadius: 7,
-                                        spreadRadius: 3,
-                                        color: AppColor.shadowColor
-                                            .withOpacity(0.3))
-                                  ]),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  RatingBarIndicator(
-                                    rating: reviewList[index]['total_rating']
-                                        .toDouble(),
-                                    itemCount: 5,
-                                    itemSize: 25,
-                                    itemBuilder: (context, _) => const Icon(
-                                      Icons.star,
-                                      color: AppColor.yellowColor,
-                                    ),
-                                  ),
-                                  Text(
-                                    reviewList[index]['review'],
-                                    style: const TextStyle(
-                                        color: AppColor.primaryColor,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w400,
-                                        fontFamily: AppFont.fontFamily),
-                                  ),
-                                  SizedBox(
-                                      height:
-                                          MediaQuery.of(context).size.height *
-                                              1 /
-                                              100),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          if (!widget.isProperty)
-                                            ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(100),
-                                              child: SizedBox(
-                                                width: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    12 /
-                                                    100,
-                                                height: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    12 /
-                                                    100,
-                                                child: ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  child: reviewList[index]
-                                                              ['image'] !=
-                                                          null
-                                                      ? Image.network(
-                                                          '${AppConfigProvider.imageURL}${reviewList[index]['image']}',
-                                                          fit: BoxFit.cover,
-                                                          loadingBuilder:
-                                                              (BuildContext
-                                                                      context,
-                                                                  Widget child,
-                                                                  ImageChunkEvent?
-                                                                      loadingProgress) {
-                                                            if (loadingProgress ==
-                                                                null) {
-                                                              return child;
-                                                            } else {
-                                                              return Shimmer
-                                                                  .fromColors(
-                                                                baseColor: Colors
-                                                                    .grey
-                                                                    .shade300,
-                                                                highlightColor:
-                                                                    Colors.grey
-                                                                        .shade100,
-                                                                child:
-                                                                    Container(
-                                                                  color: Colors
-                                                                      .grey
-                                                                      .shade300,
-                                                                ),
-                                                              );
-                                                            }
-                                                          },
-                                                        )
-                                                      : Image.asset(
-                                                          AppImage
-                                                              .profilePlaceholderImage,
-                                                          fit: BoxFit.cover,
-                                                        ),
-                                                ),
-                                              ),
-                                            ),
-                                          if (widget.isProperty)
-                                            ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(100),
-                                              child: SizedBox(
-                                                width: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    12 /
-                                                    100,
-                                                height: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    12 /
-                                                    100,
-                                                child: ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  child: reviewList[index]
-                                                              ['image_path'] !=
-                                                          null
-                                                      ? Image.network(
-                                                          '${AppConfigProvider.imageURL}${reviewList[index]['image_path']}',
-                                                          fit: BoxFit.cover,
-                                                          loadingBuilder:
-                                                              (BuildContext
-                                                                      context,
-                                                                  Widget child,
-                                                                  ImageChunkEvent?
-                                                                      loadingProgress) {
-                                                            if (loadingProgress ==
-                                                                null) {
-                                                              return child;
-                                                            } else {
-                                                              return Shimmer
-                                                                  .fromColors(
-                                                                baseColor: Colors
-                                                                    .grey
-                                                                    .shade300,
-                                                                highlightColor:
-                                                                    Colors.grey
-                                                                        .shade100,
-                                                                child:
-                                                                    Container(
-                                                                  color: Colors
-                                                                      .grey
-                                                                      .shade300,
-                                                                ),
-                                                              );
-                                                            }
-                                                          },
-                                                        )
-                                                      : Image.asset(
-                                                          AppImage
-                                                              .profilePlaceholderImage,
-                                                          fit: BoxFit.cover,
-                                                        ),
-                                                ),
-                                              ),
-                                            ),
-                                          SizedBox(
-                                              width: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  2 /
-                                                  100),
-                                          Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                AppLanguage
-                                                    .reviewByText[language],
-                                                style: const TextStyle(
-                                                    color:
-                                                        AppColor.primaryColor,
-                                                    fontSize: 10,
-                                                    fontWeight: FontWeight.w400,
-                                                    fontFamily:
-                                                        AppFont.fontFamily),
-                                              ),
-                                              Text(
-                                                reviewList[index]['name'],
-                                                style: const TextStyle(
-                                                    color:
-                                                        AppColor.primaryColor,
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w600,
-                                                    fontFamily:
-                                                        AppFont.fontFamily),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                      Text(
-                                        reviewList[index]['createtime'],
-                                        style: const TextStyle(
-                                            color: AppColor.primaryColor,
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w500,
-                                            fontFamily: AppFont.fontFamily),
-                                      ),
-                                    ],
-                                  )
-                                ],
-                              ),
-                            );
-                          }),
-                        ),
-                      ),
-                      SizedBox(
-                          height: MediaQuery.of(context).size.height * 2 / 100)
-                    ],
-                  ),
-                ))
-          ],
-        ),
-      )),
+                        SizedBox(
+                            height:
+                                MediaQuery.of(context).size.height * 2 / 100)
+                      ],
+                    ),
+                  ))
+            ],
+          ),
+        )),
+      ),
     );
   }
 }

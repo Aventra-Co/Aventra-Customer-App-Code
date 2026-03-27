@@ -95,6 +95,7 @@ class OneSignalService {
       if (decodeData.toString().toLowerCase() == "broadcast" ||
           decodeData.toString().toLowerCase() == "trip_booking" ||
           decodeData.toString().toLowerCase() == "trip_cancellation" ||
+          decodeData.toString().toLowerCase() == "property_cancellation" ||
           decodeData.toString().toLowerCase() == "property_booking") {
         print("Broadcast action received");
 

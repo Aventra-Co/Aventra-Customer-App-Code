@@ -1049,4 +1049,8 @@ class AppLanguage {
     "No bookings added. Ready to explore? Add your first booking today.",
     "لا توجد حجوزات مضافة. هل أنت مستعد للاستكشاف؟ أضف حجزك الأول اليوم.",
   ];
+  static const noPropertiesText = [
+    "No properties available!",
+    "لا توجد عقارات متاحة!",
+  ];
 }

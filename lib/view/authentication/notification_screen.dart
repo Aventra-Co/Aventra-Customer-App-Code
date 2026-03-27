@@ -543,8 +543,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                                 ['action_id']
                                             .toString());
                                   } else if (notificationarraylist[index]
-                                          ['action'] ==
-                                      "property_booking") {
+                                              ['action'] ==
+                                          "property_booking" ||
+                                      notificationarraylist[index]['action'] ==
+                                          "property_cancellation") {
                                     checkPropStatusApiCall(
                                         notificationarraylist[index]
                                             ['action_id']);

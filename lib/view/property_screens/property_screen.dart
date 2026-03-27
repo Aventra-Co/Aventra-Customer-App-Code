@@ -476,7 +476,9 @@ class _PropertyScreenState extends State<PropertyScreen> {
                             height: size.width * 0.09,
                             child: IconButton(
                               padding: EdgeInsets.zero,
-                              icon: Image.asset(AppImage.bgBackArrow),
+                              icon: Transform.rotate(
+                                  angle: language == 1 ? 3.1416 : 0,
+                                  child: Image.asset(AppImage.bgBackArrow)),
                               onPressed: () => Navigator.pop(context),
                             ),
                           ),
@@ -585,7 +587,8 @@ class _PropertyScreenState extends State<PropertyScreen> {
                     // Property title
                     Positioned(
                       bottom: 38,
-                      left: 24,
+                      left: language == 0 ? 24 : null,
+                      right: language == 1 ? 24 : null,
                       child: Text(
                         widget.cityName,
                         maxLines: 2,
@@ -1554,37 +1557,59 @@ class _PropertyScreenState extends State<PropertyScreen> {
         ),
         const SizedBox(height: 16),
         Expanded(
-          child: selectedView == AppLanguage.gridtext[language]
-              ? GridView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: properties.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 4,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 0.75,
-                  ),
-                  itemBuilder: (context, index) {
-                    return _propertyGridCard(
-                        properties[index], index, screenWidth);
-                  },
+          child: properties.isEmpty
+              ? Column(
+                  children: [
+                    SizedBox(
+                        height: MediaQuery.of(context).size.height * 10 / 100),
+                    Container(
+                      alignment: Alignment.center,
+                      width: MediaQuery.of(context).size.width * 90 / 100,
+                      child: Text(
+                        AppLanguage.noPropertiesText[language],
+                        style: const TextStyle(
+                            fontFamily: AppFont.fontFamily,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: AppColor.primaryColor),
+                      ),
+                    ),
+                  ],
                 )
-              : ListView.builder(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                  ),
-                  itemCount: properties.length,
-                  itemBuilder: (context, index) {
-                    return Column(
-                      children: [
-                        _propertyCard(properties[index], index, screenWidth),
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height * 2 / 100,
-                        ),
-                      ],
-                    );
-                  },
-                ),
+              : selectedView == AppLanguage.gridtext[language]
+                  ? GridView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: properties.length,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 4,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 0.75,
+                      ),
+                      itemBuilder: (context, index) {
+                        return _propertyGridCard(
+                            properties[index], index, screenWidth);
+                      },
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                      ),
+                      itemCount: properties.length,
+                      itemBuilder: (context, index) {
+                        return Column(
+                          children: [
+                            _propertyCard(
+                                properties[index], index, screenWidth),
+                            SizedBox(
+                              height:
+                                  MediaQuery.of(context).size.height * 2 / 100,
+                            ),
+                          ],
+                        );
+                      },
+                    ),
         ),
         SizedBox(height: size.height * 0.02),
       ],

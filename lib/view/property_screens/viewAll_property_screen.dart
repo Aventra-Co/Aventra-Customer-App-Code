@@ -16,6 +16,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../controller/app_config_provider.dart';
 import '../../controller/app_snack_bar_toast_message.dart';
 import '../authentication/login_screen.dart';
+import 'dart:ui' as ui;
 
 class PropertyHomeScreen extends StatefulWidget {
   final String initialView;
@@ -252,75 +253,80 @@ class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
 
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Scaffold(
-        backgroundColor: AppColor.secondaryColor,
-        body: SafeArea(
-          child: Column(
-            children: [
-              // ── Header ───────────────────────────────────────────────
-              AppHeader(
-                text: AppLanguage.mostPopularpropertiesText[language],
-                onPress: () => Navigator.pop(context),
-              ),
-
-              SizedBox(height: size.height * 0.01),
-
-              // ── Search Bar ───────────────────────────────────────────
-              _buildSearchBar(size),
-              SizedBox(height: size.height * 0.015),
-
-              Expanded(
-                  child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    SizedBox(height: size.height * 0.020),
-                    // ── Grid ─────────────────────────────────────────────────
-                    isLoading
-                        ? favGridShimmerEffect(context)
-                        : _filteredProperties.isEmpty
-                            ? Padding(
-                                padding:
-                                    EdgeInsets.only(top: size.height * 0.1),
-                                child: Column(
-                                  children: [
-                                    Icon(Icons.search_off,
-                                        size: 60, color: Colors.grey.shade300),
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      'No properties found',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontFamily: AppFont.fontFamily,
-                                        color: Colors.grey.shade400,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : GridView.builder(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: size.width * 0.04),
-                                itemCount: _filteredProperties.length,
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                gridDelegate:
-                                    const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  crossAxisSpacing: 16,
-                                  mainAxisSpacing: 16,
-                                  childAspectRatio: 0.75,
-                                ),
-                                itemBuilder: (context, index) {
-                                  return _propertyGridCard(
-                                      _filteredProperties[index], index);
-                                },
-                              ),
-
-                    SizedBox(height: size.height * 0.05),
-                  ],
+      child: Directionality(
+        textDirection:
+            language == 1 ? ui.TextDirection.rtl : ui.TextDirection.ltr,
+        child: Scaffold(
+          backgroundColor: AppColor.secondaryColor,
+          body: SafeArea(
+            child: Column(
+              children: [
+                // ── Header ───────────────────────────────────────────────
+                AppHeader(
+                  text: AppLanguage.mostPopularpropertiesText[language],
+                  onPress: () => Navigator.pop(context),
                 ),
-              ))
-            ],
+
+                SizedBox(height: size.height * 0.01),
+
+                // ── Search Bar ───────────────────────────────────────────
+                _buildSearchBar(size),
+                SizedBox(height: size.height * 0.015),
+
+                Expanded(
+                    child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      SizedBox(height: size.height * 0.020),
+                      // ── Grid ─────────────────────────────────────────────────
+                      isLoading
+                          ? favGridShimmerEffect(context)
+                          : _filteredProperties.isEmpty
+                              ? Padding(
+                                  padding:
+                                      EdgeInsets.only(top: size.height * 0.1),
+                                  child: Column(
+                                    children: [
+                                      Icon(Icons.search_off,
+                                          size: 60,
+                                          color: Colors.grey.shade300),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        'No properties found',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontFamily: AppFont.fontFamily,
+                                          color: Colors.grey.shade400,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : GridView.builder(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: size.width * 0.04),
+                                  itemCount: _filteredProperties.length,
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  gridDelegate:
+                                      const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    crossAxisSpacing: 16,
+                                    mainAxisSpacing: 16,
+                                    childAspectRatio: 0.75,
+                                  ),
+                                  itemBuilder: (context, index) {
+                                    return _propertyGridCard(
+                                        _filteredProperties[index], index);
+                                  },
+                                ),
+
+                      SizedBox(height: size.height * 0.05),
+                    ],
+                  ),
+                ))
+              ],
+            ),
           ),
         ),
       ),
@@ -367,7 +373,7 @@ class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
                   color: AppColor.primaryColor,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Search',
+                  hintText: AppLanguage.searchInputText[language],
                   hintStyle: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w400,

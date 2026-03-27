@@ -13,7 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 // import 'package:shimmer/shimmer.dart';
 import 'package:table_calendar/table_calendar.dart';
-
+import 'dart:ui' as ui;
 import '../../controller/app_config_provider.dart';
 import '../../controller/app_loader.dart';
 import '../../controller/app_snack_bar_toast_message.dart';
@@ -364,6 +364,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   Widget _buildUIScreen(BuildContext context) {
     final size = MediaQuery.of(context).size;
     // final double sw = MediaQuery.of(context).size.width;
+    final double sw = MediaQuery.of(context).size.width;
     final double sh = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
 
@@ -373,576 +374,630 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         statusBarIconBrightness: Brightness.dark,
         statusBarBrightness: Brightness.dark,
       ),
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        body: SafeArea(
-          child: Container(
-            color: AppColor.secondaryColor,
-            width: MediaQuery.of(context).size.width * 100 / 100,
-            height: MediaQuery.of(context).size.height * 100 / 100,
-            child: Column(
-              children: [
-                AppHeader(
-                    text: AppLanguage.detailsText[language],
-                    onPress: () => Navigator.pop(context)),
-                SizedBox(height: size.height * 0.01),
-                if (!isApiCalling)
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          //!==================IMAGE CODE=====================//
-                          if (propertyImages.isNotEmpty)
-                            propertyImages.isNotEmpty
-                                ? Container(
-                                    color: AppColor.creamColor,
-                                    width: MediaQuery.of(context).size.width *
-                                        100 /
-                                        100,
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 15),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Container(
-                                          width: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              90 /
-                                              100,
-                                          height: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              25 /
-                                              100,
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(16),
-                                            image: DecorationImage(
-                                                image: propertyImages[
-                                                                imageSelected]
-                                                            ['image_path'] !=
-                                                        null
-                                                    ? NetworkImage(
-                                                        "${AppConfigProvider.imageURL}${propertyImages[imageSelected]['image_path']}")
-                                                    : const AssetImage(AppImage
-                                                            .imageFrameImage)
-                                                        as ImageProvider,
-                                                fit: BoxFit.cover),
-                                          ),
-                                        ),
-                                        SizedBox(
+      child: Directionality(
+        textDirection:
+            language == 1 ? ui.TextDirection.rtl : ui.TextDirection.ltr,
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          body: SafeArea(
+            child: Container(
+              color: AppColor.secondaryColor,
+              width: MediaQuery.of(context).size.width * 100 / 100,
+              height: MediaQuery.of(context).size.height * 100 / 100,
+              child: Column(
+                children: [
+                  AppHeader(
+                      text: AppLanguage.detailsText[language],
+                      onPress: () => Navigator.pop(context)),
+                  SizedBox(height: size.height * 0.01),
+                  if (!isApiCalling)
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            //!==================IMAGE CODE=====================//
+                            if (propertyImages.isNotEmpty)
+                              propertyImages.isNotEmpty
+                                  ? Container(
+                                      color: AppColor.creamColor,
+                                      width: MediaQuery.of(context).size.width *
+                                          100 /
+                                          100,
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 15),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Container(
+                                            width: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                90 /
+                                                100,
                                             height: MediaQuery.of(context)
                                                     .size
                                                     .height *
-                                                3 /
-                                                100),
-                                        SizedBox(
-                                          width: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              100 /
-                                              100,
-                                          child: SizedBox(
+                                                25 /
+                                                100,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                              image: DecorationImage(
+                                                  image: propertyImages[
+                                                                  imageSelected]
+                                                              ['image_path'] !=
+                                                          null
+                                                      ? NetworkImage(
+                                                          "${AppConfigProvider.imageURL}${propertyImages[imageSelected]['image_path']}")
+                                                      : const AssetImage(AppImage
+                                                              .imageFrameImage)
+                                                          as ImageProvider,
+                                                  fit: BoxFit.cover),
+                                            ),
+                                          ),
+                                          SizedBox(
+                                              height: MediaQuery.of(context)
+                                                      .size
+                                                      .height *
+                                                  3 /
+                                                  100),
+                                          SizedBox(
                                             width: MediaQuery.of(context)
                                                     .size
                                                     .width *
                                                 100 /
                                                 100,
-                                            child: SingleChildScrollView(
-                                              scrollDirection: Axis.horizontal,
-                                              child: Wrap(
-                                                spacing: 8,
-                                                runSpacing: 6,
-                                                children: List.generate(
-                                                    propertyImages.length,
-                                                    (index) {
-                                                  return Padding(
-                                                    padding: language == 0
-                                                        ? EdgeInsets.only(
-                                                            left: index == 0
-                                                                ? screenWidth >
-                                                                        600
-                                                                    ? 20
-                                                                    : 18
-                                                                : 0,
-                                                            right: index ==
-                                                                    propertyImages
-                                                                            .length -
-                                                                        1
-                                                                ? 10
-                                                                : 0)
-                                                        : EdgeInsets.only(
-                                                            right: index == 0
-                                                                ? screenWidth >
-                                                                        600
-                                                                    ? 20
-                                                                    : 18
-                                                                : 10,
-                                                            left: index ==
-                                                                    propertyImages
-                                                                            .length -
-                                                                        1
-                                                                ? 0
-                                                                : 0),
-                                                    child: GestureDetector(
-                                                      onTap: () {
-                                                        setState(() {
-                                                          imageSelected = index;
-                                                        });
-                                                      },
-                                                      child: Container(
-                                                        width: MediaQuery.of(
-                                                                    context)
-                                                                .size
-                                                                .width *
-                                                            18 /
-                                                            100,
-                                                        height: MediaQuery.of(
-                                                                    context)
-                                                                .size
-                                                                .width *
-                                                            18 /
-                                                            100,
-                                                        decoration: BoxDecoration(
-                                                            image: DecorationImage(
-                                                                image: propertyImages[index]
-                                                                            [
-                                                                            'image_path'] !=
-                                                                        null
-                                                                    ? NetworkImage(
-                                                                        "${AppConfigProvider.imageURL}${propertyImages[index]['image_path']}")
-                                                                    : const AssetImage(
-                                                                            AppImage.imageFrameImage)
-                                                                        as ImageProvider,
-                                                                fit: BoxFit
-                                                                    .cover),
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        16)),
+                                            child: SizedBox(
+                                              width: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  100 /
+                                                  100,
+                                              child: SingleChildScrollView(
+                                                scrollDirection:
+                                                    Axis.horizontal,
+                                                child: Wrap(
+                                                  spacing: 8,
+                                                  runSpacing: 6,
+                                                  children: List.generate(
+                                                      propertyImages.length,
+                                                      (index) {
+                                                    return Padding(
+                                                      padding: language == 0
+                                                          ? EdgeInsets.only(
+                                                              left: index == 0
+                                                                  ? screenWidth >
+                                                                          600
+                                                                      ? 20
+                                                                      : 18
+                                                                  : 0,
+                                                              right: index ==
+                                                                      propertyImages
+                                                                              .length -
+                                                                          1
+                                                                  ? 10
+                                                                  : 0)
+                                                          : EdgeInsets.only(
+                                                              right: index == 0
+                                                                  ? screenWidth >
+                                                                          600
+                                                                      ? 20
+                                                                      : 18
+                                                                  : 10,
+                                                              left: index ==
+                                                                      propertyImages
+                                                                              .length -
+                                                                          1
+                                                                  ? 0
+                                                                  : 0),
+                                                      child: GestureDetector(
+                                                        onTap: () {
+                                                          setState(() {
+                                                            imageSelected =
+                                                                index;
+                                                          });
+                                                        },
+                                                        child: Container(
+                                                          width: MediaQuery.of(
+                                                                      context)
+                                                                  .size
+                                                                  .width *
+                                                              18 /
+                                                              100,
+                                                          height: MediaQuery.of(
+                                                                      context)
+                                                                  .size
+                                                                  .width *
+                                                              18 /
+                                                              100,
+                                                          decoration: BoxDecoration(
+                                                              image: DecorationImage(
+                                                                  image: propertyImages[index]
+                                                                              [
+                                                                              'image_path'] !=
+                                                                          null
+                                                                      ? NetworkImage(
+                                                                          "${AppConfigProvider.imageURL}${propertyImages[index]['image_path']}")
+                                                                      : const AssetImage(
+                                                                              AppImage.imageFrameImage)
+                                                                          as ImageProvider,
+                                                                  fit: BoxFit
+                                                                      .cover),
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          16)),
+                                                        ),
                                                       ),
-                                                    ),
-                                                  );
-                                                }),
+                                                    );
+                                                  }),
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                  )
-                                : Container(),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 2 / 100),
-
-                          _partDetials(adDetails),
-
-                          SizedBox(height: sh * 0.02),
-
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width * 90 / 100,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Title
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    SizedBox(
-                                      width: MediaQuery.of(context).size.width *
-                                          75 /
-                                          100,
-                                      child: Text(
-                                        adDetails['property_name_english'] ??
-                                            "",
-                                        style: const TextStyle(
-                                          fontSize: 23,
-                                          fontWeight: FontWeight.w600,
-                                          fontFamily: AppFont.fontFamily,
-                                        ),
-                                      ),
-                                    ),
-                                    GestureDetector(
-                                      onTap: () {
-                                        addFavoriteApiCall(
-                                            adDetails['property_ad_id'], 1);
-                                      },
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                8 /
-                                                100,
-                                        height:
-                                            MediaQuery.of(context).size.width *
-                                                8 /
-                                                100,
-                                        child: Image.asset(
-                                            adDetails['favourite_status'] == 0
-                                                ? AppImage.likeDeactiveIcon
-                                                : AppImage.likeActiveIcon),
+                                          )
+                                        ],
                                       ),
                                     )
-                                  ],
-                                ),
-                                Text(
-                                  adDetails['property_type_name'][language] ??
-                                      "",
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                    fontFamily: AppFont.fontFamily,
-                                  ),
-                                ),
-                                SizedBox(height: size.height * 0.01),
-                                Row(
-                                  children: [
-                                    Image.asset(AppImage.redLocationIcon,
-                                        width: size.width * 0.04,
-                                        height: size.height * 0.04),
-                                    SizedBox(width: size.width * 0.01),
-                                    SizedBox(
-                                      width: MediaQuery.of(context).size.width *
-                                          85 /
-                                          100,
-                                      child: Text(
-                                        adDetails['address'] ?? "",
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontFamily: AppFont.fontFamily,
-                                          fontWeight: FontWeight.w400,
-                                          color: Colors.grey.shade700,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: size.height * 0.02),
+                                  : Container(),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height *
+                                    2 /
+                                    100),
 
-                                _detailGrid(adDetails),
-                                SizedBox(height: size.height * 0.04),
+                            _partDetials(adDetails),
 
-                                // Description
-                                Text(
-                                  AppLanguage.descriptionText[language],
-                                  style: const TextStyle(
-                                    fontSize: 21,
-                                    fontWeight: FontWeight.w500,
-                                    fontFamily: AppFont.fontFamily,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                SizedBox(height: size.height * 0.01),
-                                SizedBox(
-                                  width: MediaQuery.of(context).size.width *
-                                      90 /
-                                      100,
-                                  child: Text(
-                                    language == 0
-                                        ? (((adDetails['description_english'] ??
-                                                    '')
-                                                .toString()
-                                                .trim()
-                                                .isEmpty)
-                                            ? "NA"
-                                            : adDetails['description_english'])
-                                        : (((adDetails['description_arabic'] ??
-                                                    '')
-                                                .toString()
-                                                .trim()
-                                                .isEmpty)
-                                            ? "N/A"
-                                            : adDetails['description_arabic']),
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontFamily: AppFont.fontFamily,
-                                      color: Colors.grey.shade700,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(height: size.height * 0.03),
+                            SizedBox(height: sh * 0.02),
 
-                                // What this place offers
-                                Text(
-                                  AppLanguage.whatThisplaceOfferText[language],
-                                  style: const TextStyle(
-                                    fontSize: 21.33,
-                                    fontWeight: FontWeight.w500,
-                                    fontFamily: AppFont.fontFamily,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                SizedBox(height: size.height * 0.01),
-                                _amenitiesGrid(offerings),
-                                SizedBox(height: size.height * 0.03),
-
-                                // Checkin checkout time
-                                Text(
-                                  "${AppLanguage.timingText[language]}:",
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w700,
-                                    fontFamily: AppFont.fontFamily,
-                                  ),
-                                ),
-                                SizedBox(height: size.height * 0.01),
-                                Text(
-                                  AppLanguage.checkinCheckoutTimeText[language],
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w400,
-                                    fontFamily: AppFont.fontFamily,
-                                  ),
-                                ),
-                                SizedBox(height: size.height * 0.03),
-
-                                // Price
-                                Text(
-                                  AppLanguage.priceText[language],
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w700,
-                                    fontFamily: AppFont.fontFamily,
-                                  ),
-                                ),
-                                SizedBox(height: size.height * 0.01),
-
-                                // if (adDetails['one_day_price'] > 0) ...[
-                                //   _priceRow(
-                                //     title: AppLanguage.oneDayText[language],
-                                //     price:
-                                //         "${adDetails['one_day_price']?.toString() ?? "0"} KWD",
-                                //   ),
-                                // ],
-
-                                if (adDetails['weekday_price'] > 0) ...[
-                                  _priceRow(
-                                    title: AppLanguage.weekDaysText[language],
-                                    price:
-                                        "${adDetails['weekday_price']?.toString() ?? "0"} KWD${AppLanguage.perDayText[language]}",
-                                  ),
-                                ],
-
-                                if (adDetails['weekend_price'] > 0) ...[
-                                  _priceRow(
-                                    title:
-                                        AppLanguage.weekendDaysText[language],
-                                    price:
-                                        "${adDetails['weekend_price']?.toString() ?? "0"} KWD${AppLanguage.perDayText[language]}",
-                                  ),
-                                ],
-
-                                if (adDetails['full_week_price'] > 0) ...[
-                                  _priceRow(
-                                    title:
-                                        AppLanguage.fullWeekDaysText[language],
-                                    price:
-                                        "${adDetails['full_week_price']?.toString() ?? "0"} KWD${AppLanguage.perDayText[language]}",
-                                  ),
-                                ],
-
-                                //! Cancellation policy
-                                Row(
-                                  children: [
-                                    Image.asset(AppImage.cancellationPolicyicon,
-                                        width: size.width * 0.04,
-                                        height: size.height * 0.04),
-                                    TextButton(
-                                      onPressed: _showCancellationPolicyDialog,
-                                      child: Text(
-                                        AppLanguage
-                                            .cancellationPolicyText[language],
-                                        style: const TextStyle(
-                                          fontFamily: AppFont.fontFamily,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                          color: AppColor.themeColor,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: size.height * 1.5 / 100),
-
-                                // ── LEGEND ──────────────────────────────────────────
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    _legendItem('Available', Colors.black87),
-                                    SizedBox(width: size.width * 0.05),
-                                    _legendItem(
-                                        'Unavailable', const Color(0xFFE57373)),
-                                    SizedBox(width: size.width * 0.05),
-                                    _legendItem(
-                                        'Selected Range', AppColor.themeColor),
-                                  ],
-                                ),
-                                SizedBox(height: size.height * 0.02),
-
-                                // ── CALENDAR (Figma style) ───────────────────────────
-                                _buildCalendar(size),
-
-                                SizedBox(height: size.height * 0.03),
-                                Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 14, vertical: 12),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        AppColor.themeColor.withOpacity(0.08),
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                        color: AppColor.themeColor
-                                            .withOpacity(0.2)),
-                                  ),
-                                  child: Row(
+                            SizedBox(
+                              width:
+                                  MediaQuery.of(context).size.width * 90 / 100,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Title
+                                  Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(
-                                        _totalNights > 0
-                                            ? '${AppLanguage.forText[language]} $_totalNights ${AppLanguage.nightsText[language]}'
-                                            : AppLanguage
-                                                .selectDatesText[language],
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                          fontFamily: AppFont.fontFamily,
+                                      SizedBox(
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                75 /
+                                                100,
+                                        child: Text(
+                                          adDetails['property_name_english'] ??
+                                              "",
+                                          style: const TextStyle(
+                                            fontSize: 23,
+                                            fontWeight: FontWeight.w600,
+                                            fontFamily: AppFont.fontFamily,
+                                          ),
                                         ),
                                       ),
-                                      Text(
-                                        _totalNights > 0
-                                            ? '${_grandTotal.toStringAsFixed(2)} KWD'
-                                            : '--',
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w700,
-                                          fontFamily: AppFont.fontFamily,
-                                          color: AppColor.themeColor,
+                                      GestureDetector(
+                                        onTap: () {
+                                          addFavoriteApiCall(
+                                              adDetails['property_ad_id'], 1);
+                                        },
+                                        child: SizedBox(
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              8 /
+                                              100,
+                                          height: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              8 /
+                                              100,
+                                          child: Image.asset(
+                                              adDetails['favourite_status'] == 0
+                                                  ? AppImage.likeDeactiveIcon
+                                                  : AppImage.likeActiveIcon),
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                  Text(
+                                    adDetails['property_type_name'][language] ??
+                                        "",
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      fontFamily: AppFont.fontFamily,
+                                    ),
+                                  ),
+                                  SizedBox(height: size.height * 0.01),
+                                  Row(
+                                    children: [
+                                      Image.asset(AppImage.redLocationIcon,
+                                          width: size.width * 0.04,
+                                          height: size.height * 0.04),
+                                      SizedBox(width: size.width * 0.01),
+                                      SizedBox(
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                85 /
+                                                100,
+                                        child: Text(
+                                          adDetails['address'] ?? "",
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontFamily: AppFont.fontFamily,
+                                            fontWeight: FontWeight.w400,
+                                            color: Colors.grey.shade700,
+                                          ),
                                         ),
                                       ),
                                     ],
                                   ),
-                                ),
-                                SizedBox(height: size.height * 0.03),
+                                  SizedBox(height: size.height * 0.02),
 
-                                // Guests
-                                Text(
-                                  AppLanguage.guestsext[language],
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w700,
-                                    fontFamily: AppFont.fontFamily,
-                                    color: Colors.black,
+                                  _detailGrid(adDetails),
+                                  SizedBox(height: size.height * 0.04),
+
+                                  // ── DESCRIPTION ──────────────────────────────────────
+                                  if (language == 0) ...[
+                                    if (adDetails['description_english'] !=
+                                            null &&
+                                        adDetails['description_english']
+                                            .isNotEmpty &&
+                                        adDetails['description_english'] !=
+                                            "NA") ...[
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            AppLanguage
+                                                .descriptionText[language],
+                                            style: const TextStyle(
+                                              fontSize: 21,
+                                              fontWeight: FontWeight.w500,
+                                              color: AppColor.primaryColor,
+                                              fontFamily: AppFont.fontFamily,
+                                            ),
+                                          ),
+                                          SizedBox(height: sh * 0.01),
+                                          Text(
+                                            adDetails['description_english'] ??
+                                                "NA",
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w400,
+                                              color: AppColor.primaryColor,
+                                              fontFamily: AppFont.fontFamily,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ] else if (adDetails[
+                                                'description_arabic'] !=
+                                            null &&
+                                        adDetails['description_arabic']
+                                            .isNotEmpty &&
+                                        adDetails['description_arabic'] !=
+                                            "NA") ...[
+                                      SizedBox(height: sh * 0.02),
+                                      Padding(
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: sw * 0.04),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              AppLanguage
+                                                  .descriptionText[language],
+                                              style: const TextStyle(
+                                                fontSize: 21,
+                                                fontWeight: FontWeight.w500,
+                                                color: AppColor.primaryColor,
+                                                fontFamily: AppFont.fontFamily,
+                                              ),
+                                            ),
+                                            SizedBox(height: sh * 0.01),
+                                            Text(
+                                              adDetails['description_arabic'] ??
+                                                  "NA",
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w400,
+                                                color: AppColor.primaryColor,
+                                                fontFamily: AppFont.fontFamily,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                    SizedBox(height: sh * 0.02), 
+                                  ],
+
+                                  // What this place offers
+                                  Text(
+                                    AppLanguage
+                                        .whatThisplaceOfferText[language],
+                                    style: const TextStyle(
+                                      fontSize: 21.33,
+                                      fontWeight: FontWeight.w500,
+                                      fontFamily: AppFont.fontFamily,
+                                      color: Colors.black,
+                                    ),
                                   ),
-                                ),
-                                SizedBox(height: size.height * 0.012),
+                                  SizedBox(height: size.height * 0.01),
+                                  _amenitiesGrid(offerings),
+                                  SizedBox(height: size.height * 0.03),
 
-                                _guestCounterRow(
-                                    context, adultCount, adDetails['max_adult'],
-                                    label: AppLanguage.adultText[language],
-                                    count: adultCount, onDecrement: () {
-                                  if (adultCount > 0) {
-                                    setState(() => adultCount--);
-                                  }
-                                }, onIncrement: () {
-                                  if (adultCount < adDetails['max_adult']) {
-                                    setState(() => adultCount++);
-                                  }
-                                }),
-                                Divider(
-                                    color: AppColor.boaderColor,
-                                    height: size.height * 0.04),
+                                  // Checkin checkout time
+                                  Text(
+                                    "${AppLanguage.timingText[language]}:",
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w700,
+                                      fontFamily: AppFont.fontFamily,
+                                    ),
+                                  ),
+                                  SizedBox(height: size.height * 0.01),
+                                  Text(
+                                    AppLanguage
+                                        .checkinCheckoutTimeText[language],
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w400,
+                                      fontFamily: AppFont.fontFamily,
+                                    ),
+                                  ),
+                                  SizedBox(height: size.height * 0.03),
 
-                                _guestCounterRow(
-                                    context, childCount, adDetails['max_child'],
-                                    label: AppLanguage.childText[language],
-                                    count: childCount, onDecrement: () {
-                                  if (childCount > 0) {
-                                    setState(() => childCount--);
-                                  }
-                                }, onIncrement: () {
-                                  if (childCount < adDetails['max_child']) {
-                                    setState(() => childCount++);
-                                  }
-                                }),
+                                  // Price
+                                  Text(
+                                    AppLanguage.priceText[language],
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w700,
+                                      fontFamily: AppFont.fontFamily,
+                                    ),
+                                  ),
+                                  SizedBox(height: size.height * 0.01),
 
-                                const Divider(color: AppColor.boaderColor),
-                                SizedBox(height: size.height * 0.06),
+                                  // if (adDetails['one_day_price'] > 0) ...[
+                                  //   _priceRow(
+                                  //     title: AppLanguage.oneDayText[language],
+                                  //     price:
+                                  //         "${adDetails['one_day_price']?.toString() ?? "0"} KWD",
+                                  //   ),
+                                  // ],
 
-                                // Book Now button
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      if (_rangeStart == null ||
-                                          _rangeEnd == null ||
-                                          _totalNights < 1) {
-                                        SnackBarToastMessage.showSnackBar(
-                                            context,
-                                            AppLanguage
-                                                .selectDateMsg[language]);
-                                        return;
-                                      }
-                                      if (adultCount == 0 && childCount == 0) {
-                                        SnackBarToastMessage.showSnackBar(
-                                            context,
-                                            AppLanguage
-                                                .numberOfGuestMsg[language]);
-                                        return;
-                                      }
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              PropertyBookingDetails(
-                                            adDetails: adDetails,
-                                            adultCount: adultCount,
-                                            childCount: childCount,
-                                            propertyAdId: widget.propertyAdId,
-                                            checkinDate: _rangeStart!,
-                                            checkoutDate: _rangeEnd!,
-                                            totalNights: _totalNights,
-                                            grandTotal: _grandTotal,
+                                  if (adDetails['weekday_price'] > 0) ...[
+                                    _priceRow(
+                                      title: AppLanguage.weekDaysText[language],
+                                      price:
+                                          "${adDetails['weekday_price']?.toString() ?? "0"} KWD${AppLanguage.perDayText[language]}",
+                                    ),
+                                  ],
+
+                                  if (adDetails['weekend_price'] > 0) ...[
+                                    _priceRow(
+                                      title:
+                                          AppLanguage.weekendDaysText[language],
+                                      price:
+                                          "${adDetails['weekend_price']?.toString() ?? "0"} KWD${AppLanguage.perDayText[language]}",
+                                    ),
+                                  ],
+
+                                  if (adDetails['full_week_price'] > 0) ...[
+                                    _priceRow(
+                                      title: AppLanguage
+                                          .fullWeekDaysText[language],
+                                      price:
+                                          "${adDetails['full_week_price']?.toString() ?? "0"} KWD${AppLanguage.perDayText[language]}",
+                                    ),
+                                  ],
+
+                                  //! Cancellation policy
+                                  Row(
+                                    children: [
+                                      Image.asset(
+                                          AppImage.cancellationPolicyicon,
+                                          width: size.width * 0.04,
+                                          height: size.height * 0.04),
+                                      TextButton(
+                                        onPressed:
+                                            _showCancellationPolicyDialog,
+                                        child: Text(
+                                          AppLanguage
+                                              .cancellationPolicyText[language],
+                                          style: const TextStyle(
+                                            fontFamily: AppFont.fontFamily,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                            color: AppColor.themeColor,
                                           ),
                                         ),
-                                      );
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColor.themeColor,
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 16),
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(25)),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: size.height * 1.5 / 100),
+
+                                  // ── LEGEND ──────────────────────────────────────────
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      _legendItem('Available', Colors.black87),
+                                      SizedBox(width: size.width * 0.05),
+                                      _legendItem('Unavailable',
+                                          const Color(0xFFE57373)),
+                                      SizedBox(width: size.width * 0.05),
+                                      _legendItem('Selected Range',
+                                          AppColor.themeColor),
+                                    ],
+                                  ),
+                                  SizedBox(height: size.height * 0.02),
+
+                                  // ── CALENDAR (Figma style) ───────────────────────────
+                                  _buildCalendar(size),
+
+                                  SizedBox(height: size.height * 0.03),
+                                  Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 14, vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          AppColor.themeColor.withOpacity(0.08),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                          color: AppColor.themeColor
+                                              .withOpacity(0.2)),
                                     ),
-                                    child: Text(
-                                      AppLanguage.bookNowText[language],
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        fontFamily: AppFont.fontFamily,
-                                        color: Colors.white,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          _totalNights > 0
+                                              ? '${AppLanguage.forText[language]} $_totalNights ${AppLanguage.nightsText[language]}'
+                                              : AppLanguage
+                                                  .selectDatesText[language],
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            fontFamily: AppFont.fontFamily,
+                                          ),
+                                        ),
+                                        Text(
+                                          _totalNights > 0
+                                              ? '${_grandTotal.toStringAsFixed(2)} KWD'
+                                              : '--',
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w700,
+                                            fontFamily: AppFont.fontFamily,
+                                            color: AppColor.themeColor,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(height: size.height * 0.03),
+
+                                  // Guests
+                                  Text(
+                                    AppLanguage.guestsext[language],
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w700,
+                                      fontFamily: AppFont.fontFamily,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  SizedBox(height: size.height * 0.012),
+
+                                  _guestCounterRow(context, adultCount,
+                                      adDetails['max_adult'],
+                                      label: AppLanguage.adultText[language],
+                                      count: adultCount, onDecrement: () {
+                                    if (adultCount > 0) {
+                                      setState(() => adultCount--);
+                                    }
+                                  }, onIncrement: () {
+                                    if (adultCount < adDetails['max_adult']) {
+                                      setState(() => adultCount++);
+                                    }
+                                  }),
+                                  Divider(
+                                      color: AppColor.boaderColor,
+                                      height: size.height * 0.04),
+
+                                  _guestCounterRow(context, childCount,
+                                      adDetails['max_child'],
+                                      label: AppLanguage.childText[language],
+                                      count: childCount, onDecrement: () {
+                                    if (childCount > 0) {
+                                      setState(() => childCount--);
+                                    }
+                                  }, onIncrement: () {
+                                    if (childCount < adDetails['max_child']) {
+                                      setState(() => childCount++);
+                                    }
+                                  }),
+
+                                  const Divider(color: AppColor.boaderColor),
+                                  SizedBox(height: size.height * 0.06),
+
+                                  // Book Now button
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        if (_rangeStart == null ||
+                                            _rangeEnd == null ||
+                                            _totalNights < 1) {
+                                          SnackBarToastMessage.showSnackBar(
+                                              context,
+                                              AppLanguage
+                                                  .selectDateMsg[language]);
+                                          return;
+                                        }
+                                        if (adultCount == 0 &&
+                                            childCount == 0) {
+                                          SnackBarToastMessage.showSnackBar(
+                                              context,
+                                              AppLanguage
+                                                  .numberOfGuestMsg[language]);
+                                          return;
+                                        }
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                PropertyBookingDetails(
+                                              adDetails: adDetails,
+                                              adultCount: adultCount,
+                                              childCount: childCount,
+                                              propertyAdId: widget.propertyAdId,
+                                              checkinDate: _rangeStart!,
+                                              checkoutDate: _rangeEnd!,
+                                              totalNights: _totalNights,
+                                              grandTotal: _grandTotal,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColor.themeColor,
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 16),
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(25)),
+                                      ),
+                                      child: Text(
+                                        AppLanguage.bookNowText[language],
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          fontFamily: AppFont.fontFamily,
+                                          color: Colors.white,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                SizedBox(height: size.height * 0.04),
-                              ],
+                                  SizedBox(height: size.height * 0.04),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -1392,9 +1447,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                     color: AppColor.themeColor),
               ),
               SizedBox(height: size.height * 0.015),
-              const Text(
-                'Cancellations made more than 5 days before the check-in date will receive a full refund of the total booking amount. Cancellations made between 2 to 5 days before the check-in date will receive a 50% refund. No refunds will be issued for cancellations made within 2 days of the check-in date.',
-                style: TextStyle(
+              Text(
+                AppLanguage.cancelDetailsText[language],
+                style: const TextStyle(
                     fontSize: 13.8,
                     fontWeight: FontWeight.w400,
                     fontFamily: AppFont.fontFamily,

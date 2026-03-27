@@ -1062,25 +1062,32 @@ class _ExploreState extends State<Explore> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(9),
           child: Stack(
-            alignment: Alignment.bottomLeft,
+            alignment:
+                language == 1 ? Alignment.bottomRight : Alignment.bottomLeft,
             children: [
               Image.asset(image,
                   width: MediaQuery.of(context).size.width * 44 / 100,
                   height: MediaQuery.of(context).size.height * 15 / 100,
                   fit: BoxFit.cover),
               Padding(
-                padding: const EdgeInsets.only(left: 8.0, bottom: 8.0),
+                padding: language == 0
+                    ? const EdgeInsets.only(left: 8.0, bottom: 8.0)
+                    : const EdgeInsets.only(right: 8.0, bottom: 8.0),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(title,
+                        textAlign:
+                            language == 1 ? TextAlign.right : TextAlign.left,
                         style: const TextStyle(
                             color: Colors.white,
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                             fontFamily: AppFont.fontFamily)),
                     Text(subtitle,
+                        textAlign:
+                            language == 1 ? TextAlign.right : TextAlign.left,
                         style: const TextStyle(
                             color: Colors.white,
                             fontSize: 10,
@@ -1100,67 +1107,70 @@ class _ExploreState extends State<Explore> {
   // PROPERTY: TYPE TABS  ← NEW
   // ────────────────────────────────────────────────────────────────────────
   Widget _buildPropertyTypeTabs(BuildContext context, double screenWidth) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Scrollable pill tabs
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: List.generate(propertyTypeTabs.length, (index) {
-              final tab = propertyTypeTabs[index];
-              final isSelected = _selectedPropertyTab ==
-                  propertyTypeTabs[index]['property_type_id'];
-              return Padding(
-                padding: EdgeInsetsDirectional.only(
-                  start: index == 0 ? screenWidth * 0.05 : 8,
-                  end: index == propertyTypeTabs.length - 1
-                      ? screenWidth * 0.05
-                      : 0,
-                ),
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() => _selectedPropertyTab =
-                        propertyTypeTabs[index]['property_type_id']);
-                    showAllCities(context, screenWidth,
-                        propertyTypeTabs[index]['property_type_id'], () {
-                      setState(() => _selectedPropertyTab = 0);
-                    });
-                  },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 180),
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppColor.themeColor
-                          : AppColor.boxshadowColor,
-                      borderRadius: BorderRadius.circular(50),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(tab['property_type_name'][language] as String,
-                            style: TextStyle(
-                              color: isSelected
-                                  ? AppColor.secondaryColor
-                                  : AppColor.primaryColor,
-                              fontSize: 14,
-                              fontWeight: isSelected
-                                  ? FontWeight.w600
-                                  : FontWeight.w500,
-                              fontFamily: AppFont.fontFamily,
-                            )),
-                      ],
+    return SizedBox(
+      width: MediaQuery.of(context).size.width * 100 / 100,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Scrollable pill tabs
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: List.generate(propertyTypeTabs.length, (index) {
+                final tab = propertyTypeTabs[index];
+                final isSelected = _selectedPropertyTab ==
+                    propertyTypeTabs[index]['property_type_id'];
+                return Padding(
+                  padding: EdgeInsetsDirectional.only(
+                    start: index == 0 ? screenWidth * 0.05 : 8,
+                    end: index == propertyTypeTabs.length - 1
+                        ? screenWidth * 0.05
+                        : 0,
+                  ),
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() => _selectedPropertyTab =
+                          propertyTypeTabs[index]['property_type_id']);
+                      showAllCities(context, screenWidth,
+                          propertyTypeTabs[index]['property_type_id'], () {
+                        setState(() => _selectedPropertyTab = 0);
+                      });
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 8, horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColor.themeColor
+                            : AppColor.boxshadowColor,
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(tab['property_type_name'][language] as String,
+                              style: TextStyle(
+                                color: isSelected
+                                    ? AppColor.secondaryColor
+                                    : AppColor.primaryColor,
+                                fontSize: 14,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w500,
+                                fontFamily: AppFont.fontFamily,
+                              )),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            }),
+                );
+              }),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -1172,6 +1182,7 @@ class _ExploreState extends State<Explore> {
   /// Swap these out with a real API list when the backend is ready.
   List<dynamic> _propertyBanners = [];
 
+  // Property Carousel
   Widget _buildPropertyCarousel(
       BuildContext context, double screenWidth, List<dynamic> bannerList) {
     return Column(
@@ -1206,7 +1217,7 @@ class _ExploreState extends State<Explore> {
                       child: Stack(
                         children: [
                           GestureDetector(
-                            onTap: () => _handlePromotionTap(index),
+                            onTap: () => _handlePromotionTap(index, true),
                             child: SizedBox(
                               width: MediaQuery.of(context).size.width * 0.75,
                               height: screenWidth > 600
@@ -1232,7 +1243,7 @@ class _ExploreState extends State<Explore> {
                             bottom: 18,
                             left: 20,
                             child: GestureDetector(
-                              onTap: () => _handlePromotionTap(index),
+                              onTap: () => _handlePromotionTap(index, true),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
                                     vertical: 4, horizontal: 15),
@@ -1400,7 +1411,7 @@ class _ExploreState extends State<Explore> {
                       child: Stack(
                         children: [
                           GestureDetector(
-                            onTap: () => _handlePromotionTap(index),
+                            onTap: () => _handlePromotionTap(index, false),
                             child: SizedBox(
                               width: MediaQuery.of(context).size.width * 0.75,
                               height: screenWidth > 600
@@ -1426,7 +1437,7 @@ class _ExploreState extends State<Explore> {
                             bottom: 18,
                             left: 20,
                             child: GestureDetector(
-                              onTap: () => _handlePromotionTap(index),
+                              onTap: () => _handlePromotionTap(index, false),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
                                     vertical: 4, horizontal: 15),
@@ -1486,24 +1497,39 @@ class _ExploreState extends State<Explore> {
     );
   }
 
-  void _handlePromotionTap(int index) {
-    if (promotionsList[index]['type'] == 0) {
-      if (promotionsList[index]['link'] != null) {
-        openUrl(url: promotionsList[index]['link']);
+  void _handlePromotionTap(int index, bool isProperty) {
+    if (isProperty) {
+      if (_propertyBanners[index]['type'] == 0) {
+        if (_propertyBanners[index]['link'] != null) {
+          openUrl(url: _propertyBanners[index]['link']);
+        }
+      } else if (_propertyBanners[index]['type'] == 1) {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => PropertyDetailsScreen(
+                      propertyAdId: _propertyBanners[index]['trip_id'],
+                    )));
       }
-    } else if (promotionsList[index]['type'] == 1) {
-      if (promotionsList[index]['advertisement_type'] == 0) {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => PrivateTripDetailsScreen(
-                    tripId: promotionsList[index]['trip_id'].toString())));
-      } else {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => PublicTripDetailsScreen(
-                    tripId: promotionsList[index]['trip_id'].toString())));
+    } else {
+      if (promotionsList[index]['type'] == 0) {
+        if (promotionsList[index]['link'] != null) {
+          openUrl(url: promotionsList[index]['link']);
+        }
+      } else if (promotionsList[index]['type'] == 1) {
+        if (promotionsList[index]['advertisement_type'] == 0) {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => PrivateTripDetailsScreen(
+                      tripId: promotionsList[index]['trip_id'].toString())));
+        } else {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => PublicTripDetailsScreen(
+                      tripId: promotionsList[index]['trip_id'].toString())));
+        }
       }
     }
   }
@@ -2581,7 +2607,7 @@ class _ExploreState extends State<Explore> {
                                           ? CrossAxisAlignment.start
                                           : CrossAxisAlignment.end,
                                       children: [
-                                        Container(
+                                        SizedBox(
                                           width: screenWidth * 27 / 100,
                                           child: Padding(
                                               padding:

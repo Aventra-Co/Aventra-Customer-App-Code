@@ -882,26 +882,25 @@ class _BookingHistoryState extends State<BookingHistory> {
                                   );
                                 },
                                 child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: size.width * 0.04,
-                                    vertical: size.height * 0.008,
-                                  ),
+                                  width: MediaQuery.of(context).size.width *
+                                      18 /
+                                      100,
+                                  height: MediaQuery.of(context).size.height *
+                                      3.2 /
+                                      100,
+                                  alignment: Alignment.center,
                                   decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: AppColor.themeColor,
-                                      width: 1,
-                                    ),
-                                    borderRadius: BorderRadius.circular(20),
-                                    color: AppColor.secondaryColor,
-                                  ),
+                                      border: Border.all(
+                                          color: AppColor.themeColor),
+                                      borderRadius: BorderRadius.circular(20),
+                                      color: AppColor.secondaryColor),
                                   child: Text(
                                     AppLanguage.rebookText[language],
                                     style: const TextStyle(
-                                      fontSize: 12,
-                                      fontFamily: AppFont.fontFamily,
-                                      fontWeight: FontWeight.w500,
-                                      color: AppColor.themeColor,
-                                    ),
+                                        color: AppColor.themeColor,
+                                        fontFamily: AppFont.fontFamily,
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 12),
                                   ),
                                 ),
                               ),

@@ -1154,7 +1154,7 @@ class _MyTripState extends State<MyTrip> {
                 child: Column(
                   children: [
                     Text(
-                      getDatePart(booking['booking_date'], "month"),
+                      getDatePart(booking['checkin_date'], "month"),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
@@ -1163,7 +1163,7 @@ class _MyTripState extends State<MyTrip> {
                       ),
                     ),
                     Text(
-                      getDatePart(booking['booking_date'], "date"),
+                      getDatePart(booking['checkin_date'], "date"),
                       style: const TextStyle(
                         fontSize: 36,
                         fontWeight: FontWeight.w500,
@@ -1172,7 +1172,7 @@ class _MyTripState extends State<MyTrip> {
                       ),
                     ),
                     Text(
-                      getDatePart(booking['booking_date'], "year"),
+                      getDatePart(booking['checkin_date'], "year"),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,

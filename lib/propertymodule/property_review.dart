@@ -1,9 +1,7 @@
 import 'package:boatapp/propertymodule/property_rating.dart';
 import 'package:boatapp/view/other_screen/booking_history_screen.dart';
-import 'package:boatapp/view/other_screen/completed_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import '../../controller/app_color.dart';
 import '../../controller/app_font.dart';

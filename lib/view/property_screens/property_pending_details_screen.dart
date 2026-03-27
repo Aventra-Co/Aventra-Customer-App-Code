@@ -839,9 +839,9 @@ class _PropertyPendingDetailsScreenState
                   ),
                 ),
                 SizedBox(height: size.height * 0.015),
-                const Text(
-                  'Cancellations made more than 5 days before the check-in date will receive a full refund of the total booking amount. Cancellations made between 2 to 5 days before the check-in date will receive a 50% refund. No refunds will be issued for cancellations made within 2 days of the check-in date.',
-                  style: TextStyle(
+                 Text(
+                  AppLanguage.cancelDetailsText[language],
+                  style: const TextStyle(
                     fontSize: 13.8,
                     fontWeight: FontWeight.w400,
                     fontFamily: AppFont.fontFamily,

@@ -13,7 +13,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'dart:ui' as ui;
 import '../../controller/app_config_provider.dart';
 import '../../controller/app_footer.dart';
 import '../../controller/app_loader.dart';
@@ -120,7 +120,7 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
   Future<void> checkCouponApi(userId, couponCode, propertyAdId) async {
     Uri url = Uri.parse(
         "${AppConfigProvider.apiUrl}check_property_coupon_discount?user_id=$userId&coupon_code=$couponCode&property_ad_id=$propertyAdId");
-
+    print("url $url");
     String token = AppConstant.token;
     if (token.isEmpty) {
       print("Token is missing!");
@@ -213,7 +213,9 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const MyFooterPage(),
+              builder: (context) => const MyFooterPage(
+                selectedTab: 1,
+              ),
             ),
           );
           SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
@@ -255,540 +257,579 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
     final size = MediaQuery.of(context).size;
     double screenWidth = MediaQuery.of(context).size.width;
     final totalDates = widget.totalNights;
+    final double sw = MediaQuery.of(context).size.width;
+    final double sh = MediaQuery.of(context).size.height;
     final selectedDateText = _checkInDateText();
     final baseTotal = widget.grandTotal;
     final grandTotal = _applyDiscounts(baseTotal);
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              AppHeader(
-                text: AppLanguage.bookingDetailsText[language],
-                onPress: () {
-                  Navigator.pop(context);
-                },
-              ),
-
-              // Status badge and View Details
-              Container(
-                padding: EdgeInsets.symmetric(
-                    horizontal: size.width * 0.06,
-                    vertical: size.height * 0.01),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+    return Directionality(
+      textDirection:
+          language == 1 ? ui.TextDirection.rtl : ui.TextDirection.ltr,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                AppHeader(
+                  text: AppLanguage.bookingDetailsText[language],
+                  onPress: () {
+                    Navigator.pop(context);
+                  },
                 ),
-                child: Row(
-                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ViewPropertyDetailsScreen(
-                                  adDetails: adDetails,
+
+                // Status badge and View Details
+                Container(
+                  padding: EdgeInsets.symmetric(
+                      horizontal: size.width * 0.06,
+                      vertical: size.height * 0.01),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                  ),
+                  child: Row(
+                    // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      ViewPropertyDetailsScreen(
+                                    adDetails: adDetails,
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
-                          child: Text(
-                            AppLanguage.viewDetailsText[language],
-                            style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                fontFamily: AppFont.fontFamily,
-                                color: Color(0xFF17A2B8),
-                                decoration: TextDecoration.underline,
-                                decorationColor: AppColor.themeColor),
-                          ),
-                        ),
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height * 2 / 100,
-                        ),
-                        Text(
-                          adDetails['property_name_english'] ?? "",
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: AppFont.fontFamily,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Spacer(),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        "${AppConfigProvider.imageURL}${adDetails['cover_image']}",
-                        width: size.width * 0.25,
-                        height: size.height * 0.1,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              SizedBox(height: size.height * 0.02),
-
-              // Location Address
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 90 / 100,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      AppLanguage.locationAddressText[language],
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: AppFont.fontFamily,
-                        // color: Colors.grey.shade700,
-                      ),
-                    ),
-                    SizedBox(height: size.height * 0.01),
-                    Text(
-                      adDetails['address'] ?? '',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: AppFont.fontFamily,
-                      ),
-                    ),
-                    SizedBox(height: size.height * 0.015),
-                  ],
-                ),
-              ),
-
-              //!Map
-              Stack(children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: SizedBox(
-                    height: MediaQuery.of(context).size.height * 18 / 100,
-                    width: MediaQuery.of(context).size.width * 90 / 100,
-                    child: GoogleMap(
-                      mapToolbarEnabled: false,
-                      zoomGesturesEnabled: false,
-                      rotateGesturesEnabled: true,
-                      myLocationEnabled: false,
-                      myLocationButtonEnabled: false,
-                      compassEnabled: true,
-                      initialCameraPosition: CameraPosition(
-                        target: initialPosition,
-                        zoom: 10.0,
-                      ),
-                      onMapCreated: (controller) {
-                        //method called when map is created
-                        setState(() {
-                          mapController = controller;
-                        });
-                      },
-                      markers: {
-                        Marker(
-                          markerId: const MarkerId(''),
-                          position: LatLng(latitudex, longitudex),
-                          draggable: true,
-                          onDragEnd: (value) {
-                            // value is the new position
-                          },
-                        ),
-                      },
-                    ),
-                  ),
-                ),
-              ]),
-
-              SizedBox(height: size.height * 0.03),
-
-              // Booking Details
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 90 / 100,
-                child: Text(
-                  AppLanguage.bookingDetailsText[language],
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    fontFamily: AppFont.fontFamily,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-              SizedBox(height: size.height * 0.02),
-
-              _detailRow(
-                  context,
-                  AppImage.callenderIcon,
-                  selectedDateText,
-                  AppLanguage.checkInDateText[language],
-                  AppLanguage.changeText[language],
-                  1, () {
-                Navigator.pop(context);
-              }),
-              SizedBox(height: size.height * 0.02),
-
-              _detailRow(
-                  context,
-                  AppImage.clockIcon,
-                  '$totalDates ${AppLanguage.daysText[language]}',
-                  AppLanguage.bookingDays[language],
-                  AppLanguage.changeText[language],
-                  0, () {
-                Navigator.pop(context);
-              }),
-              SizedBox(height: size.height * 0.02),
-
-              _detailRow(
-                  context,
-                  AppImage.guestsIcon,
-                  '${widget.adultCount} ${AppLanguage.adultText[language]} \u2022 ${widget.childCount} ${AppLanguage.childrenText[language]}',
-                  AppLanguage.guestsText[language],
-                  AppLanguage.changeText[language],
-                  1, () {
-                Navigator.pop(context);
-              }),
-              SizedBox(height: size.height * 0.03),
-
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 90 / 100,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Description
-                    Text(
-                      AppLanguage.descriptionText[language],
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: AppFont.fontFamily,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      language == 0
-                          ? (((adDetails['description_english'] ?? '')
-                                  .toString()
-                                  .trim()
-                                  .isEmpty)
-                              ? "NA"
-                              : adDetails['description_english'])
-                          : (((adDetails['description_arabic'] ?? '')
-                                  .toString()
-                                  .trim()
-                                  .isEmpty)
-                              ? "N/A"
-                              : adDetails['description_arabic']),
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w400,
-                        fontFamily: AppFont.fontFamily,
-                        color: Colors.grey.shade700,
-                        height: 1.5,
-                      ),
-                    ),
-                    //! Cancellation policy
-                    Row(
-                      children: [
-                        Image.asset(AppImage.cancellationPolicyicon,
-                            width: size.width * 0.04,
-                            height: size.height * 0.04),
-                        TextButton(
-                          onPressed: _showCancellationPolicyDialog,
-                          child: Text(
-                            AppLanguage.cancellationPolicyText[language],
-                            style: const TextStyle(
-                              fontFamily: AppFont.fontFamily,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: AppColor.themeColor,
+                              );
+                            },
+                            child: Text(
+                              AppLanguage.viewDetailsText[language],
+                              style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: AppFont.fontFamily,
+                                  color: Color(0xFF17A2B8),
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: AppColor.themeColor),
                             ),
                           ),
+                          SizedBox(
+                            height:
+                                MediaQuery.of(context).size.height * 2 / 100,
+                          ),
+                          Text(
+                            adDetails['property_name_english'] ?? "",
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: AppFont.fontFamily,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          "${AppConfigProvider.imageURL}${adDetails['cover_image']}",
+                          width: size.width * 0.25,
+                          height: size.height * 0.1,
+                          fit: BoxFit.cover,
                         ),
-                      ],
-                    ),
-                    SizedBox(height: size.height * 1.5 / 100),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
 
-              //! total billing
-              Container(
-                color: AppColor.themeColor.withOpacity(0.1),
-                width: MediaQuery.of(context).size.width * 100 / 100,
-                padding: EdgeInsets.symmetric(
-                    vertical: MediaQuery.of(context).size.height * 2 / 100,
-                    horizontal: MediaQuery.of(context).size.width * 5 / 100),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      AppLanguage.billingDetailsText[language],
-                      style: const TextStyle(
-                          color: AppColor.primaryColor,
+                SizedBox(height: size.height * 0.02),
+
+                // Location Address
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 90 / 100,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppLanguage.locationAddressText[language],
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          fontFamily: AppFont.fontFamily,
+                          // color: Colors.grey.shade700,
+                        ),
+                      ),
+                      SizedBox(height: size.height * 0.01),
+                      Text(
+                        adDetails['address'] ?? '',
+                        style: const TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          fontFamily: AppFont.fontFamily),
-                    ),
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 2 / 100),
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 1 / 100),
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 1 / 100),
-                    SizedBox(
+                          fontWeight: FontWeight.w500,
+                          fontFamily: AppFont.fontFamily,
+                        ),
+                      ),
+                      SizedBox(height: size.height * 0.015),
+                    ],
+                  ),
+                ),
+
+                //!Map
+                Stack(children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height * 18 / 100,
                       width: MediaQuery.of(context).size.width * 90 / 100,
-                      child: Row(
+                      child: GoogleMap(
+                        mapToolbarEnabled: false,
+                        zoomGesturesEnabled: false,
+                        rotateGesturesEnabled: true,
+                        myLocationEnabled: false,
+                        myLocationButtonEnabled: false,
+                        compassEnabled: true,
+                        initialCameraPosition: CameraPosition(
+                          target: initialPosition,
+                          zoom: 10.0,
+                        ),
+                        onMapCreated: (controller) {
+                          //method called when map is created
+                          setState(() {
+                            mapController = controller;
+                          });
+                        },
+                        markers: {
+                          Marker(
+                            markerId: const MarkerId(''),
+                            position: LatLng(latitudex, longitudex),
+                            draggable: true,
+                            onDragEnd: (value) {
+                              // value is the new position
+                            },
+                          ),
+                        },
+                      ),
+                    ),
+                  ),
+                ]),
+
+                SizedBox(height: size.height * 0.03),
+
+                // Booking Details
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 90 / 100,
+                  child: Text(
+                    AppLanguage.bookingDetailsText[language],
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: AppFont.fontFamily,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+                SizedBox(height: size.height * 0.02),
+
+                _detailRow(
+                    context,
+                    AppImage.callenderIcon,
+                    selectedDateText,
+                    AppLanguage.checkInDateText[language],
+                    AppLanguage.changeText[language],
+                    1, () {
+                  Navigator.pop(context);
+                }),
+                SizedBox(height: size.height * 0.02),
+
+                _detailRow(
+                    context,
+                    AppImage.clockIcon,
+                    '$totalDates ${AppLanguage.daysText[language]}',
+                    AppLanguage.bookingDays[language],
+                    AppLanguage.changeText[language],
+                    0, () {
+                  Navigator.pop(context);
+                }),
+                SizedBox(height: size.height * 0.02),
+
+                _detailRow(
+                    context,
+                    AppImage.guestsIcon,
+                    '${widget.adultCount} ${AppLanguage.adultText[language]} \u2022 ${widget.childCount} ${AppLanguage.childrenText[language]}',
+                    AppLanguage.guestsText[language],
+                    AppLanguage.changeText[language],
+                    1, () {
+                  Navigator.pop(context);
+                }),
+                SizedBox(height: size.height * 0.03),
+
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 90 / 100,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── DESCRIPTION ──────────────────────────────────────
+                      if (language == 0) ...[
+                        if (adDetails['description_english'] != null &&
+                            adDetails['description_english'].isNotEmpty &&
+                            adDetails['description_english'] != "NA") ...[
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                AppLanguage.descriptionText[language],
+                                style: const TextStyle(
+                                  fontSize: 21,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColor.primaryColor,
+                                  fontFamily: AppFont.fontFamily,
+                                ),
+                              ),
+                              SizedBox(height: sh * 0.01),
+                              Text(
+                                adDetails['description_english'] ?? "NA",
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w400,
+                                  color: AppColor.primaryColor,
+                                  fontFamily: AppFont.fontFamily,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ] else if (adDetails['description_arabic'] != null &&
+                            adDetails['description_arabic'].isNotEmpty &&
+                            adDetails['description_arabic'] != "NA") ...[
+                          SizedBox(height: sh * 0.02),
+                          Padding(
+                            padding:
+                                EdgeInsets.symmetric(horizontal: sw * 0.04),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  AppLanguage.descriptionText[language],
+                                  style: const TextStyle(
+                                    fontSize: 21,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColor.primaryColor,
+                                    fontFamily: AppFont.fontFamily,
+                                  ),
+                                ),
+                                SizedBox(height: sh * 0.01),
+                                Text(
+                                  adDetails['description_arabic'] ?? "NA",
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w400,
+                                    color: AppColor.primaryColor,
+                                    fontFamily: AppFont.fontFamily,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        SizedBox(height: sh * 0.02),
+                      ],
+                      //! Cancellation policy
+                      Row(
+                        children: [
+                          Image.asset(AppImage.cancellationPolicyicon,
+                              width: size.width * 0.04,
+                              height: size.height * 0.04),
+                          TextButton(
+                            onPressed: _showCancellationPolicyDialog,
+                            child: Text(
+                              AppLanguage.cancellationPolicyText[language],
+                              style: const TextStyle(
+                                fontFamily: AppFont.fontFamily,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: AppColor.themeColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: size.height * 1.5 / 100),
+                    ],
+                  ),
+                ),
+
+                //! total billing
+                Container(
+                  color: AppColor.themeColor.withOpacity(0.1),
+                  width: MediaQuery.of(context).size.width * 100 / 100,
+                  padding: EdgeInsets.symmetric(
+                      vertical: MediaQuery.of(context).size.height * 2 / 100,
+                      horizontal: MediaQuery.of(context).size.width * 5 / 100),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppLanguage.billingDetailsText[language],
+                        style: const TextStyle(
+                            color: AppColor.primaryColor,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: AppFont.fontFamily),
+                      ),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 2 / 100),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 1 / 100),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 1 / 100),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 90 / 100,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "$totalDates ${AppLanguage.daysText[language]}",
+                              style: const TextStyle(
+                                  color: AppColor.primaryColor,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  fontFamily: AppFont.fontFamily),
+                            ),
+                            Text(
+                              '${grandTotal.toStringAsFixed(2)} KWD',
+                              style: const TextStyle(
+                                  color: AppColor.primaryColor,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: AppFont.fontFamily),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (adDetails['discount_percentage'] > 0)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text(
+                              "+${AppLanguage.withText[language]} ${adDetails['discount_percentage']}% ${AppLanguage.discountText[language]}",
+                              style: const TextStyle(
+                                  color: AppColor.primaryColor,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: AppFont.fontFamily),
+                            ),
+                          ],
+                        ),
+                      if (isCouponDiscount)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text(
+                              "+${AppLanguage.withText[language]} $couponDiscount% ${AppLanguage.couponDiscountText[language]}",
+                              style: const TextStyle(
+                                  color: AppColor.primaryColor,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: AppFont.fontFamily),
+                            ),
+                          ],
+                        ),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 1 / 100),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 1 / 100),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 1 / 100),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 1 / 100),
+                      Divider(
+                        color: AppColor.textColor,
+                        height: MediaQuery.of(context).size.height * 0.01 / 100,
+                      ),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 1 / 100),
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "$totalDates ${AppLanguage.daysText[language]}",
+                            AppLanguage.grandTotalText[language],
                             style: const TextStyle(
                                 color: AppColor.primaryColor,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
                                 fontFamily: AppFont.fontFamily),
                           ),
                           Text(
                             '${grandTotal.toStringAsFixed(2)} KWD',
                             style: const TextStyle(
                                 color: AppColor.primaryColor,
-                                fontSize: 16,
+                                fontSize: 18,
                                 fontWeight: FontWeight.w600,
                                 fontFamily: AppFont.fontFamily),
                           ),
                         ],
                       ),
-                    ),
-                    if (adDetails['discount_percentage'] > 0)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Text(
-                            "+${AppLanguage.withText[language]} ${adDetails['discount_percentage']}% ${AppLanguage.discountText[language]}",
-                            style: const TextStyle(
-                                color: AppColor.primaryColor,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                fontFamily: AppFont.fontFamily),
-                          ),
-                        ],
-                      ),
-                    if (isCouponDiscount)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Text(
-                            "+${AppLanguage.withText[language]} $couponDiscount% ${AppLanguage.couponDiscountText[language]}",
-                            style: const TextStyle(
-                                color: AppColor.primaryColor,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                fontFamily: AppFont.fontFamily),
-                          ),
-                        ],
-                      ),
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 1 / 100),
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 1 / 100),
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 1 / 100),
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 1 / 100),
-                    Divider(
-                      color: AppColor.textColor,
-                      height: MediaQuery.of(context).size.height * 0.01 / 100,
-                    ),
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 1 / 100),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          AppLanguage.grandTotalText[language],
-                          style: const TextStyle(
-                              color: AppColor.primaryColor,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: AppFont.fontFamily),
-                        ),
-                        Text(
-                          '${grandTotal.toStringAsFixed(2)} KWD',
-                          style: const TextStyle(
-                              color: AppColor.primaryColor,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: AppFont.fontFamily),
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 1 / 100),
-                    Divider(
-                      color: AppColor.textColor,
-                      height: MediaQuery.of(context).size.height * 0.01 / 100,
-                    )
-                  ],
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 1 / 100),
+                      Divider(
+                        color: AppColor.textColor,
+                        height: MediaQuery.of(context).size.height * 0.01 / 100,
+                      )
+                    ],
+                  ),
                 ),
-              ),
-              SizedBox(height: MediaQuery.of(context).size.height * 3 / 100),
+                SizedBox(height: MediaQuery.of(context).size.height * 3 / 100),
 
-              //!coupon text
-              SizedBox(
-                width: screenWidth * 90 / 100,
-                child: Text(
-                  AppLanguage.applyCouonText[language],
-                  style: const TextStyle(
-                      fontFamily: AppFont.fontFamily,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppColor.primaryColor),
+                //!coupon text
+                SizedBox(
+                  width: screenWidth * 90 / 100,
+                  child: Text(
+                    AppLanguage.applyCouonText[language],
+                    style: const TextStyle(
+                        fontFamily: AppFont.fontFamily,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColor.primaryColor),
+                  ),
                 ),
-              ),
 
-              //!coupon text field
-              SizedBox(
-                width: screenWidth * 90 / 100,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width * 60 / 100,
-                      height: MediaQuery.of(context).size.height * 5.5 / 100,
-                      child: TextFormField(
-                        readOnly: false,
-                        style: AppConstant.textFilledProfileHeading,
-                        textAlignVertical: TextAlignVertical.center,
-                        keyboardType: TextInputType.text,
-                        controller: couponController,
-                        maxLength: 8,
-                        onTapOutside: (event) =>
-                            FocusScope.of(context).unfocus(),
-                        decoration: InputDecoration(
-                          border: const UnderlineInputBorder(
-                            borderSide: BorderSide(
-                                color: AppColor.textinputBorderColor),
+                //!coupon text field
+                SizedBox(
+                  width: screenWidth * 90 / 100,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 60 / 100,
+                        height: MediaQuery.of(context).size.height * 5.5 / 100,
+                        child: TextFormField(
+                          readOnly: false,
+                          style: AppConstant.textFilledProfileHeading,
+                          textAlignVertical: TextAlignVertical.center,
+                          keyboardType: TextInputType.text,
+                          controller: couponController,
+                          maxLength: 8,
+                          onTapOutside: (event) =>
+                              FocusScope.of(context).unfocus(),
+                          decoration: InputDecoration(
+                            border: const UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: AppColor.textinputBorderColor),
+                            ),
+                            enabledBorder: const UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: AppColor.textinputBorderColor),
+                            ),
+                            focusedBorder: const UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: AppColor.textinputBorderColor),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                            ),
+                            counterText: '',
+                            hintText: AppLanguage.enterCodeMsg[language],
+                            hintStyle: const TextStyle(
+                                color: AppColor.hintTextinputColor,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400,
+                                fontFamily: AppFont.fontFamily),
                           ),
-                          enabledBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(
-                                color: AppColor.textinputBorderColor),
-                          ),
-                          focusedBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(
-                                color: AppColor.textinputBorderColor),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                          ),
-                          counterText: '',
-                          hintText: AppLanguage.enterCodeMsg[language],
-                          hintStyle: const TextStyle(
-                              color: AppColor.hintTextinputColor,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w400,
-                              fontFamily: AppFont.fontFamily),
                         ),
                       ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        if (couponController.text.isEmpty ||
-                            couponController.text.length < 8) {
-                          SnackBarToastMessage.showSnackBar(
-                              context, AppLanguage.codeMsg[language]);
-                          return;
-                        } else {
-                          if (isDiscountApplied) {
+                      GestureDetector(
+                        onTap: () {
+                          if (couponController.text.isEmpty ||
+                              couponController.text.length < 8) {
                             SnackBarToastMessage.showSnackBar(
-                                context, "Coupon is already applied!");
+                                context, AppLanguage.codeMsg[language]);
+                            return;
                           } else {
-                            checkCouponApi(
-                                userId,
-                                couponController.text.toUpperCase(),
-                                widget.propertyAdId.toString());
+                            if (isDiscountApplied) {
+                              SnackBarToastMessage.showSnackBar(
+                                  context, "Coupon is already applied!");
+                            } else {
+                              checkCouponApi(
+                                  userId,
+                                  couponController.text.toUpperCase(),
+                                  widget.propertyAdId.toString());
+                            }
                           }
-                        }
-                      },
-                      child: Container(
-                        alignment: Alignment.center,
-                        height: MediaQuery.of(context).size.height * 4 / 100,
-                        width: MediaQuery.of(context).size.width * 20 / 100,
-                        decoration: BoxDecoration(
-                          color: AppColor.themeColor,
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                        child: Text(
-                          AppLanguage.applyText[language],
-                          style: const TextStyle(
-                              fontSize: 16,
-                              color: AppColor.secondaryColor,
-                              fontFamily: AppFont.fontFamily,
-                              fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-              ),
-              SizedBox(height: MediaQuery.of(context).size.height * 3 / 100),
-
-              //!grand total
-              Container(
-                width: MediaQuery.of(context).size.width * 90 / 100,
-                padding:
-                    const EdgeInsets.symmetric(vertical: 9, horizontal: 15),
-                decoration: BoxDecoration(
-                    border: Border.all(color: AppColor.grayColor),
-                    borderRadius: BorderRadius.circular(50)),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${grandTotal.toStringAsFixed(2)} KWD',
-                          style: const TextStyle(
-                            color: AppColor.primaryColor,
-                            fontSize: 23,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: AppFont.fontFamily,
-                          ),
-                        ),
-                        Text(
-                          AppLanguage.payableAmountText[language],
-                          style: const TextStyle(
-                            color: AppColor.themeColor,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            fontFamily: AppFont.fontFamily,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width * 35 / 100,
-                      child: AppButton(
-                        text: AppLanguage.paynowText[language],
-                        onPress: () {
-                          propertyBookingApiCall();
                         },
-                      ),
-                    )
-                  ],
+                        child: Container(
+                          alignment: Alignment.center,
+                          height: MediaQuery.of(context).size.height * 4 / 100,
+                          width: MediaQuery.of(context).size.width * 20 / 100,
+                          decoration: BoxDecoration(
+                            color: AppColor.themeColor,
+                            borderRadius: BorderRadius.circular(50),
+                          ),
+                          child: Text(
+                            AppLanguage.applyText[language],
+                            style: const TextStyle(
+                                fontSize: 16,
+                                color: AppColor.secondaryColor,
+                                fontFamily: AppFont.fontFamily,
+                                fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
                 ),
-              ),
-              SizedBox(height: MediaQuery.of(context).size.height * 2 / 100),
-            ],
+                SizedBox(height: MediaQuery.of(context).size.height * 3 / 100),
+
+                //!grand total
+                Container(
+                  width: MediaQuery.of(context).size.width * 90 / 100,
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 9, horizontal: 15),
+                  decoration: BoxDecoration(
+                      border: Border.all(color: AppColor.grayColor),
+                      borderRadius: BorderRadius.circular(50)),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${grandTotal.toStringAsFixed(2)} KWD',
+                            style: const TextStyle(
+                              color: AppColor.primaryColor,
+                              fontSize: 23,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: AppFont.fontFamily,
+                            ),
+                          ),
+                          Text(
+                            AppLanguage.payableAmountText[language],
+                            style: const TextStyle(
+                              color: AppColor.themeColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              fontFamily: AppFont.fontFamily,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 35 / 100,
+                        child: AppButton(
+                          text: AppLanguage.paynowText[language],
+                          onPress: () {
+                            propertyBookingApiCall();
+                          },
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+                SizedBox(height: MediaQuery.of(context).size.height * 2 / 100),
+              ],
+            ),
           ),
         ),
       ),
@@ -820,9 +861,9 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
                     color: AppColor.themeColor),
               ),
               SizedBox(height: size.height * 0.015),
-              const Text(
-                'Cancellations made more than 5 days before the check-in date will receive a full refund of the total booking amount. Cancellations made between 2 to 5 days before the check-in date will receive a 50% refund. No refunds will be issued for cancellations made within 2 days of the check-in date.',
-                style: TextStyle(
+              Text(
+                AppLanguage.cancelDetailsText[language],
+                style: const TextStyle(
                     fontSize: 13.8,
                     fontWeight: FontWeight.w400,
                     fontFamily: AppFont.fontFamily,
