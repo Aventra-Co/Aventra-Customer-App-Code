@@ -661,7 +661,6 @@ class PrivateBookingDetailsState extends State<PrivateBookingDetails> {
                                                         .width *
                                                     1 /
                                                     100),
-                                       
                                             SizedBox(
                                                 width: MediaQuery.of(context)
                                                         .size
@@ -713,7 +712,6 @@ class PrivateBookingDetailsState extends State<PrivateBookingDetails> {
                                                 AppColor.themeColor),
                                       ),
                                     ),
-                           
                                   ],
                                 ),
                               ],
@@ -1855,7 +1853,6 @@ class PrivateBookingDetailsState extends State<PrivateBookingDetails> {
                                 titleCentered: true,
                               ),
                               calendarStyle: const CalendarStyle(
-                           
                                 selectedDecoration: BoxDecoration(
                                   color: AppColor.themeColor,
                                   shape: BoxShape.circle,
@@ -2038,7 +2035,6 @@ class PrivateBookingDetailsState extends State<PrivateBookingDetails> {
                                     List.generate(timeSlots.length, (index) {
                                   return Column(
                                     children: [
-                                    
                                       GestureDetector(
                                         onTap: () {
                                           if (timeSlots[index]
@@ -2065,7 +2061,6 @@ class PrivateBookingDetailsState extends State<PrivateBookingDetails> {
                                             }
                                             setTime();
                                             setState(() {});
-                                         
                                           }
                                         },
                                         child: Container(

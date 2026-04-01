@@ -788,6 +788,15 @@ class _ExploreState extends State<Explore> {
                                     if (_showSea &&
                                         hasTripDestinationsList.isEmpty)
                                       _buildNoDestinationMsg(context),
+                                    if (_showSea)
+                                      SizedBox(
+                                          height: MediaQuery.of(context)
+                                                  .size
+                                                  .height *
+                                              2 /
+                                              100),
+                                    if (_showSea)
+                                      _buildPopularBoatsSection(context),
 
                                     // ══════════════ PROPERTY SECTION ══════════
                                     // 1) Property type tabs (pill row)
@@ -820,6 +829,34 @@ class _ExploreState extends State<Explore> {
                                                                 .size
                                                                 .height *
                                                             3 /
+                                                            100),
+                                              if (_showProperty)
+                                                _buildPopularDestinationsHeader(
+                                                    context, screenWidth),
+                                              if (_showProperty)
+                                                SizedBox(
+                                                    height:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .height *
+                                                            2 /
+                                                            100),
+                                              if (_showProperty &&
+                                                  hasTripDestinationsList
+                                                      .isNotEmpty)
+                                                _buildDestinationsList(
+                                                    context, screenWidth),
+                                              if (_showProperty &&
+                                                  hasTripDestinationsList
+                                                      .isEmpty)
+                                                _buildNoDestinationMsg(context),
+                                              if (_showProperty)
+                                                SizedBox(
+                                                    height:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .height *
+                                                            2 /
                                                             100),
 
                                               // 3) Popular properties horizontal list (filtered by tab)
@@ -1747,6 +1784,308 @@ class _ExploreState extends State<Explore> {
             children: [
               Text(
                 AppLanguage.mostPopularpropertiesText[language],
+                style: const TextStyle(
+                    color: AppColor.primaryColor,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: AppFont.fontFamily),
+              ),
+              GestureDetector(
+                onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) =>
+                            const PropertyHomeScreen(initialView: 'Grid'))),
+                child: Text(AppLanguage.viewMoreText[language],
+                    style: const TextStyle(
+                        color: AppColor.themeColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: AppFont.fontFamily)),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: MediaQuery.of(context).size.height * 1.5 / 100),
+        SizedBox(
+          height: size.height * 0.28,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsetsDirectional.only(
+              start: size.width * 0.05,
+              end: size.width * 0.05,
+            ),
+            itemCount: popularPropertiesList.length,
+            itemBuilder: (context, index) {
+              final property = popularPropertiesList[index];
+              final realIndex = popularPropertiesList.indexOf(property);
+              return Padding(
+                padding: EdgeInsetsDirectional.only(
+                  end: index == popularPropertiesList.length - 1
+                      ? 0
+                      : size.width * 0.03,
+                ),
+                child: GestureDetector(
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => PropertyDetailsScreen(
+                                propertyAdId: popularPropertiesList[index]
+                                    ['property_ad_id'],
+                              ))),
+                  child: Container(
+                    width: size.width * 0.45,
+                    decoration: BoxDecoration(
+                        image: DecorationImage(
+                            image: property['image_path'] != null
+                                ? NetworkImage(
+                                    "${AppConfigProvider.imageURL}${property['image_path']}")
+                                : const AssetImage(AppImage.dummyIcon)
+                                    as ImageProvider,
+                            fit: BoxFit.cover),
+                        borderRadius: BorderRadius.circular(18)),
+                    child: Stack(
+                      children: [
+                        // Gradient overlay
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black.withOpacity(0.7)
+                                ]),
+                          ),
+                        ),
+                        // Price badge top-left
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 5),
+                            decoration: const BoxDecoration(
+                              color: AppColor.themeColor,
+                              borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(16),
+                                  bottomRight: Radius.circular(16)),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(AppLanguage.startingFromText[language],
+                                    style: const TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w500,
+                                        fontFamily: AppFont.fontFamily,
+                                        color: Colors.white)),
+                                Text("${property['starting_price'] ?? ""} KWD",
+                                    style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        fontFamily: AppFont.fontFamily,
+                                        color: Colors.white)),
+                              ],
+                            ),
+                          ),
+                        ),
+                        // Remain badge top-right
+                        Positioned(
+                          top: 6,
+                          right: 8,
+                          child: GestureDetector(
+                            onTap: () {
+                              deeplinkingProp(
+                                  context, property['property_ad_id']);
+                            },
+                            child: Image.asset(
+                              AppImage.shareIcon,
+                              width: size.width * 0.06,
+                              height: size.width * 0.06,
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 8,
+                          left: 8,
+                          right: 8,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                property['property_name_english'] ?? "",
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  fontFamily: AppFont.fontFamily,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                "${AppLanguage.cityText[language]} \u2022 ${property['city_name'][language] ?? ""}",
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w400,
+                                  fontFamily: AppFont.fontFamily,
+                                  color: Colors.white.withOpacity(0.9),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                "${AppLanguage.propertyTypeText[language]} \u2022 ${property['property_type_name'][language] ?? ""}",
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w400,
+                                  fontFamily: AppFont.fontFamily,
+                                  color: Colors.white.withOpacity(0.9),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  if (property['rating'] != 0)
+                                    Container(
+                                      width: screenWidth > 600
+                                          ? MediaQuery.of(context).size.width *
+                                              10 /
+                                              100
+                                          : MediaQuery.of(context).size.width *
+                                              11 /
+                                              100,
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 4, horizontal: 2),
+                                      decoration: BoxDecoration(
+                                          color: AppColor.secondaryColor
+                                              .withOpacity(0.3),
+                                          borderRadius:
+                                              BorderRadius.circular(25)),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          SizedBox(
+                                            width: screenWidth > 600
+                                                ? MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    2 /
+                                                    100
+                                                : MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    3 /
+                                                    100,
+                                            height: screenWidth > 600
+                                                ? MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    2 /
+                                                    100
+                                                : MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    3 /
+                                                    100,
+                                            child: Image.asset(
+                                                AppImage.ratingIcon),
+                                          ),
+                                          SizedBox(
+                                              width: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  1 /
+                                                  100),
+                                          Text(
+                                            property['rating'].toString(),
+                                            style: const TextStyle(
+                                                color: AppColor.secondaryColor,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w600,
+                                                fontFamily: AppFont.fontFamily),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  SizedBox(
+                                      width: MediaQuery.of(context).size.width *
+                                          1 /
+                                          100),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 4, horizontal: 5),
+                                    decoration: BoxDecoration(
+                                      color: AppColor.secondaryColor
+                                          .withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(25),
+                                    ),
+                                    child: Text(
+                                      "${"${(property['max_adult'] ?? 0) + (property['max_child'] ?? 0)}"} ${AppLanguage.guestsext[language]}",
+                                      style: const TextStyle(
+                                          color: AppColor.secondaryColor,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                          fontFamily: AppFont.fontFamily),
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  GestureDetector(
+                                    onTap: () {
+                                      addFavoriteApiCall(
+                                          index,
+                                          popularPropertiesList[realIndex]
+                                              ['property_ad_id'],
+                                          1);
+                                    },
+                                    child: Image.asset(
+                                      (popularPropertiesList[realIndex]
+                                                  ['favourite_status'] ==
+                                              1)
+                                          ? AppImage.removeFavouriteIcon
+                                          : AppImage.addFavouriteIcons,
+                                      width: size.width * 0.06,
+                                      height: size.width * 0.06,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        SizedBox(height: size.height * 0.02),
+      ],
+    );
+  }
+
+  Widget _buildPopularBoatsSection(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    double screenWidth = MediaQuery.of(context).size.width;
+
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: size.width * 0.05),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                AppLanguage.mostPopularBoatsText[language],
                 style: const TextStyle(
                     color: AppColor.primaryColor,
                     fontSize: 16,

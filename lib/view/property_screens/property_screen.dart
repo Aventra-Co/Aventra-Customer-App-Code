@@ -1086,7 +1086,7 @@ class _PropertyScreenState extends State<PropertyScreen> {
                           borderRadius: BorderRadius.circular(25),
                         ),
                         child: Text(
-                          "${(property['max_adult'] ?? 0 + (property['max_child'] ?? 0))} ${AppLanguage.guestsext[language]}",
+                          "${((property['max_adult'] ?? 0) + (property['max_child'] ?? 0))} ${AppLanguage.guestsext[language]}",
                           style: const TextStyle(
                               color: AppColor.secondaryColor,
                               fontSize: 12,
@@ -1364,7 +1364,7 @@ class _PropertyScreenState extends State<PropertyScreen> {
                         borderRadius: BorderRadius.circular(25),
                       ),
                       child: Text(
-                        "${(property['max_adult'] ?? 0 + (property['max_child'] ?? 0))} ${AppLanguage.guestsext[language]}",
+                        "${((property['max_adult'] ?? 0) + (property['max_child'] ?? 0))} ${AppLanguage.guestsext[language]}",
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                             color: AppColor.secondaryColor,

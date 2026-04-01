@@ -632,579 +632,606 @@ class _SignupState extends State<Signup> {
               ),
               SizedBox(height: MediaQuery.of(context).size.height * 2 / 100),
               Expanded(
-                  child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 2 / 100),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 2 / 100),
 
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width * 90 / 100,
-                      child: Text(
-                        AppLanguage.createAccountText[language],
-                        style: const TextStyle(
-                          color: AppColor.primaryColor,
-                          fontFamily: AppFont.fontFamily,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 36,
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: MediaQuery.of(context).size.height * 1 / 100,
-                    ),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width * 90 / 100,
-                      child: Text(
-                        AppLanguage.joinUsText[language],
-                        style: const TextStyle(
-                          color: AppColor.textColor,
-                          fontFamily: AppFont.fontFamily,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 3 / 100),
-
-                    //!------------------first name---------------------
-                    CustomTextFormField(
-                        readOnly: false,
-                        fillColorStatus: 0,
-                        controller: firstnameTextEditingController,
-                        hintText: AppLanguage.firstNameInputText[language],
-                        image: AppImage.profileIcon,
-                        keyboardtype: TextInputType.name,
-                        maxLength: AppConstant.fullnameLength),
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 2 / 100),
-
-                    //!------------------last name---------------------
-                    CustomTextFormField(
-                        readOnly: false,
-                        fillColorStatus: 0,
-                        controller: lastnameTextEditingController,
-                        hintText: AppLanguage.lastNameInputText[language],
-                        image: AppImage.profileIcon,
-                        keyboardtype: TextInputType.name,
-                        maxLength: AppConstant.fullnameLength),
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 2 / 100),
-
-                    if (isPayment == 1) ...[
-                      //!------------------country name---------------------
-                      Center(
-                        child: SizedBox(
-                          width: MediaQuery.of(context).size.width * 90 / 100,
-                          height: MediaQuery.of(context).size.height * 6 / 100,
-                          child: TextFormField(
-                            readOnly: true,
-                            style: AppConstant.textFilledHeading,
-                            textAlignVertical: TextAlignVertical.center,
-                            //! keyboardType: keyboardtype,
-                            controller: countrynameTextEditingController,
-                            onTap: () {
-                              countryListBottomSheet(context, screenWidth);
-                            },
-                            decoration: InputDecoration(
-                              prefixIcon: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  SizedBox(
-                                    child: Image.asset(
-                                      AppImage.locationIcon,
-                                      height:
-                                          MediaQuery.of(context).size.width *
-                                              5 /
-                                              100,
-                                      width: MediaQuery.of(context).size.width *
-                                          5 /
-                                          100,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              suffixIcon: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  SizedBox(
-                                    child: Image.asset(
-                                      AppImage.downArrowIcon,
-                                      height:
-                                          MediaQuery.of(context).size.width *
-                                              4 /
-                                              100,
-                                      width: MediaQuery.of(context).size.width *
-                                          4 /
-                                          100,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              border: const OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: AppColor.textinputBorderColor),
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(8)),
-                              ),
-                              enabledBorder: const OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: AppColor.textinputBorderColor),
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(8)),
-                              ),
-                              focusedBorder: const OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: AppColor.textinputBorderColor),
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(8)),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 5, horizontal: 15),
-                              filled: false,
-                              counterText: '',
-                              hintText: AppLanguage.countryText[language],
-                              hintStyle: const TextStyle(
-                                  color: AppColor.hintTextinputColor,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w400,
-                                  fontFamily: AppFont.fontFamily),
-                            ),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 90 / 100,
+                        child: Text(
+                          AppLanguage.createAccountText[language],
+                          style: const TextStyle(
+                            color: AppColor.primaryColor,
+                            fontFamily: AppFont.fontFamily,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 36,
                           ),
                         ),
                       ),
                       SizedBox(
-                          height: MediaQuery.of(context).size.height * 2 / 100),
-
-                      //!------------------city name---------------------
-                      Center(
-                        child: SizedBox(
-                          width: MediaQuery.of(context).size.width * 90 / 100,
-                          height: MediaQuery.of(context).size.height * 6 / 100,
-                          child: TextFormField(
-                            readOnly: true,
-                            style: AppConstant.textFilledHeading,
-                            textAlignVertical: TextAlignVertical.center,
-                            //! keyboardType: keyboardtype,
-                            controller: citynameTextEditingController,
-                            onTap: () {
-                              cityListBottomSheet(context, screenWidth);
-                            },
-                            decoration: InputDecoration(
-                              prefixIcon: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  SizedBox(
-                                    child: Image.asset(
-                                      AppImage.locationIcon,
-                                      height:
-                                          MediaQuery.of(context).size.width *
-                                              5 /
-                                              100,
-                                      width: MediaQuery.of(context).size.width *
-                                          5 /
-                                          100,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              suffixIcon: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  SizedBox(
-                                    child: Image.asset(
-                                      AppImage.downArrowIcon,
-                                      height:
-                                          MediaQuery.of(context).size.width *
-                                              4 /
-                                              100,
-                                      width: MediaQuery.of(context).size.width *
-                                          4 /
-                                          100,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              border: const OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: AppColor.textinputBorderColor),
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(8)),
-                              ),
-                              enabledBorder: const OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: AppColor.textinputBorderColor),
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(8)),
-                              ),
-                              focusedBorder: const OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: AppColor.textinputBorderColor),
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(8)),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 5, horizontal: 15),
-                              filled: false,
-                              counterText: '',
-                              hintText: AppLanguage.cityNameInputText[language],
-                              hintStyle: const TextStyle(
-                                  color: AppColor.hintTextinputColor,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w400,
-                                  fontFamily: AppFont.fontFamily),
-                            ),
+                        height: MediaQuery.of(context).size.height * 1 / 100,
+                      ),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 90 / 100,
+                        child: Text(
+                          AppLanguage.joinUsText[language],
+                          style: const TextStyle(
+                            color: AppColor.textColor,
+                            fontFamily: AppFont.fontFamily,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
                           ),
                         ),
                       ),
                       SizedBox(
+                          height: MediaQuery.of(context).size.height * 3 / 100),
+
+                      //!------------------first name---------------------
+                      CustomTextFormField(
+                          readOnly: false,
+                          fillColorStatus: 0,
+                          controller: firstnameTextEditingController,
+                          hintText: AppLanguage.firstNameInputText[language],
+                          image: AppImage.profileIcon,
+                          keyboardtype: TextInputType.name,
+                          maxLength: AppConstant.fullnameLength),
+                      SizedBox(
                           height: MediaQuery.of(context).size.height * 2 / 100),
 
-                      //!-------------------dob----------------
-                      Center(
-                        child: SizedBox(
-                          width: MediaQuery.of(context).size.width * 90 / 100,
-                          height: MediaQuery.of(context).size.height * 6 / 100,
-                          child: TextFormField(
-                            readOnly: true,
-                            style: AppConstant.textFilledHeading,
-                            textAlignVertical: TextAlignVertical.center,
-                            //! keyboardType: keyboardtype,
-                            controller: dobTextEditingController,
-                            onTap: () async {
-                              print(DateTime.now());
-                              //! print(getDate);
+                      //!------------------last name---------------------
+                      CustomTextFormField(
+                          readOnly: false,
+                          fillColorStatus: 0,
+                          controller: lastnameTextEditingController,
+                          hintText: AppLanguage.lastNameInputText[language],
+                          image: AppImage.profileIcon,
+                          keyboardtype: TextInputType.name,
+                          maxLength: AppConstant.fullnameLength),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 2 / 100),
 
-                              DateTime today = DateTime.now();
-                              DateTime minDate =
-                                  today.subtract(Duration(days: 365 * 100));
-                              DateTime maxDate =
-                                  today.subtract(Duration(days: 365 * 16));
+                      if (isPayment == 1) ...[
+                        //!------------------country name---------------------
+                        Center(
+                          child: SizedBox(
+                            width: MediaQuery.of(context).size.width * 90 / 100,
+                            height:
+                                MediaQuery.of(context).size.height * 6 / 100,
+                            child: TextFormField(
+                              readOnly: true,
+                              style: AppConstant.textFilledHeading,
+                              textAlignVertical: TextAlignVertical.center,
+                              //! keyboardType: keyboardtype,
+                              controller: countrynameTextEditingController,
+                              onTap: () {
+                                countryListBottomSheet(context, screenWidth);
+                              },
+                              decoration: InputDecoration(
+                                prefixIcon: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(
+                                      child: Image.asset(
+                                        AppImage.locationIcon,
+                                        height:
+                                            MediaQuery.of(context).size.width *
+                                                5 /
+                                                100,
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                5 /
+                                                100,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                suffixIcon: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(
+                                      child: Image.asset(
+                                        AppImage.downArrowIcon,
+                                        height:
+                                            MediaQuery.of(context).size.width *
+                                                4 /
+                                                100,
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                4 /
+                                                100,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                border: const OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: AppColor.textinputBorderColor),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(8)),
+                                ),
+                                enabledBorder: const OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: AppColor.textinputBorderColor),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(8)),
+                                ),
+                                focusedBorder: const OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: AppColor.textinputBorderColor),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(8)),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 5, horizontal: 15),
+                                filled: false,
+                                counterText: '',
+                                hintText: AppLanguage.countryText[language],
+                                hintStyle: const TextStyle(
+                                    color: AppColor.hintTextinputColor,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w400,
+                                    fontFamily: AppFont.fontFamily),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                            height:
+                                MediaQuery.of(context).size.height * 2 / 100),
 
-                              DateTime initialDate;
-                              if (getDate.isEmpty ||
-                                  getDate == "Invalid date") {
-                                initialDate = today;
-                              } else {
-                                try {
-                                  initialDate = DateTime.parse(getDate);
-                                } catch (e) {
-                                  initialDate = today;
-                                  print(" $getDate");
+                        //!------------------city name---------------------
+                        Center(
+                          child: SizedBox(
+                            width: MediaQuery.of(context).size.width * 90 / 100,
+                            height:
+                                MediaQuery.of(context).size.height * 6 / 100,
+                            child: TextFormField(
+                              readOnly: true,
+                              style: AppConstant.textFilledHeading,
+                              textAlignVertical: TextAlignVertical.center,
+                              //! keyboardType: keyboardtype,
+                              controller: citynameTextEditingController,
+                              onTap: () {
+                                if (countrynameTextEditingController
+                                    .text.isEmpty) {
+                                  SnackBarToastMessage.showSnackBar(context,
+                                      AppLanguage.selectCityMsg[language]);
+                                  return;
                                 }
-                              }
-
-                              if (initialDate.isBefore(minDate)) {
-                                initialDate = minDate;
-                              }
-                              if (initialDate.isAfter(maxDate)) {
-                                initialDate = maxDate;
-                              }
-
-                              final DateTime? pickedDate = await showDatePicker(
-                                context: context,
-                                initialDate: initialDate,
-                                firstDate: minDate,
-                                lastDate: maxDate,
-                                builder: (BuildContext context, Widget? child) {
-                                  return Theme(
-                                    data: ThemeData.light().copyWith(
-                                      primaryColor: AppColor.themeColor,
-                                      colorScheme: const ColorScheme.light(
-                                        primary: AppColor.themeColor,
-                                        onPrimary: AppColor.secondaryColor,
-                                      ),
-                                      buttonTheme: const ButtonThemeData(
-                                        textTheme: ButtonTextTheme.primary,
-                                      ),
-                                      textButtonTheme: TextButtonThemeData(
-                                        style: TextButton.styleFrom(
-                                            foregroundColor:
-                                                AppColor.themeColor),
-                                      ),
-                                      backgroundColor: AppColor.themeColor,
-                                      dialogBackgroundColor:
-                                          AppColor.themeColor,
-                                      highlightColor: AppColor.themeColor,
-                                      textTheme: const TextTheme(
-                                        bodyText2: TextStyle(
-                                            color: AppColor.themeColor),
+                                cityListBottomSheet(context, screenWidth);
+                              },
+                              decoration: InputDecoration(
+                                prefixIcon: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(
+                                      child: Image.asset(
+                                        AppImage.locationIcon,
+                                        height:
+                                            MediaQuery.of(context).size.width *
+                                                5 /
+                                                100,
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                5 /
+                                                100,
                                       ),
                                     ),
-                                    child: child!,
-                                  );
-                                },
-                              );
-
-                              if (pickedDate != null) {
-                                String formattedDate =
-                                    DateFormat('dd-MM-yyyy').format(pickedDate);
-                                String sentFormatDate =
-                                    DateFormat('yyyy-MM-dd').format(pickedDate);
-                                print(formattedDate);
-                                setState(() {
-                                  getDate = formattedDate;
-                                  sendDate = sentFormatDate;
-                                  log("senddate$sendDate");
-                                  dobTextEditingController.text = getDate;
-                                });
-                              } else {
-                                print("No date selected");
-                              }
-                            },
-                            decoration: InputDecoration(
-                              prefixIcon: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  SizedBox(
-                                    child: Image.asset(
-                                      AppImage.dobIcon,
-                                      height:
-                                          MediaQuery.of(context).size.width *
-                                              5 /
-                                              100,
-                                      width: MediaQuery.of(context).size.width *
-                                          5 /
-                                          100,
+                                  ],
+                                ),
+                                suffixIcon: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(
+                                      child: Image.asset(
+                                        AppImage.downArrowIcon,
+                                        height:
+                                            MediaQuery.of(context).size.width *
+                                                4 /
+                                                100,
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                4 /
+                                                100,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
+                                border: const OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: AppColor.textinputBorderColor),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(8)),
+                                ),
+                                enabledBorder: const OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: AppColor.textinputBorderColor),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(8)),
+                                ),
+                                focusedBorder: const OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: AppColor.textinputBorderColor),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(8)),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 5, horizontal: 15),
+                                filled: false,
+                                counterText: '',
+                                hintText:
+                                    AppLanguage.cityNameInputText[language],
+                                hintStyle: const TextStyle(
+                                    color: AppColor.hintTextinputColor,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w400,
+                                    fontFamily: AppFont.fontFamily),
                               ),
-                              suffixIcon: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  SizedBox(
-                                    child: Image.asset(
-                                      AppImage.downArrowIcon,
-                                      height:
-                                          MediaQuery.of(context).size.width *
-                                              4 /
-                                              100,
-                                      width: MediaQuery.of(context).size.width *
-                                          4 /
-                                          100,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              border: const OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: AppColor.textinputBorderColor),
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(8)),
-                              ),
-                              enabledBorder: const OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: AppColor.textinputBorderColor),
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(8)),
-                              ),
-                              focusedBorder: const OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: AppColor.textinputBorderColor),
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(8)),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 5, horizontal: 15),
-                              filled: false,
-                              counterText: '',
-                              hintText: AppLanguage.dobInputText[language],
-                              hintStyle: const TextStyle(
-                                  color: AppColor.hintTextinputColor,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w400,
-                                  fontFamily: AppFont.fontFamily),
                             ),
                           ),
                         ),
-                      ),
+                        SizedBox(
+                            height:
+                                MediaQuery.of(context).size.height * 2 / 100),
+
+                        //!-------------------dob----------------
+                        Center(
+                          child: SizedBox(
+                            width: MediaQuery.of(context).size.width * 90 / 100,
+                            height:
+                                MediaQuery.of(context).size.height * 6 / 100,
+                            child: TextFormField(
+                              readOnly: true,
+                              style: AppConstant.textFilledHeading,
+                              textAlignVertical: TextAlignVertical.center,
+                              //! keyboardType: keyboardtype,
+                              controller: dobTextEditingController,
+                              onTap: () async {
+                                print(DateTime.now());
+                                //! print(getDate);
+
+                                DateTime today = DateTime.now();
+                                DateTime minDate =
+                                    today.subtract(Duration(days: 365 * 100));
+                                DateTime maxDate =
+                                    today.subtract(Duration(days: 365 * 16));
+
+                                DateTime initialDate;
+                                if (getDate.isEmpty ||
+                                    getDate == "Invalid date") {
+                                  initialDate = today;
+                                } else {
+                                  try {
+                                    initialDate = DateTime.parse(getDate);
+                                  } catch (e) {
+                                    initialDate = today;
+                                    print(" $getDate");
+                                  }
+                                }
+
+                                if (initialDate.isBefore(minDate)) {
+                                  initialDate = minDate;
+                                }
+                                if (initialDate.isAfter(maxDate)) {
+                                  initialDate = maxDate;
+                                }
+
+                                final DateTime? pickedDate =
+                                    await showDatePicker(
+                                  context: context,
+                                  initialDate: initialDate,
+                                  firstDate: minDate,
+                                  lastDate: maxDate,
+                                  builder:
+                                      (BuildContext context, Widget? child) {
+                                    return Theme(
+                                      data: ThemeData.light().copyWith(
+                                        primaryColor: AppColor.themeColor,
+                                        colorScheme: const ColorScheme.light(
+                                          primary: AppColor.themeColor,
+                                          onPrimary: AppColor.secondaryColor,
+                                        ),
+                                        buttonTheme: const ButtonThemeData(
+                                          textTheme: ButtonTextTheme.primary,
+                                        ),
+                                        textButtonTheme: TextButtonThemeData(
+                                          style: TextButton.styleFrom(
+                                              foregroundColor:
+                                                  AppColor.themeColor),
+                                        ),
+                                        backgroundColor: AppColor.themeColor,
+                                        dialogBackgroundColor:
+                                            AppColor.themeColor,
+                                        highlightColor: AppColor.themeColor,
+                                        textTheme: const TextTheme(
+                                          bodyText2: TextStyle(
+                                              color: AppColor.themeColor),
+                                        ),
+                                      ),
+                                      child: child!,
+                                    );
+                                  },
+                                );
+
+                                if (pickedDate != null) {
+                                  String formattedDate =
+                                      DateFormat('dd-MM-yyyy')
+                                          .format(pickedDate);
+                                  String sentFormatDate =
+                                      DateFormat('yyyy-MM-dd')
+                                          .format(pickedDate);
+                                  print(formattedDate);
+                                  setState(() {
+                                    getDate = formattedDate;
+                                    sendDate = sentFormatDate;
+                                    log("senddate$sendDate");
+                                    dobTextEditingController.text = getDate;
+                                  });
+                                } else {
+                                  print("No date selected");
+                                }
+                              },
+                              decoration: InputDecoration(
+                                prefixIcon: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(
+                                      child: Image.asset(
+                                        AppImage.dobIcon,
+                                        height:
+                                            MediaQuery.of(context).size.width *
+                                                5 /
+                                                100,
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                5 /
+                                                100,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                suffixIcon: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(
+                                      child: Image.asset(
+                                        AppImage.downArrowIcon,
+                                        height:
+                                            MediaQuery.of(context).size.width *
+                                                4 /
+                                                100,
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                4 /
+                                                100,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                border: const OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: AppColor.textinputBorderColor),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(8)),
+                                ),
+                                enabledBorder: const OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: AppColor.textinputBorderColor),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(8)),
+                                ),
+                                focusedBorder: const OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: AppColor.textinputBorderColor),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(8)),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 5, horizontal: 15),
+                                filled: false,
+                                counterText: '',
+                                hintText: AppLanguage.dobInputText[language],
+                                hintStyle: const TextStyle(
+                                    color: AppColor.hintTextinputColor,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w400,
+                                    fontFamily: AppFont.fontFamily),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                            height:
+                                MediaQuery.of(context).size.height * 2 / 100),
+                      ],
+
+                      //!------------------mobile number---------------------
+                      CustomTextFormField(
+                          readOnly: false,
+                          fillColorStatus: 0,
+                          controller: mobileTextEditingController,
+                          hintText: AppLanguage.mobileNumberInputText[language],
+                          image: AppImage.phoneIcon,
+                          keyboardtype: TextInputType.number,
+                          maxLength: AppConstant.mobileLength),
                       SizedBox(
                           height: MediaQuery.of(context).size.height * 2 / 100),
-                    ],
 
-                    //!------------------mobile number---------------------
-                    CustomTextFormField(
-                        readOnly: false,
-                        fillColorStatus: 0,
-                        controller: mobileTextEditingController,
-                        hintText: AppLanguage.mobileNumberInputText[language],
-                        image: AppImage.phoneIcon,
-                        keyboardtype: TextInputType.number,
-                        maxLength: AppConstant.mobileLength),
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 2 / 100),
+                      //!------------email--------------
+                      CustomTextFormField(
+                          readOnly: false,
+                          fillColorStatus: 0,
+                          controller: emailTextEditingController,
+                          hintText: AppLanguage.emailInputText[language],
+                          image: AppImage.mailIcon,
+                          keyboardtype: TextInputType.emailAddress,
+                          maxLength: AppConstant.emailMaxLength),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 2 / 100),
 
-                    //!------------email--------------
-                    CustomTextFormField(
-                        readOnly: false,
-                        fillColorStatus: 0,
-                        controller: emailTextEditingController,
-                        hintText: AppLanguage.emailInputText[language],
-                        image: AppImage.mailIcon,
-                        keyboardtype: TextInputType.emailAddress,
-                        maxLength: AppConstant.emailMaxLength),
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 2 / 100),
+                      //! ----------- Password Text Input -------------
+                      CustomPasswordTextFormField(
+                          readOnly: false,
+                          fillColorStatus: 0,
+                          controller: passwordTextEditingController,
+                          hintText: AppLanguage.passwordInputText[language],
+                          keyboardtype: TextInputType.text,
+                          maxLength: AppConstant.passwordLength),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 2 / 100),
 
-                    //! ----------- Password Text Input -------------
-                    CustomPasswordTextFormField(
-                        readOnly: false,
-                        fillColorStatus: 0,
-                        controller: passwordTextEditingController,
-                        hintText: AppLanguage.passwordInputText[language],
-                        keyboardtype: TextInputType.text,
-                        maxLength: AppConstant.passwordLength),
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 2 / 100),
+                      //! -----------confirm Password Text Input -------------
+                      CustomPasswordTextFormField(
+                          readOnly: false,
+                          fillColorStatus: 0,
+                          controller: confirmpasswordTextEditingController,
+                          hintText:
+                              AppLanguage.confirmPasswordInputText[language],
+                          keyboardtype: TextInputType.text,
+                          maxLength: AppConstant.passwordLength),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 3 / 100),
 
-                    //! -----------confirm Password Text Input -------------
-                    CustomPasswordTextFormField(
-                        readOnly: false,
-                        fillColorStatus: 0,
-                        controller: confirmpasswordTextEditingController,
-                        hintText:
-                            AppLanguage.confirmPasswordInputText[language],
-                        keyboardtype: TextInputType.text,
-                        maxLength: AppConstant.passwordLength),
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 3 / 100),
+                      AppButton(
+                          text: AppLanguage.createAccountText[language],
+                          onPress: () {
+                            signUpValidation(
+                                firstnameTextEditingController.text,
+                                lastnameTextEditingController.text,
+                                countrynameTextEditingController.text,
+                                citynameTextEditingController.text,
+                                dobTextEditingController.text,
+                                mobileTextEditingController.text,
+                                emailTextEditingController.text,
+                                passwordTextEditingController.text,
+                                confirmpasswordTextEditingController.text);
+                          }),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 3 / 100),
 
-                    AppButton(
-                        text: AppLanguage.createAccountText[language],
-                        onPress: () {
-                          signUpValidation(
-                              firstnameTextEditingController.text,
-                              lastnameTextEditingController.text,
-                              countrynameTextEditingController.text,
-                              citynameTextEditingController.text,
-                              dobTextEditingController.text,
-                              mobileTextEditingController.text,
-                              emailTextEditingController.text,
-                              passwordTextEditingController.text,
-                              confirmpasswordTextEditingController.text);
-                        }),
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 3 / 100),
-
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width * 100 / 100,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width * 80 / 100,
-                            child: Text.rich(
-                                textAlign: TextAlign.center,
-                                TextSpan(children: [
-                                  TextSpan(
-                                      text:
-                                          AppLanguage.bySigningUpText[language],
-                                      style: const TextStyle(
-                                          color: AppColor.textColor,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w400,
-                                          fontFamily: AppFont.fontFamily)),
-                                  TextSpan(
-                                      text: AppLanguage
-                                          .termsConditionText[language],
-                                      style: const TextStyle(
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 100 / 100,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width:
+                                  MediaQuery.of(context).size.width * 80 / 100,
+                              child: Text.rich(
+                                  textAlign: TextAlign.center,
+                                  TextSpan(children: [
+                                    TextSpan(
+                                        text: AppLanguage
+                                            .bySigningUpText[language],
+                                        style: const TextStyle(
+                                            color: AppColor.textColor,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w400,
+                                            fontFamily: AppFont.fontFamily)),
+                                    TextSpan(
+                                        text: AppLanguage
+                                            .termsConditionText[language],
+                                        style: const TextStyle(
+                                            color: AppColor.themeColor,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                            fontFamily: AppFont.fontFamily,
+                                            decoration:
+                                                TextDecoration.underline,
+                                            decorationColor:
+                                                AppColor.themeColor),
+                                        recognizer: TapGestureRecognizer()
+                                          ..onTap = () {
+                                            Navigator.pushNamed(
+                                                context, Content.routeName,
+                                                arguments: ContentClass(
+                                                    header: AppLanguage
+                                                            .termsConditionText[
+                                                        language],
+                                                    contenttype:
+                                                        termsandconditionstype));
+                                          }),
+                                    TextSpan(
+                                        text:
+                                            " ${AppLanguage.andText[language]} ",
+                                        style: const TextStyle(
+                                            color: AppColor.textColor,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w400,
+                                            fontFamily: AppFont.fontFamily)),
+                                    TextSpan(
+                                        text: AppLanguage
+                                            .privacyPolicyText[language],
+                                        style: const TextStyle(
                                           color: AppColor.themeColor,
                                           fontSize: 14,
                                           fontWeight: FontWeight.w500,
                                           fontFamily: AppFont.fontFamily,
                                           decoration: TextDecoration.underline,
-                                          decorationColor: AppColor.themeColor),
-                                      recognizer: TapGestureRecognizer()
-                                        ..onTap = () {
-                                          Navigator.pushNamed(
-                                              context, Content.routeName,
-                                              arguments: ContentClass(
-                                                  header: AppLanguage
-                                                          .termsConditionText[
-                                                      language],
-                                                  contenttype:
-                                                      termsandconditionstype));
-                                        }),
-                                  TextSpan(
-                                      text:
-                                          " ${AppLanguage.andText[language]} ",
-                                      style: const TextStyle(
-                                          color: AppColor.textColor,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w400,
-                                          fontFamily: AppFont.fontFamily)),
-                                  TextSpan(
-                                      text: AppLanguage
-                                          .privacyPolicyText[language],
-                                      style: const TextStyle(
-                                        color: AppColor.themeColor,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                        fontFamily: AppFont.fontFamily,
-                                        decoration: TextDecoration.underline,
-                                        decorationColor: AppColor.themeColor,
-                                      ),
-                                      recognizer: TapGestureRecognizer()
-                                        ..onTap = () {
-                                          Navigator.pushNamed(
-                                              context, Content.routeName,
-                                              arguments: ContentClass(
-                                                  header: AppLanguage
-                                                          .privacyPolicyText[
-                                                      language],
-                                                  contenttype:
-                                                      privacypolicytype));
-                                        })
-                                ])),
-                          ),
-                        ],
+                                          decorationColor: AppColor.themeColor,
+                                        ),
+                                        recognizer: TapGestureRecognizer()
+                                          ..onTap = () {
+                                            Navigator.pushNamed(
+                                                context, Content.routeName,
+                                                arguments: ContentClass(
+                                                    header: AppLanguage
+                                                            .privacyPolicyText[
+                                                        language],
+                                                    contenttype:
+                                                        privacypolicytype));
+                                          })
+                                  ])),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 2 / 100),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 2 / 100),
 
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width * 90 / 100,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            AppLanguage.alreadyAccountText[language],
-                            style: const TextStyle(
-                                color: AppColor.textColor,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                fontFamily: AppFont.fontFamily),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => const Login()));
-                            },
-                            child: Text(
-                              AppLanguage.logInText[language],
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 90 / 100,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              AppLanguage.alreadyAccountText[language],
                               style: const TextStyle(
-                                  color: AppColor.themeColor,
+                                  color: AppColor.textColor,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
                                   fontFamily: AppFont.fontFamily),
                             ),
-                          ),
-                        ],
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => const Login()));
+                              },
+                              child: Text(
+                                AppLanguage.logInText[language],
+                                style: const TextStyle(
+                                    color: AppColor.themeColor,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    fontFamily: AppFont.fontFamily),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 1 / 100),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 1 / 100),
 
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 2 / 100),
-                  ],
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 2 / 100),
+                    ],
+                  ),
                 ),
-              ))
+              )
             ],
           ),
         ),

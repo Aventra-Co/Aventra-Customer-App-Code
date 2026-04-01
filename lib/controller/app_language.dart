@@ -940,6 +940,10 @@ class AppLanguage {
     "Most Popular Properties",
     "العقارات الأكثر شهرة",
   ];
+  static const mostPopularBoatsText = [
+    "Most Popular Boats",
+    "أكثر القوارب شهرة",
+  ];
 
   static const guestsText = ["Guests", "ضيف"];
   static const adultText = [
@@ -979,9 +983,13 @@ class AppLanguage {
     "عطلة نهاية الأسبوع (الخميس-السبت)"
   ];
 
+  // static const fullWeekDaysText = [
+  //   "Full week (Sun-Sat)",
+  //   "طوال الأسبوع (الأحد-السبت)"
+  // ];
   static const fullWeekDaysText = [
-    "Full week (Sun-Sat)",
-    "طوال الأسبوع (الأحد-السبت)"
+    "Full week (7 days)",
+    "طوال الأسبوع (7 أيام)",
   ];
   static const selectDateMsg = [
     "Please select a date",
@@ -1052,5 +1060,9 @@ class AppLanguage {
   static const noPropertiesText = [
     "No properties available!",
     "لا توجد عقارات متاحة!",
+  ];
+  static const selectCityMsg = [
+    "Please select the country first",
+    "الرجاء اختيار الدولة أولاً",
   ];
 }

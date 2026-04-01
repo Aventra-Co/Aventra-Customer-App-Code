@@ -46,7 +46,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   // ── Time slot state ───────────────────────────────────────────────────
   // ─────────────────────────────────────────────────────────────────────
 
-  // Unavailable dates (non-selectable, not blue)
+  // Unavailable dates (non-selectable)
   Set<DateTime> _unavailableDates = {};
 
   int adultCount = 0;
@@ -714,7 +714,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                         ),
                                       ),
                                     ],
-                                    SizedBox(height: sh * 0.02), 
+                                    SizedBox(height: sh * 0.02),
                                   ],
 
                                   // What this place offers
@@ -794,7 +794,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                       title: AppLanguage
                                           .fullWeekDaysText[language],
                                       price:
-                                          "${adDetails['full_week_price']?.toString() ?? "0"} KWD${AppLanguage.perDayText[language]}",
+                                          // "${adDetails['full_week_price']?.toString() ?? "0"} KWD${AppLanguage.perDayText[language]}",
+                                          "${adDetails['full_week_price']?.toString() ?? "0"} KWD",
                                     ),
                                   ],
 
@@ -828,10 +829,11 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceEvenly,
                                     children: [
-                                      _legendItem('Available', Colors.black87),
+                                      _legendItem(
+                                          'Available', AppColor.blueColor),
                                       SizedBox(width: size.width * 0.05),
                                       _legendItem('Unavailable',
-                                          const Color(0xFFE57373)),
+                                          Colors.grey.shade500),
                                       SizedBox(width: size.width * 0.05),
                                       _legendItem('Selected Range',
                                           AppColor.themeColor),
@@ -1112,18 +1114,22 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           );
         },
 
-        // Default day cell
+        // Default day cell (available dates)
         defaultBuilder: (context, day, focusedDay) {
-          return _dayCell(day, bgColor: null, textColor: Colors.black87);
+          return _dayCell(
+            day,
+            bgColor: AppColor.blueColor,
+            textColor: Colors.white,
+          );
         },
 
         // Today (unselected)
         todayBuilder: (context, day, focusedDay) {
           return _dayCell(
             day,
-            bgColor: AppColor.themeColor.withOpacity(0.15),
-            textColor: Colors.black87,
-            borderColor: AppColor.themeColor,
+            bgColor: AppColor.blueColor,
+            textColor: Colors.white,
+            borderColor: AppColor.blueColor,
           );
         },
 
@@ -1173,8 +1179,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           if (_isUnavailable(day)) {
             return _dayCell(
               day,
-              bgColor: const Color(0xFFE57373).withOpacity(0.2),
-              textColor: const Color(0xFFE57373),
+              bgColor: Colors.grey.shade200,
+              textColor: Colors.grey.shade500,
             );
           }
           return _dayCell(day, bgColor: null, textColor: Colors.grey.shade500);

@@ -774,7 +774,7 @@ class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
                           borderRadius: BorderRadius.circular(25),
                         ),
                         child: Text(
-                          "${(property['max_adult'] ?? 0 + (property['max_child'] ?? 0))} ${AppLanguage.guestsext[language]}",
+                          "${((property['max_adult'] ?? 0) + (property['max_child'] ?? 0))} ${AppLanguage.guestsext[language]}",
                           style: const TextStyle(
                               color: AppColor.secondaryColor,
                               fontSize: 10,
