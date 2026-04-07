@@ -758,11 +758,11 @@ class _PropertyScreenState extends State<PropertyScreen> {
                                         //     const EdgeInsets.only(left: 15),
                                         decoration: BoxDecoration(
                                           image: DecorationImage(
-                                            image: propertyTypeList[index]
-                                                        ['image'] !=
+                                            image: propertyTypeList[index][
+                                                        'property_type_image'] !=
                                                     null
                                                 ? NetworkImage(
-                                                    "${AppConfigProvider.imageURL}${propertyTypeList[index]['image']}")
+                                                    "${AppConfigProvider.imageURL}${propertyTypeList[index]['property_type_image']}")
                                                 : const AssetImage(
                                                         AppImage.dummyIcon)
                                                     as ImageProvider,

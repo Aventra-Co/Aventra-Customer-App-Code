@@ -424,7 +424,7 @@ class _LoginState extends State<Login> {
     print("width $screenWidth heigth $screenHeight");
     media = MediaQuery.of(context).size;
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-        statusBarColor: AppColor.transparentColor,
+        statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light));
     return WillPopScope(
       onWillPop: () {
@@ -445,7 +445,7 @@ class _LoginState extends State<Login> {
                     width: MediaQuery.of(context).size.width * 100 / 100,
                     decoration: const BoxDecoration(
                       image: DecorationImage(
-                        image: AssetImage(AppImage.loginImage),
+                        image: AssetImage(AppImage.newSplash),
                         fit: BoxFit.cover,
                         colorFilter: ColorFilter.mode(
                           Colors.black38, // You can change the color

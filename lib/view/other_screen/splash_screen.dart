@@ -9,6 +9,7 @@ import '../../controller/app_color.dart';
 import '../../controller/app_config_provider.dart';
 import '../../controller/app_constant.dart';
 import '../../controller/app_firebase.dart';
+import '../../controller/app_font.dart';
 import '../../controller/app_footer.dart';
 import '../../controller/app_image.dart';
 import '../../controller/app_snack_bar_toast_message.dart';
@@ -369,46 +370,89 @@ class _SplashState extends State<Splash> {
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-        statusBarColor: AppColor.transparentColor,
-        statusBarIconBrightness: Brightness.dark));
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light));
     return Scaffold(
       body: Container(
         width: MediaQuery.of(context).size.width * 100 / 100,
         height: MediaQuery.of(context).size.height * 100 / 100,
-        child: Stack(
-          children: [
-            Image.asset(
-              AppImage.newSplashVideo,
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
-            ),
-            if (_shouldNavigateToNotifications)
-              Positioned(
-                bottom: 100,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.7),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      "Processing notification...",
-                      style: TextStyle(
-                        color: Colors.white,
+        decoration: const BoxDecoration(
+          color: AppColor.primaryColor,
+          image: DecorationImage(
+            image: AssetImage(AppImage.newSplash),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                  width: MediaQuery.of(context).size.width * 40 / 100,
+                  height: MediaQuery.of(context).size.width * 40 / 100,
+                  child: ClipRRect(
+                      borderRadius: BorderRadius.circular(1000),
+                      child: Image.asset(AppImage.appIcon))),
+              if (_shouldNavigateToNotifications)
+                Padding(
+                  padding: const EdgeInsets.only(top: 20),
+                  child: Text(
+                    "Processing notification...",
+                    style: TextStyle(
+                        fontFamily: AppFont.fontFamily,
                         fontSize: 14,
-                      ),
-                    ),
+                        color: AppColor.themeColor.withOpacity(0.7)),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
+
+  // Widget build(BuildContext context) {
+  //   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+  //       statusBarColor: AppColor.transparentColor,
+  //       statusBarIconBrightness: Brightness.dark));
+  //   return Scaffold(
+  //     body: Container(
+  //       width: MediaQuery.of(context).size.width * 100 / 100,
+  //       height: MediaQuery.of(context).size.height * 100 / 100,
+  //       child: Stack(
+  //         children: [
+  //           Image.asset(
+  //             AppImage.newSplashVideo,
+  //             fit: BoxFit.cover,
+  //             width: double.infinity,
+  //             height: double.infinity,
+  //           ),
+  //           if (_shouldNavigateToNotifications)
+  //             Positioned(
+  //               bottom: 100,
+  //               left: 0,
+  //               right: 0,
+  //               child: Center(
+  //                 child: Container(
+  //                   padding: const EdgeInsets.symmetric(
+  //                       horizontal: 20, vertical: 10),
+  //                   decoration: BoxDecoration(
+  //                     color: Colors.black.withOpacity(0.7),
+  //                     borderRadius: BorderRadius.circular(20),
+  //                   ),
+  //                   child: const Text(
+  //                     "Processing notification...",
+  //                     style: TextStyle(
+  //                       color: Colors.white,
+  //                       fontSize: 14,
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ),
+  //             ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 }

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:boatapp/view/other_screen/viewAll_boats_screen.dart';
 import 'package:boatapp/view/property_screens/property_screen.dart';
 import 'package:boatapp/view/property_screens/viewAll_property_screen.dart';
 import 'package:boatapp/view/property_screens/property_detail_screen.dart';
@@ -67,9 +68,12 @@ class _ExploreState extends State<Explore> {
   // String _selectedPropertyType = '';
   List<dynamic> promotionsList = <dynamic>[];
   List popularDestinationList = <dynamic>[];
+  List popularCitiesList = <dynamic>[];
   List hasTripDestinationsList = <dynamic>[];
   List filteredDestinationsList = <dynamic>[];
+  List filteredCitiesList = <dynamic>[];
   List filteredActivityList = <dynamic>[];
+  List filteredPropertyTypeList = <dynamic>[];
   List bottomSheetPopularDestinationList = <dynamic>[];
   List searchPopularDestinationList = <dynamic>[];
   List categoryList = <dynamic>[];
@@ -87,13 +91,7 @@ class _ExploreState extends State<Explore> {
   // ─────────────────────────────────────────────────────────────────────
 
   List<dynamic> popularPropertiesList = [];
-
-  /// Tab index 0 ("All") always returns the full list — no filtering.
-  List<dynamic> get _tabFilteredProperties {
-    if (_selectedPropertyTab == 0) return popularPropertiesList;
-    final label = propertyTypeTabs[_selectedPropertyTab]['label'] as String;
-    return popularPropertiesList.where((p) => p['type'] == label).toList();
-  }
+  List<dynamic> popularBoatsList = [];
 
   String profileImage = '';
   int userId = 0;
@@ -123,6 +121,7 @@ class _ExploreState extends State<Explore> {
   }
 
   Future<dynamic> getUserDetails() async {
+    fetchLocation();
     final prefs = await SharedPreferences.getInstance();
     userDetails = prefs.getString("userDetails");
     setState(() => isApiCalling = true);
@@ -133,9 +132,31 @@ class _ExploreState extends State<Explore> {
     }
     setState(() => isApiCalling = false);
     homeApi(userId, tabType: _tabTypeParam);
-    fetchLocation();
-    getCities();
+    // getCities();
     setState(() {});
+  }
+
+  deeplinking(BuildContext context, tripId, advertisementType) async {
+    var shareUrl =
+        "${AppConfigProvider.apiUrl}deepLink?link=aventra://trip_id/${Uri.encodeComponent(tripId.toString())}/advertisement_type/${Uri.encodeComponent(advertisementType.toString())}/entity/${Uri.encodeComponent(0.toString())}";
+    Rect? shareOrigin;
+    final renderObject = context.findRenderObject();
+    if (renderObject is RenderBox) {
+      shareOrigin = renderObject.localToGlobal(Offset.zero) & renderObject.size;
+    } else {
+      final overlayRenderObject =
+          Overlay.of(context).context.findRenderObject();
+      if (overlayRenderObject is RenderBox) {
+        shareOrigin = overlayRenderObject.localToGlobal(Offset.zero) &
+            overlayRenderObject.size;
+      }
+    }
+    if (shareOrigin != null) {
+      await Share.share("Aventra App! $shareUrl",
+          sharePositionOrigin: shareOrigin);
+    } else {
+      await Share.share("Aventra App! $shareUrl");
+    }
   }
 
   deeplinkingProp(BuildContext context, propertyAdId) async {
@@ -176,6 +197,8 @@ class _ExploreState extends State<Explore> {
             var item = res['activity_arr'];
             activitiesList = (item != "NA") ? item : [];
             item = res['destination_arr'];
+            popularBoatsList =
+                res['popular_boat_arr'] != "NA" ? res['popular_boat_arr'] : [];
             popularDestinationList = (item != "NA") ? item : [];
             bottomSheetPopularDestinationList = (item != "NA") ? item : [];
             searchPopularDestinationList = (item != "NA") ? item : [];
@@ -190,6 +213,10 @@ class _ExploreState extends State<Explore> {
             }
           } else {
             propertyTypeTabs = res['property_type_arr_active'] ?? [];
+            cityList =
+                res['popular_city_arr'] != "NA" ? res['popular_city_arr'] : [];
+            citySearchList = cityList;
+            popularCitiesList = cityList;
             popularPropertiesList = res['property_advertisement_arr'] ?? [];
             _propertyBanners =
                 (res['banner_arr'] != "NA") ? res['banner_arr'] : [];
@@ -267,6 +294,41 @@ class _ExploreState extends State<Explore> {
     }
   }
 
+  Future<void> getCitiesAccordingPropertyType(
+      userId, context, screenWidth, propertytypeId) async {
+    Uri url = Uri.parse(
+        "${AppConfigProvider.apiUrl}get_all_city_by_property_type?user_id=$userId&property_type_id=$propertytypeId");
+    String token = AppConstant.token;
+    Map<String, String> headers = {'Authorization': 'Bearer $token'};
+    setState(() => isApiCalling = true);
+    try {
+      final response = await http.get(url, headers: headers);
+      if (response.statusCode == 200) {
+        dynamic res = jsonDecode(response.body);
+        if (res['success'] == true) {
+          var item = res['city_arr'];
+          filteredCitiesList = (item != "NA") ? item : [];
+          viewFilteredCitiesBottomSheet(context, screenWidth, propertytypeId,
+              () {
+            setState(() => _selectedPropertyTab = 0);
+          });
+          setState(() => isApiCalling = false);
+        } else {
+          if (res['active_status'] == 0) {
+            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) => const Login()));
+          }
+          setState(() => isApiCalling = false);
+        }
+      } else {
+        setState(() => isApiCalling = false);
+      }
+    } catch (e) {
+      setState(() => isApiCalling = false);
+    }
+  }
+
   Future<void> getActivityAccordingDestination(
       context, screenWidth, selectedDestination) async {
     Uri url = Uri.parse(
@@ -300,6 +362,40 @@ class _ExploreState extends State<Explore> {
     }
   }
 
+  Future<void> getPropTypeAccordingCity(
+      context, screenWidth, cityId, cityName) async {
+    Uri url = Uri.parse(
+        "${AppConfigProvider.apiUrl}get_property_type_by_city_id?user_id=$userId&city_id=$cityId");
+    print("url $url");
+    String token = AppConstant.token;
+    Map<String, String> headers = {'Authorization': 'Bearer $token'};
+    setState(() => isApiCalling = true);
+    try {
+      final response = await http.get(url, headers: headers);
+      if (response.statusCode == 200) {
+        dynamic res = jsonDecode(response.body);
+        if (res['success'] == true) {
+          var item = res['property_type_arr'];
+          filteredPropertyTypeList = (item != "NA") ? item : [];
+          viewFilteredPropTypeBottomSheet(
+              context, screenWidth, cityId, cityName, () {});
+          setState(() => isApiCalling = false);
+        } else {
+          if (res['active_status'] == 0) {
+            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) => const Login()));
+          }
+          setState(() => isApiCalling = false);
+        }
+      } else {
+        setState(() => isApiCalling = false);
+      }
+    } catch (e) {
+      setState(() => isApiCalling = false);
+    }
+  }
+
   var refreshKey = GlobalKey<RefreshIndicatorState>();
 
   Future<Null> _refreshPage() async {
@@ -307,9 +403,10 @@ class _ExploreState extends State<Explore> {
     await Future.delayed(const Duration(seconds: 1));
     setState(() {
       selectActivity = 0;
-      _selectedCard = _CardSelection.sea;
+      // _selectedCard = _CardSelection.sea;
     });
     getUserDetails();
+    fetchWeather(latitude: lat, longitude: long);
     return null;
   }
 
@@ -381,9 +478,11 @@ class _ExploreState extends State<Explore> {
         '$_baseUrl?latitude=$latitude&longitude=$longitude&hourly=temperature_2m,windspeed_10m,winddirection_10m,relativehumidity_2m,weathercode,precipitation,cloudcover&wind_speed_unit=kmh&timezone=auto&apikey=${AppConstant.weatherKey}');
     try {
       final response = await http.get(uri);
+      log("url $uri");
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         temperatureData = getCurrentWeatherData(data);
+        log("temperatureData['temperature'].toStringAsFixed(0) ${temperatureData["temperature"].toStringAsFixed(0)}");
         AppConstant.temperature =
             temperatureData["temperature"].toStringAsFixed(0);
         AppConstant.unit = temperatureData["temperatureUnit"].toString();
@@ -569,61 +668,59 @@ class _ExploreState extends State<Explore> {
   }
 
   //!-----------------GET CITIES API CALL-----------------//!
-  Future<void> getCities() async {
-    Uri url = Uri.parse(
-        "${AppConfigProvider.apiUrl}fetch_city_by_country?country_id=0");
-    print("url $url");
-
-    Map<String, String> headers = ({
-      'Content-Type': 'application/json',
-    });
-    try {
-      final http.Response response = await http.get(
-        url,
-        headers: headers,
-      );
-      print("Runn");
-      if (response.statusCode == 200) {
-        dynamic res = jsonDecode(response.body);
-        print(res);
-        if (res['success'] == true) {
-          print(response.statusCode);
-          var item = res['city_arr'];
-          print("item $item");
-          if (item != "NA") {
-            setState(() {
-              cityList = item;
-              citySearchList = item;
-            });
-          } else {
-            setState(() {
-              cityList = [];
-              citySearchList = [];
-            });
-          }
-
-          setState(() {
-            isApiCalling = false;
-          });
-        } else {
-          if (res['active_status'] == 0) {
-            Future.delayed(const Duration(milliseconds: 100), () async {});
-          }
-          setState(() {
-            isApiCalling = false;
-          });
-        }
-      } else {
-        setState(() {
-          isApiCalling = false;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        isApiCalling = false;
-      });
-    }
-  }
+  // Future<void> getCities() async {
+  //   Uri url = Uri.parse(
+  //       "${AppConfigProvider.apiUrl}fetch_city_by_country?country_id=0");
+  //   print("url $url");
+  //   Map<String, String> headers = ({
+  //     'Content-Type': 'application/json',
+  //   });
+  //   try {
+  //     final http.Response response = await http.get(
+  //       url,
+  //       headers: headers,
+  //     );
+  //     print("Runn");
+  //     if (response.statusCode == 200) {
+  //       dynamic res = jsonDecode(response.body);
+  //       print(res);
+  //       if (res['success'] == true) {
+  //         print(response.statusCode);
+  //         var item = res['city_arr'];
+  //         print("item $item");
+  //         if (item != "NA") {
+  //           setState(() {
+  //             cityList = item;
+  //             citySearchList = item;
+  //           });
+  //         } else {
+  //           setState(() {
+  //             cityList = [];
+  //             citySearchList = [];
+  //           });
+  //         }
+  //         setState(() {
+  //           isApiCalling = false;
+  //         });
+  //       } else {
+  //         if (res['active_status'] == 0) {
+  //           Future.delayed(const Duration(milliseconds: 100), () async {});
+  //         }
+  //         setState(() {
+  //           isApiCalling = false;
+  //         });
+  //       }
+  //     } else {
+  //       setState(() {
+  //         isApiCalling = false;
+  //       });
+  //     }
+  //   } catch (e) {
+  //     setState(() {
+  //       isApiCalling = false;
+  //     });
+  //   }
+  // }
 
 //=============add favorite trip API================//
   Future<void> addFavoriteApiCall(index, tripId, int entity) async {
@@ -655,8 +752,13 @@ class _ExploreState extends State<Explore> {
       if (response.statusCode == 200) {
         if (res['success'] == true) {
           setState(() {
-            popularPropertiesList[index]['favourite_status'] =
-                res['favourite_status'];
+            if (entity == 1) {
+              popularPropertiesList[index]['favourite_status'] =
+                  res['favourite_status'];
+            } else {
+              popularBoatsList[index]['favourite_status'] =
+                  res['favourite_status'];
+            }
           });
 
           SnackBarToastMessage.showSnackBar(context, res['message'][language]);
@@ -711,7 +813,7 @@ class _ExploreState extends State<Explore> {
         value: const SystemUiOverlayStyle(
           statusBarColor: AppColor.secondaryColor,
           statusBarIconBrightness: Brightness.dark,
-          statusBarBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
         ),
         child: Scaffold(
           body: SafeArea(
@@ -795,7 +897,7 @@ class _ExploreState extends State<Explore> {
                                                   .height *
                                               2 /
                                               100),
-                                    if (_showSea)
+                                    if (_showSea && popularBoatsList.isNotEmpty)
                                       _buildPopularBoatsSection(context),
 
                                     // ══════════════ PROPERTY SECTION ══════════
@@ -831,7 +933,7 @@ class _ExploreState extends State<Explore> {
                                                             3 /
                                                             100),
                                               if (_showProperty)
-                                                _buildPopularDestinationsHeader(
+                                                _buildPopularDestinationsHeaderProperty(
                                                     context, screenWidth),
                                               if (_showProperty)
                                                 SizedBox(
@@ -842,13 +944,11 @@ class _ExploreState extends State<Explore> {
                                                             2 /
                                                             100),
                                               if (_showProperty &&
-                                                  hasTripDestinationsList
-                                                      .isNotEmpty)
-                                                _buildDestinationsList(
-                                                    context, screenWidth),
+                                                  popularCitiesList.isNotEmpty)
+                                                _buildCitiesList(
+                                                    context, screenWidth, 0),
                                               if (_showProperty &&
-                                                  hasTripDestinationsList
-                                                      .isEmpty)
+                                                  popularPropertiesList.isEmpty)
                                                 _buildNoDestinationMsg(context),
                                               if (_showProperty)
                                                 SizedBox(
@@ -860,7 +960,9 @@ class _ExploreState extends State<Explore> {
                                                             100),
 
                                               // 3) Popular properties horizontal list (filtered by tab)
-                                              if (_showProperty)
+                                              if (_showProperty &&
+                                                  popularPropertiesList
+                                                      .isNotEmpty)
                                                 _buildPopularPropertiesSection(
                                                     context),
 
@@ -1169,10 +1271,11 @@ class _ExploreState extends State<Explore> {
                     onTap: () {
                       setState(() => _selectedPropertyTab =
                           propertyTypeTabs[index]['property_type_id']);
-                      showAllCities(context, screenWidth,
-                          propertyTypeTabs[index]['property_type_id'], () {
-                        setState(() => _selectedPropertyTab = 0);
-                      });
+                      getCitiesAccordingPropertyType(
+                          userId,
+                          context,
+                          screenWidth,
+                          propertyTypeTabs[index]['property_type_id']);
                     },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 180),
@@ -1187,6 +1290,15 @@ class _ExploreState extends State<Explore> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width * 5 / 100,
+                            height: MediaQuery.of(context).size.width * 5 / 100,
+                            child: Image.network(
+                                "${AppConfigProvider.imageURL}${tab['vector_image']}"),
+                          ),
+                          SizedBox(
+                              width:
+                                  MediaQuery.of(context).size.width * 1 / 100),
                           Text(tab['property_type_name'][language] as String,
                               style: TextStyle(
                                 color: isSelected
@@ -1604,6 +1716,37 @@ class _ExploreState extends State<Explore> {
     );
   }
 
+  Widget _buildPopularDestinationsHeaderProperty(
+      BuildContext context, double screenWidth) {
+    return SizedBox(
+      width: screenWidth > 600
+          ? MediaQuery.of(context).size.width * 95 / 100
+          : MediaQuery.of(context).size.width * 90 / 100,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(AppLanguage.popularDestinationText[language],
+              style: const TextStyle(
+                  color: AppColor.primaryColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: AppFont.fontFamily)),
+          if (popularDestinationList.isNotEmpty)
+            GestureDetector(
+              // onTap: () => viewMoreDestinationBottomSheet(context, screenWidth),
+              onTap: () => showAllCities(context, screenWidth, 0, () {}),
+              child: Text(AppLanguage.viewMoreText[language],
+                  style: const TextStyle(
+                      color: AppColor.themeColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: AppFont.fontFamily)),
+            ),
+        ],
+      ),
+    );
+  }
+
   // ────────────────────────────────────────────────────────────────────────
   // SEA: DESTINATIONS LIST
   // ────────────────────────────────────────────────────────────────────────
@@ -1729,6 +1872,147 @@ class _ExploreState extends State<Explore> {
                                             fontSize: 12,
                                             fontWeight: FontWeight.w600,
                                             fontFamily: AppFont.fontFamily)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          SizedBox(
+                              height:
+                                  MediaQuery.of(context).size.height * 2 / 100),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+        ),
+        SizedBox(height: MediaQuery.of(context).size.height * 2 / 100),
+      ],
+    );
+  }
+
+  Widget _buildCitiesList(
+      BuildContext context, double screenWidth, propertyAdId) {
+    return Column(
+      children: [
+        SizedBox(
+          width: MediaQuery.of(context).size.width,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Wrap(
+              children: List.generate(
+                  popularCitiesList.length > 5 ? 5 : popularCitiesList.length,
+                  (index) {
+                return Container(
+                  padding: language == 1
+                      ? EdgeInsets.only(
+                          right:
+                              index == 0 ? (screenWidth > 600 ? 20 : 18) : 10,
+                          left: index ==
+                                  (popularCitiesList.length > 5
+                                          ? 5
+                                          : popularCitiesList.length) -
+                                      1
+                              ? 10
+                              : 0)
+                      : EdgeInsets.only(
+                          left: index == 0 ? (screenWidth > 600 ? 20 : 18) : 10,
+                          right: index ==
+                                  (popularCitiesList.length > 5
+                                          ? 5
+                                          : popularCitiesList.length) -
+                                      1
+                              ? 10
+                              : 0),
+                  child: GestureDetector(
+                    onTap: () {
+                      if (propertyAdId == 0) {
+                        getPropTypeAccordingCity(
+                            context,
+                            screenWidth,
+                            cityList[index]['city_id'],
+                            cityList[index]['city_name'][language]);
+                      } else {
+                        log("cityList[index]['city_id'] === ${cityList[index]['city_id']}");
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => PropertyScreen(
+                                    propertyAdId: propertyAdId,
+                                    cityId: cityList[index]['city_id'],
+                                    cityName: cityList[index]['city_name']
+                                        [language],
+                                    toOpen: "")));
+                      }
+                    },
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 40 / 100,
+                      height: MediaQuery.of(context).size.height * 25 / 100,
+                      padding: language == 1
+                          ? const EdgeInsets.only(right: 15)
+                          : const EdgeInsets.only(left: 15),
+                      decoration: BoxDecoration(
+                          image: DecorationImage(
+                              image: popularCitiesList[index]['city_image'] !=
+                                      null
+                                  ? NetworkImage(
+                                      "${AppConfigProvider.imageURL}${popularCitiesList[index]['city_image']}")
+                                  : const AssetImage(AppImage.imageFrameImage)
+                                      as ImageProvider,
+                              fit: BoxFit.cover),
+                          borderRadius: BorderRadius.circular(18)),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                              popularCitiesList[index]['city_name'][language] ??
+                                  "",
+                              style: const TextStyle(
+                                  color: AppColor.secondaryColor,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: AppFont.fontFamily)),
+                          if (popularCitiesList[index]['rating'] != 0)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppColor.secondaryColor.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(25),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    width: screenWidth > 600
+                                        ? MediaQuery.of(context).size.width *
+                                            3 /
+                                            100
+                                        : MediaQuery.of(context).size.width *
+                                            4 /
+                                            100,
+                                    height: MediaQuery.of(context).size.width *
+                                        4 /
+                                        100,
+                                    child: Image.asset(AppImage.ratingIcon),
+                                  ),
+                                  SizedBox(
+                                      width: MediaQuery.of(context).size.width *
+                                          1 /
+                                          100),
+                                  Text(
+                                    popularCitiesList[index]['rating']
+                                        .toString(),
+                                    style: const TextStyle(
+                                      color: AppColor.secondaryColor,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      fontFamily: AppFont.fontFamily,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -2096,8 +2380,10 @@ class _ExploreState extends State<Explore> {
                 onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (_) =>
-                            const PropertyHomeScreen(initialView: 'Grid'))),
+                        builder: (_) => ViewAllBoatScreen(
+                              initialView: 'Grid',
+                              activiesList: activitiesList,
+                            ))),
                 child: Text(AppLanguage.viewMoreText[language],
                     style: const TextStyle(
                         color: AppColor.themeColor,
@@ -2117,31 +2403,44 @@ class _ExploreState extends State<Explore> {
               start: size.width * 0.05,
               end: size.width * 0.05,
             ),
-            itemCount: popularPropertiesList.length,
+            itemCount: popularBoatsList.length,
             itemBuilder: (context, index) {
-              final property = popularPropertiesList[index];
-              final realIndex = popularPropertiesList.indexOf(property);
+              final boatAd = popularBoatsList[index];
+              final realIndex = popularBoatsList.indexOf(boatAd);
               return Padding(
                 padding: EdgeInsetsDirectional.only(
-                  end: index == popularPropertiesList.length - 1
+                  end: index == popularBoatsList.length - 1
                       ? 0
                       : size.width * 0.03,
                 ),
                 child: GestureDetector(
-                  onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => PropertyDetailsScreen(
-                                propertyAdId: popularPropertiesList[index]
-                                    ['property_ad_id'],
-                              ))),
+                  onTap: () {
+                    log("popularBoatsList[index]['advertisement_type'] ==== ${boatAd['advertisement_type']}");
+                    if (boatAd['advertisement_type'] == 0) {
+                      log("Private me ghusa");
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => PrivateTripDetailsScreen(
+                                    tripId: boatAd['trip_id'].toString(),
+                                  )));
+                    } else {
+                      log("Public me ghusa");
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => PublicTripDetailsScreen(
+                                    tripId: boatAd['trip_id'].toString(),
+                                  )));
+                    }
+                  },
                   child: Container(
                     width: size.width * 0.45,
                     decoration: BoxDecoration(
                         image: DecorationImage(
-                            image: property['image_path'] != null
+                            image: boatAd['trip_image'] != null
                                 ? NetworkImage(
-                                    "${AppConfigProvider.imageURL}${property['image_path']}")
+                                    "${AppConfigProvider.imageURL}${boatAd['trip_image']}")
                                 : const AssetImage(AppImage.dummyIcon)
                                     as ImageProvider,
                             fit: BoxFit.cover),
@@ -2177,13 +2476,13 @@ class _ExploreState extends State<Explore> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(AppLanguage.startingFromText[language],
-                                    style: const TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w500,
-                                        fontFamily: AppFont.fontFamily,
-                                        color: Colors.white)),
-                                Text("${property['starting_price'] ?? ""} KWD",
+                                // Text(AppLanguage.startingFromText[language],
+                                //     style: const TextStyle(
+                                //         fontSize: 10,
+                                //         fontWeight: FontWeight.w500,
+                                //         fontFamily: AppFont.fontFamily,
+                                //         color: Colors.white)),
+                                Text("${boatAd['price_per_hour'] ?? 0} KWD",
                                     style: const TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w500,
@@ -2199,8 +2498,11 @@ class _ExploreState extends State<Explore> {
                           right: 8,
                           child: GestureDetector(
                             onTap: () {
-                              deeplinkingProp(
-                                  context, property['property_ad_id']);
+                              deeplinking(
+                                  context,
+                                  boatAd['trip_id'],
+                                  popularBoatsList[index]
+                                      ['advertisement_type']);
                             },
                             child: Image.asset(
                               AppImage.shareIcon,
@@ -2217,7 +2519,7 @@ class _ExploreState extends State<Explore> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                property['property_name_english'] ?? "",
+                                boatAd['boat_name_english'][language] ?? "",
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
@@ -2229,7 +2531,7 @@ class _ExploreState extends State<Explore> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                "${AppLanguage.cityText[language]} \u2022 ${property['city_name'][language] ?? ""}",
+                                "${AppLanguage.cityText[language]} \u2022 ${boatAd['city_name'][language] ?? ""}",
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
@@ -2241,7 +2543,7 @@ class _ExploreState extends State<Explore> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                "${AppLanguage.propertyTypeText[language]} \u2022 ${property['property_type_name'][language] ?? ""}",
+                                "${AppLanguage.tripTypeText[language]} \u2022 ${boatAd['advertisement_type'] == 0 ? AppLanguage.privateText[language] : AppLanguage.publicText[language]}",
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
@@ -2254,7 +2556,7 @@ class _ExploreState extends State<Explore> {
                               const SizedBox(height: 4),
                               Row(
                                 children: [
-                                  if (property['rating'] != 0)
+                                  if (boatAd['total_rating'] != "0.00")
                                     Container(
                                       width: screenWidth > 600
                                           ? MediaQuery.of(context).size.width *
@@ -2307,7 +2609,7 @@ class _ExploreState extends State<Explore> {
                                                   1 /
                                                   100),
                                           Text(
-                                            property['rating'].toString(),
+                                            boatAd['total_rating'].toString(),
                                             style: const TextStyle(
                                                 color: AppColor.secondaryColor,
                                                 fontSize: 10,
@@ -2330,7 +2632,7 @@ class _ExploreState extends State<Explore> {
                                       borderRadius: BorderRadius.circular(25),
                                     ),
                                     child: Text(
-                                      "${"${(property['max_adult'] ?? 0) + (property['max_child'] ?? 0)}"} ${AppLanguage.guestsext[language]}",
+                                      "${"${(boatAd['max_people'] ?? 0)}"} ${AppLanguage.memberstext[language]}",
                                       style: const TextStyle(
                                           color: AppColor.secondaryColor,
                                           fontSize: 10,
@@ -2343,12 +2645,12 @@ class _ExploreState extends State<Explore> {
                                     onTap: () {
                                       addFavoriteApiCall(
                                           index,
-                                          popularPropertiesList[realIndex]
-                                              ['property_ad_id'],
-                                          1);
+                                          popularBoatsList[realIndex]
+                                              ['trip_id'],
+                                          0);
                                     },
                                     child: Image.asset(
-                                      (popularPropertiesList[realIndex]
+                                      (popularBoatsList[realIndex]
                                                   ['favourite_status'] ==
                                               1)
                                           ? AppImage.removeFavouriteIcon
@@ -2853,6 +3155,149 @@ class _ExploreState extends State<Explore> {
         }).then((_) => onDismiss());
   }
 
+  void viewFilteredCitiesBottomSheet(BuildContext context, screenWidth,
+      propertytypeId, VoidCallback onDismiss) {
+    showModalBottomSheet<void>(
+        isScrollControlled: true,
+        constraints: BoxConstraints.expand(
+            width: screenWidth,
+            height: MediaQuery.of(context).size.height * 60 / 100),
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(30), topRight: Radius.circular(30))),
+        context: context,
+        builder: (BuildContext context) {
+          return StatefulBuilder(builder: (context, setState) {
+            return Padding(
+              padding: MediaQuery.of(context).viewInsets,
+              child: Directionality(
+                textDirection:
+                    language == 1 ? ui.TextDirection.rtl : ui.TextDirection.ltr,
+                child: Container(
+                  height: MediaQuery.of(context).size.height * 55 / 100,
+                  width: MediaQuery.of(context).size.width * 100 / 100,
+                  decoration: const BoxDecoration(
+                      color: AppColor.secondaryColor,
+                      borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(30),
+                          topRight: Radius.circular(30))),
+                  child: Column(children: [
+                    SizedBox(
+                        height: MediaQuery.of(context).size.height * 4 / 100),
+                    SizedBox(
+                        width: MediaQuery.of(context).size.width * 90 / 100,
+                        child: Text(AppLanguage.selectCityText[language],
+                            style: TextStyle(
+                                color: AppColor.primaryColor,
+                                fontFamily: AppFont.fontFamily,
+                                fontWeight: FontWeight.w700,
+                                fontSize: screenWidth > 600 ? 20 : 16))),
+                    SizedBox(
+                        height: MediaQuery.of(context).size.height * 3 / 100),
+                    Expanded(
+                        child: SingleChildScrollView(
+                            child: Column(children: [
+                      if (filteredCitiesList.isNotEmpty)
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width * 90 / 100,
+                          child: Wrap(
+                            spacing: 15,
+                            runSpacing: 12,
+                            children: List.generate(filteredCitiesList.length,
+                                (index) {
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => PropertyScreen(
+                                              propertyAdId: propertytypeId,
+                                              cityId: filteredCitiesList[index]
+                                                  ['city_id'],
+                                              cityName:
+                                                  filteredCitiesList[index]
+                                                      ['city_name'][language],
+                                              toOpen: "")));
+                                },
+                                child: Container(
+                                  width: MediaQuery.of(context).size.width *
+                                      27 /
+                                      100,
+                                  height: MediaQuery.of(context).size.height *
+                                      18 /
+                                      100,
+                                  padding: const EdgeInsets.only(left: 15),
+                                  decoration: BoxDecoration(
+                                      image: DecorationImage(
+                                          image: filteredCitiesList[index]
+                                                      ['city_image'] !=
+                                                  null
+                                              ? NetworkImage(
+                                                  "${AppConfigProvider.imageURL}${filteredCitiesList[index]['city_image']}")
+                                              : const AssetImage(
+                                                      AppImage.dummyIcon)
+                                                  as ImageProvider,
+                                          fit: BoxFit.cover),
+                                      borderRadius: BorderRadius.circular(18)),
+                                  child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      crossAxisAlignment: language == 0
+                                          ? CrossAxisAlignment.start
+                                          : CrossAxisAlignment.end,
+                                      children: [
+                                        Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Text(
+                                                filteredCitiesList[index]
+                                                    ['city_name'][language],
+                                                style: const TextStyle(
+                                                    color:
+                                                        AppColor.secondaryColor,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w600,
+                                                    fontFamily:
+                                                        AppFont.fontFamily))),
+                                        SizedBox(
+                                            height: MediaQuery.of(context)
+                                                    .size
+                                                    .height *
+                                                2 /
+                                                100),
+                                      ]),
+                                ),
+                              );
+                            }),
+                          ),
+                        ),
+                      if (filteredCitiesList.isEmpty)
+                        Column(children: [
+                          SizedBox(
+                              height: MediaQuery.of(context).size.height *
+                                  15 /
+                                  100),
+                          SizedBox(
+                              width: screenWidth * 75 / 100,
+                              child: Text(
+                                  AppLanguage.destinationNoDataMsg[language],
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                      fontFamily: AppFont.fontFamily,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColor.primaryColor))),
+                        ]),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 2 / 100),
+                    ]))),
+                  ]),
+                ),
+              ),
+            );
+          });
+        }).then((_) => onDismiss());
+  }
+
   void viewFilteredActivitiesBottomSheet(BuildContext context, screenWidth,
       destinationId, VoidCallback onDismiss) {
     showModalBottomSheet<void>(
@@ -2986,6 +3431,158 @@ class _ExploreState extends State<Explore> {
                               width: screenWidth * 75 / 100,
                               child: Text(
                                   AppLanguage.activityNoDataMsg[language],
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                      fontFamily: AppFont.fontFamily,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColor.primaryColor))),
+                        ]),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 2 / 100),
+                    ]))),
+                  ]),
+                ),
+              ),
+            );
+          });
+        }).then((_) => onDismiss());
+  }
+
+  void viewFilteredPropTypeBottomSheet(BuildContext context, screenWidth,
+      cityId, cityName, VoidCallback onDismiss) {
+    showModalBottomSheet<void>(
+        isScrollControlled: true,
+        constraints: BoxConstraints.expand(
+            width: screenWidth,
+            height: MediaQuery.of(context).size.height * 60 / 100),
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(30), topRight: Radius.circular(30))),
+        context: context,
+        builder: (BuildContext context) {
+          return StatefulBuilder(builder: (context, setState) {
+            return Padding(
+              padding: MediaQuery.of(context).viewInsets,
+              child: Directionality(
+                textDirection:
+                    language == 1 ? ui.TextDirection.rtl : ui.TextDirection.ltr,
+                child: Container(
+                  height: MediaQuery.of(context).size.height * 55 / 100,
+                  width: MediaQuery.of(context).size.width * 100 / 100,
+                  decoration: const BoxDecoration(
+                      color: AppColor.secondaryColor,
+                      borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(30),
+                          topRight: Radius.circular(30))),
+                  child: Column(children: [
+                    SizedBox(
+                        height: MediaQuery.of(context).size.height * 4 / 100),
+                    SizedBox(
+                        width: MediaQuery.of(context).size.width * 90 / 100,
+                        child: Text(AppLanguage.selectProTypeText[language],
+                            style: TextStyle(
+                                color: AppColor.primaryColor,
+                                fontFamily: AppFont.fontFamily,
+                                fontWeight: FontWeight.w700,
+                                fontSize: screenWidth > 600 ? 20 : 16))),
+                    SizedBox(
+                        height: MediaQuery.of(context).size.height * 3 / 100),
+                    Expanded(
+                        child: SingleChildScrollView(
+                            child: Column(children: [
+                      if (filteredPropertyTypeList.isNotEmpty)
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width * 90 / 100,
+                          child: Wrap(
+                            spacing: 15,
+                            runSpacing: 12,
+                            children: List.generate(
+                                filteredPropertyTypeList.length, (index) {
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => PropertyScreen(
+                                              propertyAdId:
+                                                  filteredPropertyTypeList[
+                                                          index]
+                                                      ['property_type_id'],
+                                              cityId: cityId,
+                                              cityName: cityName,
+                                              toOpen: "")));
+
+                                  setState(() => _selectedPropertyTab = 0);
+                                },
+                                child: Container(
+                                  width: MediaQuery.of(context).size.width *
+                                      27 /
+                                      100,
+                                  height: MediaQuery.of(context).size.height *
+                                      18 /
+                                      100,
+                                  padding: const EdgeInsets.only(left: 15),
+                                  decoration: BoxDecoration(
+                                      image: DecorationImage(
+                                          image: filteredPropertyTypeList[index]
+                                                      ['property_type_image'] !=
+                                                  null
+                                              ? NetworkImage(
+                                                  "${AppConfigProvider.imageURL}${filteredPropertyTypeList[index]['property_type_image']}")
+                                              : const AssetImage(
+                                                      AppImage.dummyIcon)
+                                                  as ImageProvider,
+                                          fit: BoxFit.cover),
+                                      borderRadius: BorderRadius.circular(18)),
+                                  child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      crossAxisAlignment: language == 0
+                                          ? CrossAxisAlignment.start
+                                          : CrossAxisAlignment.end,
+                                      children: [
+                                        SizedBox(
+                                          width: screenWidth * 27 / 100,
+                                          child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Text(
+                                                  filteredPropertyTypeList[
+                                                              index]
+                                                          ['property_type_name']
+                                                      [language],
+                                                  style: const TextStyle(
+                                                      color: AppColor
+                                                          .secondaryColor,
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      fontFamily:
+                                                          AppFont.fontFamily))),
+                                        ),
+                                        SizedBox(
+                                            height: MediaQuery.of(context)
+                                                    .size
+                                                    .height *
+                                                2 /
+                                                100),
+                                      ]),
+                                ),
+                              );
+                            }),
+                          ),
+                        ),
+                      if (filteredPropertyTypeList.isEmpty)
+                        Column(children: [
+                          SizedBox(
+                              height: MediaQuery.of(context).size.height *
+                                  15 /
+                                  100),
+                          SizedBox(
+                              width: screenWidth * 75 / 100,
+                              child: Text(
+                                  AppLanguage.noPropertiesText[language],
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(
                                       fontFamily: AppFont.fontFamily,
@@ -3160,16 +3757,25 @@ class _ExploreState extends State<Explore> {
                               return GestureDetector(
                                 onTap: () {
                                   Navigator.pop(context);
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => PropertyScreen(
-                                              propertyAdId: propertyAdId,
-                                              cityId: cityList[index]
-                                                  ['city_id'],
-                                              cityName: cityList[index]
-                                                  ['city_name'][language],
-                                              toOpen: "")));
+                                  if (propertyAdId == 0) {
+                                    getPropTypeAccordingCity(
+                                        contextUp,
+                                        screenWidth,
+                                        cityList[index]['city_id'],
+                                        cityList[index]['city_name'][language]);
+                                  } else {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                PropertyScreen(
+                                                    propertyAdId: propertyAdId,
+                                                    cityId: cityList[index]
+                                                        ['city_id'],
+                                                    cityName: cityList[index]
+                                                        ['city_name'][language],
+                                                    toOpen: "")));
+                                  }
 
                                   // if (selectActivity == 0) {
                                   //   getActivityAccordingDestination(

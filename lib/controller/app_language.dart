@@ -983,14 +983,14 @@ class AppLanguage {
     "عطلة نهاية الأسبوع (الخميس-السبت)"
   ];
 
-  // static const fullWeekDaysText = [
-  //   "Full week (Sun-Sat)",
-  //   "طوال الأسبوع (الأحد-السبت)"
-  // ];
   static const fullWeekDaysText = [
-    "Full week (7 days)",
-    "طوال الأسبوع (7 أيام)",
+    "Full week (Sun-Sat)",
+    "طوال الأسبوع (الأحد-السبت)"
   ];
+  // static const fullWeekDaysText = [
+  //   "Full week (7 days)",
+  //   "طوال الأسبوع (7 أيام)",
+  // ];
   static const selectDateMsg = [
     "Please select a date",
     "يرجى اختيار التاريخ",
@@ -1065,4 +1065,5 @@ class AppLanguage {
     "Please select the country first",
     "الرجاء اختيار الدولة أولاً",
   ];
+    static const seaReportText = ["Sea Report", ];
 }

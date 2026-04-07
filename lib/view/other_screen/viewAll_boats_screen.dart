@@ -9,7 +9,6 @@ import 'package:boatapp/controller/app_header.dart';
 import 'package:boatapp/controller/app_image.dart';
 import 'package:boatapp/controller/app_language.dart';
 import 'package:flutter/material.dart';
-import 'package:boatapp/view/property_screens/property_detail_screen.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,16 +17,21 @@ import '../../controller/app_snack_bar_toast_message.dart';
 import '../authentication/login_screen.dart';
 import 'dart:ui' as ui;
 
-class PropertyHomeScreen extends StatefulWidget {
-  final String initialView;
+import 'privateBookingFlow/private_trip_details.dart';
+import 'publicBookingFlow/public_trip_details.dart';
 
-  const PropertyHomeScreen({super.key, this.initialView = "List"});
+class ViewAllBoatScreen extends StatefulWidget {
+  final String initialView;
+  final List<dynamic> activiesList;
+
+  const ViewAllBoatScreen(
+      {super.key, this.initialView = "List", required this.activiesList});
 
   @override
-  State<PropertyHomeScreen> createState() => _PropertyHomeScreenState();
+  State<ViewAllBoatScreen> createState() => _ViewAllBoatScreenState();
 }
 
-class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
+class _ViewAllBoatScreenState extends State<ViewAllBoatScreen> {
   late String selectedView;
   int userId = 0;
   dynamic userDetails;
@@ -40,10 +44,10 @@ class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
   String _searchQuery = '';
 
   List<dynamic> get _filteredProperties {
-    if (_searchQuery.isEmpty) return properties;
-    return properties
+    if (_searchQuery.isEmpty) return boatsList;
+    return boatsList
         .where((p) =>
-            p['property_name_english']
+            p['boat_name'][language]
                 .toString()
                 .toLowerCase()
                 .contains(_searchQuery.toLowerCase()) ||
@@ -55,14 +59,15 @@ class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
   }
   // ─────────────────────────────────────────────────────────────────────
 
-  List<dynamic> properties = [];
-  List<dynamic> propertyTypeList = [];
+  List<dynamic> boatsList = [];
+  List<dynamic> activitesList = [];
 
   @override
   void initState() {
     super.initState();
     getUserDetails();
     selectedView = widget.initialView;
+    activitesList = widget.activiesList;
   }
 
   Future<dynamic> getUserDetails() async {
@@ -75,16 +80,15 @@ class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
     }
     isApiCalling = false;
     getAllAdvertisementApi(userId, 0);
-    propertyTypesApiCall(userId);
     setState(() {});
   }
 
-  Future<void> getAllAdvertisementApi(userId, int propTypeId) async {
+  Future<void> getAllAdvertisementApi(userId, int activityId) async {
     setState(() {
       isLoading = true;
     });
     Uri url = Uri.parse(
-        "${AppConfigProvider.apiUrl}getall_advertisements?user_id=$userId&property_type_id=$propTypeId");
+        "${AppConfigProvider.apiUrl}get_all_boat_advertisement?user_id=$userId&activity_id=$activityId");
     print("url $url");
     String token = AppConstant.token;
     Map<String, String> headers = {'Authorization': 'Bearer $token'};
@@ -94,7 +98,7 @@ class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
         dynamic res = jsonDecode(response.body);
         if (res['success'] == true) {
           var item = res['data'];
-          properties = (item != "NA") ? item : [];
+          boatsList = (item != "NA") ? item : [];
           setState(() => isLoading = false);
         } else {
           setState(() => isLoading = false);
@@ -107,74 +111,12 @@ class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
     }
   }
 
-  deeplinkingProp(BuildContext context, propertyAdId) async {
+  deeplinking(BuildContext context, tripId, advertisementType) async {
     var shareUrl =
-        "${AppConfigProvider.apiUrl}deepLink?link=aventra://property_ad_id/${Uri.encodeComponent(propertyAdId.toString())}/entity/${Uri.encodeComponent(1.toString())}";
+        "${AppConfigProvider.apiUrl}deepLink?link=aventra://trip_id/${Uri.encodeComponent(tripId.toString())}/advertisement_type/${Uri.encodeComponent(advertisementType.toString())}/entity/${Uri.encodeComponent(0.toString())}";
     final RenderBox box = context.findRenderObject() as RenderBox;
     await Share.share("Aventra App! $shareUrl",
         sharePositionOrigin: box.localToGlobal(Offset.zero) & box.size);
-  }
-
-  //------------------------PropType API CALL--------------------------------//
-  Future<void> propertyTypesApiCall(
-    userId,
-  ) async {
-    Uri url = Uri.parse(
-        "${AppConfigProvider.apiUrl}get_all_property_type?user_id=$userId");
-    print("url $url");
-    setState(() {
-      isLoading = true;
-    });
-    String token = AppConstant.token;
-
-    if (token.isEmpty) {
-      print("Token is missing!");
-      // return;
-    }
-
-    Map<String, String> headers = {
-      'Authorization': 'Bearer $token', // Use 'Bearer' if required
-    };
-
-    print("headers $headers");
-
-    try {
-      final response = await http.get(url, headers: headers);
-      print("response $response");
-
-      if (response.statusCode == 200) {
-        dynamic res = jsonDecode(response.body);
-        print("res $res");
-
-        if (res['success'] == true) {
-          var item = res['data'];
-          propertyTypeList = (item != "NA") ? item : [];
-
-          setState(() {
-            isLoading = false;
-          });
-        } else {
-          propertyTypeList = [];
-          setState(() {
-            isLoading = false;
-          });
-          // ignore: use_build_context_synchronously
-          if (res['active_status'] == 0) {
-            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
-          }
-        }
-      } else {
-        propertyTypeList = [];
-        setState(() {
-          isLoading = false;
-        });
-      }
-    } catch (e) {
-      propertyTypeList = [];
-      setState(() {
-        isLoading = false;
-      });
-    }
   }
 
 //=============add favorite trip API================//
@@ -207,7 +149,7 @@ class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
       if (response.statusCode == 200) {
         if (res['success'] == true) {
           setState(() {
-            properties[index]['favourite_status'] = res['favourite_status'];
+            boatsList[index]['favourite_status'] = res['favourite_status'];
           });
 
           SnackBarToastMessage.showSnackBar(context, res['message'][language]);
@@ -263,7 +205,7 @@ class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
               children: [
                 // ── Header ───────────────────────────────────────────────
                 AppHeader(
-                  text: AppLanguage.mostPopularpropertiesText[language],
+                  text: AppLanguage.mostPopularBoatsText[language],
                   onPress: () => Navigator.pop(context),
                 ),
 
@@ -292,7 +234,7 @@ class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
                                           color: Colors.grey.shade300),
                                       const SizedBox(height: 12),
                                       Text(
-                                        'No properties found',
+                                        'No trips found',
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontFamily: AppFont.fontFamily,
@@ -483,134 +425,39 @@ class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
     );
   }
 
-  // ── List Card ─────────────────────────────────────────────────────────
-  Widget _propertyCard(Map<String, dynamic> property, int index) {
-    final size = MediaQuery.of(context).size;
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => PropertyDetailsScreen(
-                  propertyAdId: property['property_ad_id'],
-                )),
-      ),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        height: 180,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          image: DecorationImage(
-            image: AssetImage(property['image']),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              right: 12,
-              child: GestureDetector(
-                onTap: () => setState(() {
-                  addFavoriteApiCall(index, property['property_ad_id'], 1);
-                }),
-                child: Container(
-                  width: size.width * 0.07,
-                  height: size.height * 0.07,
-                  decoration: const BoxDecoration(
-                    color: AppColor.secondaryColor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Image.asset(
-                    property['favourite_status'] == 1
-                        ? AppImage.removeFavouriteIcon
-                        : AppImage.addFavouriteIcons,
-                    width: size.width * 0.07,
-                    height: size.width * 0.07,
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 12,
-              left: 12,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(property['name'],
-                      style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          fontFamily: AppFont.fontFamily,
-                          color: AppColor.secondaryColor)),
-                  const SizedBox(height: 4),
-                  Text(property['location'],
-                      style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w500,
-                          fontFamily: AppFont.fontFamily,
-                          color: AppColor.secondaryColor)),
-                ],
-              ),
-            ),
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: const BoxDecoration(
-                  color: AppColor.themeColor,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    bottomRight: Radius.circular(16),
-                  ),
-                ),
-                child: Text.rich(TextSpan(children: [
-                  TextSpan(
-                    text: property['price'],
-                    style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: AppFont.fontFamily,
-                        color: AppColor.secondaryColor),
-                  ),
-                  const TextSpan(
-                    text: '/Day',
-                    style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w400,
-                        fontFamily: AppFont.fontFamily,
-                        color: AppColor.secondaryColor),
-                  ),
-                ])),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   // ── Grid Card ─────────────────────────────────────────────────────────
-  Widget _propertyGridCard(Map<String, dynamic> property, int index) {
+  Widget _propertyGridCard(Map<String, dynamic> boatAd, int index) {
     final size = MediaQuery.of(context).size;
     double screenWidth = MediaQuery.of(context).size.width;
     // find real index in original list for favorite toggle
-    final realIndex = properties.indexOf(property);
+    final realIndex = boatsList.indexOf(boatAd);
 
     return GestureDetector(
-      onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (_) => PropertyDetailsScreen(
-                    propertyAdId: property['property_ad_id'],
-                  ))),
+      onTap: () {
+        log("popularBoatsList[index]['advertisement_type'] ==== ${boatAd['advertisement_type']}");
+        if (boatAd['advertisement_type'] == 0) {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => PrivateTripDetailsScreen(
+                        tripId: boatAd['trip_id'].toString(),
+                      )));
+        } else {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => PublicTripDetailsScreen(
+                        tripId: boatAd['trip_id'].toString(),
+                      )));
+        }
+      },
       child: Container(
         width: size.width * 0.45,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           image: DecorationImage(
               image: NetworkImage(
-                  "${AppConfigProvider.imageURL}${property['cover_image']}"),
+                  "${AppConfigProvider.imageURL}${boatAd['trip_image']}"),
               fit: BoxFit.cover),
         ),
         child: Stack(
@@ -643,13 +490,7 @@ class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(AppLanguage.startingFromText[language],
-                        style: const TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w500,
-                            fontFamily: AppFont.fontFamily,
-                            color: Colors.white)),
-                    Text("${property['starting_price']?.toString() ?? ""} KWD",
+                    Text("${boatAd['price_per_hour']?.toString() ?? ""} KWD",
                         style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -665,7 +506,8 @@ class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
               right: 8,
               child: GestureDetector(
                 onTap: () {
-                  deeplinkingProp(context, property['property_ad_id']);
+                  deeplinking(
+                      context, boatAd['trip_id'], boatAd['advertisement_type']);
                 },
                 child: Image.asset(
                   AppImage.shareIcon,
@@ -682,7 +524,7 @@ class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    property['property_name_english'] ?? "",
+                    boatAd['boat_name'][language] ?? "",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -694,7 +536,7 @@ class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    "${AppLanguage.cityText[language]} \u2022 ${property['city_name'][language] ?? ""}",
+                    "${AppLanguage.cityText[language]} \u2022 ${boatAd['city_name'][language] ?? ""}",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -706,7 +548,7 @@ class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    "${AppLanguage.propertyTypeText[language]} \u2022 ${property['property_type_name'][language] ?? ""}",
+                    "${AppLanguage.advertisementText[language]} \u2022 ${boatAd['advertisement_type'] == 0 ? AppLanguage.privateText[language] : AppLanguage.publicText[language]}",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -719,7 +561,7 @@ class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      if (property['rating'] != 0)
+                      if (boatAd['rating'] != 0)
                         Container(
                           width: screenWidth > 600
                               ? MediaQuery.of(context).size.width * 10 / 100
@@ -754,7 +596,7 @@ class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
                                       1 /
                                       100),
                               Text(
-                                property['rating'].toString(),
+                                boatAd['rating'].toString(),
                                 style: const TextStyle(
                                     color: AppColor.secondaryColor,
                                     fontSize: 10,
@@ -774,7 +616,7 @@ class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
                           borderRadius: BorderRadius.circular(25),
                         ),
                         child: Text(
-                          "${((property['max_adult'] ?? 0) + (property['max_child'] ?? 0))} ${AppLanguage.guestsext[language]}",
+                          "${boatAd['max_people'] ?? 0} ${AppLanguage.membersText[language]}",
                           style: const TextStyle(
                               color: AppColor.secondaryColor,
                               fontSize: 10,
@@ -786,12 +628,11 @@ class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
                       GestureDetector(
                         onTap: () {
                           if (realIndex != -1) {
-                            addFavoriteApiCall(
-                                index, property['property_ad_id'], 1);
+                            addFavoriteApiCall(index, boatAd['trip_id'], 0);
                           }
                         },
                         child: Image.asset(
-                          (property['favourite_status'] ?? 0) == 1
+                          (boatAd['favourite_status'] ?? 0) == 1
                               ? AppImage.removeFavouriteIcon
                               : AppImage.addFavouriteIcons,
                           width: size.width * 0.06,
@@ -881,20 +722,20 @@ class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
                               spacing: 15,
                               runSpacing: 10,
                               // alignment: WrapAlignment.spaceBetween,
-                              children: List.generate(propertyTypeList.length,
-                                  (index) {
+                              children:
+                                  List.generate(activitesList.length, (index) {
                                 return Column(
                                   children: [
                                     GestureDetector(
                                       onTap: () {
                                         selectedPropTypeId =
-                                            propertyTypeList[index]
-                                                ['property_type_id'];
+                                            activitesList[index]
+                                                ['trip_type_id'];
                                         Navigator.pop(context);
                                         getAllAdvertisementApi(
                                             userId,
-                                            propertyTypeList[index]
-                                                ['property_type_id']);
+                                            activitesList[index]
+                                                ['trip_type_id']);
                                       },
                                       child: Container(
                                         width:
@@ -909,18 +750,18 @@ class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
                                         //     const EdgeInsets.only(left: 15),
                                         decoration: BoxDecoration(
                                           image: DecorationImage(
-                                            image: propertyTypeList[index][
-                                                        'property_type_image'] !=
+                                            image: activitesList[index]
+                                                        ['image'] !=
                                                     null
                                                 ? NetworkImage(
-                                                    "${AppConfigProvider.imageURL}${propertyTypeList[index]['property_type_image']}")
+                                                    "${AppConfigProvider.imageURL}${activitesList[index]['image']}")
                                                 : const AssetImage(
                                                         AppImage.dummyIcon)
                                                     as ImageProvider,
                                             fit: BoxFit.cover,
                                             colorFilter: (selectedPropTypeId ==
-                                                    propertyTypeList[index]
-                                                        ['property_type_id'])
+                                                    activitesList[index]
+                                                        ['trip_type_id'])
                                                 ? ColorFilter.mode(
                                                     Colors.black.withOpacity(
                                                         0.4), // Adjust the opacity
@@ -938,8 +779,8 @@ class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
                                               BorderRadius.circular(15),
                                         ),
                                         child: (selectedPropTypeId ==
-                                                propertyTypeList[index]
-                                                    ['property_type_id'])
+                                                activitesList[index]
+                                                    ['trip_type_id'])
                                             ? Center(
                                                 child: SizedBox(
                                                   width: MediaQuery.of(context)
@@ -970,8 +811,7 @@ class _PropertyHomeScreenState extends State<PropertyHomeScreen> {
                                           100,
                                       alignment: Alignment.center,
                                       child: Text(
-                                        propertyTypeList[index]
-                                                    ['property_type_label']
+                                        activitesList[index]['name_english']
                                                 [language] ??
                                             '',
                                         textAlign: TextAlign.center,

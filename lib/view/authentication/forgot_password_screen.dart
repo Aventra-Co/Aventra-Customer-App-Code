@@ -117,7 +117,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
 
   Widget _buildUIScreen(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-        statusBarColor: AppColor.secondaryColor,
+        statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark));
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),

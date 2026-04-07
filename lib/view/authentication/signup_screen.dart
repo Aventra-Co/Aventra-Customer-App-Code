@@ -607,7 +607,7 @@ class _SignupState extends State<Signup> {
                             MediaQuery.of(context).size.width * 5 / 100),
                     decoration: const BoxDecoration(
                         image: DecorationImage(
-                          image: AssetImage(AppImage.signUpIcon),
+                          image: AssetImage(AppImage.createAccImage),
                           fit: BoxFit.cover,
                         ),
                         borderRadius: BorderRadius.only(

@@ -470,25 +470,26 @@ class _FavouritesState extends State<Favourites> {
                                   ],
                                 )
                               : (gridOrListView == 1
-                                  ? GridView.builder(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 16),
-                                      itemCount: properties.length,
-                                      physics:
-                                          const AlwaysScrollableScrollPhysics(),
-                                      gridDelegate:
-                                          const SliverGridDelegateWithFixedCrossAxisCount(
-                                        crossAxisCount: 2,
-                                        crossAxisSpacing: 8,
-                                        mainAxisSpacing: 16,
-                                        childAspectRatio:
-                                            0.72, // slightly taller cells
-                                      ),
-                                      itemBuilder: (context, index) {
-                                        return _propertyGridCard(
-                                            properties[index], index);
-                                      },
-                                    )
+                                  ? _propertyGridCard()
+                                  // GridView.builder(
+                                  //     padding: const EdgeInsets.symmetric(
+                                  //         horizontal: 16),
+                                  //     itemCount: properties.length,
+                                  //     physics:
+                                  //         const AlwaysScrollableScrollPhysics(),
+                                  //     gridDelegate:
+                                  //         const SliverGridDelegateWithFixedCrossAxisCount(
+                                  //       crossAxisCount: 2,
+                                  //       crossAxisSpacing: 8,
+                                  //       mainAxisSpacing: 16,
+                                  //       childAspectRatio:
+                                  //           0.72, // slightly taller cells
+                                  //     ),
+                                  //     itemBuilder: (context, index) {
+                                  //       return _propertyGridCard(
+                                  //           properties[index], index);
+                                  //     },
+                                  //   )
                                   : ListView.builder(
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 18),
@@ -1734,7 +1735,7 @@ class _FavouritesState extends State<Favourites> {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      if (property['rating'] != 0)
+                      if (property['rating'] != 0) ...[
                         Container(
                           width: screenWidth > 600
                               ? MediaQuery.of(context).size.width * 10 / 100
@@ -1779,8 +1780,9 @@ class _FavouritesState extends State<Favourites> {
                             ],
                           ),
                         ),
-                      SizedBox(
-                          width: MediaQuery.of(context).size.width * 2 / 100),
+                        SizedBox(
+                            width: MediaQuery.of(context).size.width * 2 / 100),
+                      ],
                       Container(
                         padding: const EdgeInsets.symmetric(
                             vertical: 4, horizontal: 5),
@@ -1903,211 +1905,489 @@ class _FavouritesState extends State<Favourites> {
   }
 
   // Grid Card
-  Widget _propertyGridCard(Map<String, dynamic> property, int index) {
+  // Widget _propertyGridCard(Map<String, dynamic> property, int index) {
+  //   final size = MediaQuery.of(context).size;
+  //   double screenWidth = MediaQuery.of(context).size.width;
+  //   return GestureDetector(
+  //     onTap: () {
+  //       Navigator.push(
+  //         context,
+  //         MaterialPageRoute(
+  //           builder: (context) => PropertyDetailsScreen(
+  //             propertyAdId: property['property_ad_id'],
+  //           ),
+  //         ),
+  //       );
+  //     },
+  //     child: Stack(
+  //       children: [
+  //         // Gradient overlay
+  //         Container(
+  //           width: MediaQuery.of(context).size.width * 44 / 100,
+  //           height: MediaQuery.of(context).size.height * 25 / 100,
+  //           decoration: BoxDecoration(
+  //             borderRadius: BorderRadius.circular(16),
+  //             image: DecorationImage(
+  //               image: NetworkImage(
+  //                   "${AppConfigProvider.imageURL}${property['image_path']}"),
+  //               fit: BoxFit.cover,
+  //               colorFilter: ColorFilter.mode(
+  //                 Colors.black.withOpacity(0.2),
+  //                 BlendMode.darken,
+  //               ),
+  //             ),
+  //           ),
+  //         ),
+  //         // Price badge top-left
+  //         Positioned(
+  //           top: 0,
+  //           left: language == 0 ? 0 : null,
+  //           right: language == 1 ? 0 : null,
+  //           child: Container(
+  //             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+  //             decoration: BoxDecoration(
+  //                 color: AppColor.themeColor,
+  //                 borderRadius: language == 1
+  //                     ? const BorderRadius.only(
+  //                         bottomLeft: Radius.circular(4),
+  //                         topRight: Radius.circular(17))
+  //                     : const BorderRadius.only(
+  //                         topLeft: Radius.circular(17),
+  //                         bottomRight: Radius.circular(4))),
+  //             child: Column(
+  //               crossAxisAlignment: CrossAxisAlignment.start,
+  //               children: [
+  //                 Text(AppLanguage.startingFromText[language],
+  //                     style: const TextStyle(
+  //                         fontSize: 10,
+  //                         fontWeight: FontWeight.w500,
+  //                         fontFamily: AppFont.fontFamily,
+  //                         color: Colors.white)),
+  //                 Text("${property['starting_price']?.toString() ?? 0} KWD",
+  //                     style: const TextStyle(
+  //                         fontSize: 14,
+  //                         fontWeight: FontWeight.w500,
+  //                         fontFamily: AppFont.fontFamily,
+  //                         color: Colors.white)),
+  //               ],
+  //             ),
+  //           ),
+  //         ),
+  //         Positioned(
+  //           bottom: 30,
+  //           left: 8,
+  //           right: 8,
+  //           child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             mainAxisSize: MainAxisSize.min,
+  //             children: [
+  //               Text(
+  //                 property['property_name_english'][0] ?? "",
+  //                 maxLines: 1,
+  //                 overflow: TextOverflow.ellipsis,
+  //                 style: const TextStyle(
+  //                   fontSize: 14,
+  //                   fontWeight: FontWeight.w700,
+  //                   fontFamily: AppFont.fontFamily,
+  //                   color: Colors.white,
+  //                 ),
+  //               ),
+  //               const SizedBox(height: 1),
+  //               Text(
+  //                 "${AppLanguage.cityText[language]} \u2022 ${property['city_name'][language] ?? ""}",
+  //                 maxLines: 1,
+  //                 overflow: TextOverflow.ellipsis,
+  //                 style: const TextStyle(
+  //                   fontSize: 10,
+  //                   fontWeight: FontWeight.w500,
+  //                   fontFamily: AppFont.fontFamily,
+  //                   color: AppColor.white,
+  //                 ),
+  //               ),
+  //               const SizedBox(height: 1),
+  //               Text(
+  //                 "${AppLanguage.propertyTypeText[language]} \u2022 ${property['property_type_name'][language] ?? ""}",
+  //                 maxLines: 1,
+  //                 overflow: TextOverflow.ellipsis,
+  //                 style: const TextStyle(
+  //                   fontSize: 10,
+  //                   fontWeight: FontWeight.w500,
+  //                   fontFamily: AppFont.fontFamily,
+  //                   color: AppColor.white,
+  //                 ),
+  //               ),
+  //               const SizedBox(height: 4),
+  //               Row(
+  //                 children: [
+  //                   if (property['rating'] != 0)
+  //                     Container(
+  //                       width: screenWidth > 600
+  //                           ? MediaQuery.of(context).size.width * 10 / 100
+  //                           : MediaQuery.of(context).size.width * 11 / 100,
+  //                       padding: const EdgeInsets.symmetric(
+  //                           vertical: 4, horizontal: 2),
+  //                       decoration: BoxDecoration(
+  //                           color: AppColor.secondaryColor.withOpacity(0.3),
+  //                           borderRadius: BorderRadius.circular(25)),
+  //                       child: Row(
+  //                         mainAxisAlignment: MainAxisAlignment.center,
+  //                         children: [
+  //                           SizedBox(
+  //                             width: screenWidth > 600
+  //                                 ? MediaQuery.of(context).size.width * 2 / 100
+  //                                 : MediaQuery.of(context).size.width * 3 / 100,
+  //                             height: screenWidth > 600
+  //                                 ? MediaQuery.of(context).size.width * 2 / 100
+  //                                 : MediaQuery.of(context).size.width * 3 / 100,
+  //                             child: Image.asset(AppImage.ratingIcon),
+  //                           ),
+  //                           SizedBox(
+  //                               width: MediaQuery.of(context).size.width *
+  //                                   1 /
+  //                                   100),
+  //                           Text(
+  //                             property['rating'].toString(),
+  //                             style: const TextStyle(
+  //                                 color: AppColor.secondaryColor,
+  //                                 fontSize: 10,
+  //                                 fontWeight: FontWeight.w600,
+  //                                 fontFamily: AppFont.fontFamily),
+  //                           ),
+  //                         ],
+  //                       ),
+  //                     ),
+  //                   SizedBox(
+  //                       width: MediaQuery.of(context).size.width * 1 / 100),
+  //                   Container(
+  //                     alignment: Alignment.center,
+  //                     width: MediaQuery.of(context).size.width * 15 / 100,
+  //                     padding: const EdgeInsets.symmetric(
+  //                         vertical: 2, horizontal: 5),
+  //                     decoration: BoxDecoration(
+  //                       color: AppColor.secondaryColor.withOpacity(0.2),
+  //                       borderRadius: BorderRadius.circular(25),
+  //                     ),
+  //                     child: Text(
+  //                       "${(property['max_adult'] ?? 0 + (property['max_child'] ?? 0))} ${AppLanguage.guestsext[language]}",
+  //                       textAlign: TextAlign.center,
+  //                       style: const TextStyle(
+  //                           color: AppColor.secondaryColor,
+  //                           fontSize: 8,
+  //                           fontWeight: FontWeight.w600,
+  //                           fontFamily: AppFont.fontFamily),
+  //                     ),
+  //                   ),
+  //                   const Spacer(),
+  //                   GestureDetector(
+  //                     onTap: () {
+  //                       addFavoriteApiCall(property['property_ad_id'], 1);
+  //                     },
+  //                     child: Image.asset(
+  //                       (property['favourite_status'] ?? 0) == 1
+  //                           ? AppImage.removeFavouriteIcon
+  //                           : AppImage.addFavouriteIcons,
+  //                       width: size.width * 0.06,
+  //                       height: size.width * 0.06,
+  //                     ),
+  //                   ),
+  //                   SizedBox(
+  //                     width: MediaQuery.of(context).size.width * 1 / 100,
+  //                   ),
+  //                   GestureDetector(
+  //                     onTap: () {
+  //                       deeplinkingProp(context, property['property_ad_id']);
+  //                     },
+  //                     child: Image.asset(
+  //                       AppImage.favShareICon,
+  //                       width: size.width * 0.06,
+  //                       height: size.width * 0.06,
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
+  Widget _propertyGridCard() {
     final size = MediaQuery.of(context).size;
     double screenWidth = MediaQuery.of(context).size.width;
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PropertyDetailsScreen(
-              propertyAdId: property['property_ad_id'],
-            ),
-          ),
-        );
-      },
-      child: Stack(
-        children: [
-          // Gradient overlay
-          Container(
-            width: MediaQuery.of(context).size.width * 44 / 100,
-            height: MediaQuery.of(context).size.height * 25 / 100,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              image: DecorationImage(
-                image: NetworkImage(
-                    "${AppConfigProvider.imageURL}${property['image_path']}"),
-                fit: BoxFit.cover,
-                colorFilter: ColorFilter.mode(
-                  Colors.black.withOpacity(0.2),
-                  BlendMode.darken,
-                ),
-              ),
-            ),
-          ),
-          // Price badge top-left
-          Positioned(
-            top: 0,
-            left: language == 0 ? 0 : null,
-            right: language == 1 ? 0 : null,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-              decoration: BoxDecoration(
-                  color: AppColor.themeColor,
-                  borderRadius: language == 1
-                      ? const BorderRadius.only(
-                          bottomLeft: Radius.circular(4),
-                          topRight: Radius.circular(17))
-                      : const BorderRadius.only(
-                          topLeft: Radius.circular(17),
-                          bottomRight: Radius.circular(4))),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(AppLanguage.startingFromText[language],
-                      style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w500,
-                          fontFamily: AppFont.fontFamily,
-                          color: Colors.white)),
-                  Text("${property['starting_price']?.toString() ?? 0} KWD",
-                      style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          fontFamily: AppFont.fontFamily,
-                          color: Colors.white)),
-                ],
-              ),
-            ),
-          ),
-
-          Positioned(
-            bottom: 30,
-            left: 8,
-            right: 8,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  property['property_name_english'][0] ?? "",
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    fontFamily: AppFont.fontFamily,
-                    color: Colors.white,
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width * 90 / 100,
+        child: Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          runSpacing: 10.0,
+          children: List.generate(properties.length, (index) {
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PropertyDetailsScreen(
+                      propertyAdId: properties[index]['property_ad_id'],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 1),
-                Text(
-                  "${AppLanguage.cityText[language]} \u2022 ${property['city_name'][language] ?? ""}",
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                    fontFamily: AppFont.fontFamily,
-                    color: AppColor.white,
-                  ),
-                ),
-                const SizedBox(height: 1),
-                Text(
-                  "${AppLanguage.propertyTypeText[language]} \u2022 ${property['property_type_name'][language] ?? ""}",
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                    fontFamily: AppFont.fontFamily,
-                    color: AppColor.white,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
+                );
+              },
+              child: Container(
+                width: MediaQuery.of(context).size.width * 44 / 100,
+                height: MediaQuery.of(context).size.height * 25 / 100,
+                decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: properties[index]['image_path'] != null
+                          ? NetworkImage(
+                              "${AppConfigProvider.imageURL}${properties[index]['image_path']}")
+                          : const AssetImage(AppImage.imageFrameImage)
+                              as ImageProvider,
+                      fit: BoxFit.cover,
+                      colorFilter: ColorFilter.mode(
+                        Colors.black.withOpacity(0.2),
+                        BlendMode.darken,
+                      ),
+                    ),
+                    borderRadius: BorderRadius.circular(20)),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    if (property['rating'] != 0)
-                      Container(
-                        width: screenWidth > 600
-                            ? MediaQuery.of(context).size.width * 10 / 100
-                            : MediaQuery.of(context).size.width * 11 / 100,
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 4, horizontal: 2),
-                        decoration: BoxDecoration(
-                            color: AppColor.secondaryColor.withOpacity(0.3),
-                            borderRadius: BorderRadius.circular(25)),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              width: screenWidth > 600
-                                  ? MediaQuery.of(context).size.width * 2 / 100
-                                  : MediaQuery.of(context).size.width * 3 / 100,
-                              height: screenWidth > 600
-                                  ? MediaQuery.of(context).size.width * 2 / 100
-                                  : MediaQuery.of(context).size.width * 3 / 100,
-                              child: Image.asset(AppImage.ratingIcon),
-                            ),
-                            SizedBox(
-                                width: MediaQuery.of(context).size.width *
-                                    1 /
-                                    100),
-                            Text(
-                              property['rating'].toString(),
-                              style: const TextStyle(
-                                  color: AppColor.secondaryColor,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  fontFamily: AppFont.fontFamily),
-                            ),
-                          ],
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 4, horizontal: 8),
+                          decoration: BoxDecoration(
+                              color: AppColor.themeColor,
+                              borderRadius: language == 1
+                                  ? const BorderRadius.only(
+                                      topRight: Radius.circular(20),
+                                      bottomLeft: Radius.circular(4))
+                                  : const BorderRadius.only(
+                                      topLeft: Radius.circular(20),
+                                      bottomRight: Radius.circular(4))),
+                          child: Row(
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(AppLanguage.startingFromText[language],
+                                      style: const TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w500,
+                                          fontFamily: AppFont.fontFamily,
+                                          color: Colors.white)),
+                                  Text(
+                                      "${properties[index]['starting_price']?.toString() ?? 0} KWD",
+                                      style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          fontFamily: AppFont.fontFamily,
+                                          color: Colors.white)),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    SizedBox(
-                        width: MediaQuery.of(context).size.width * 1 / 100),
-                    Container(
-                      alignment: Alignment.center,
-                      width: MediaQuery.of(context).size.width * 15 / 100,
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 2, horizontal: 5),
-                      decoration: BoxDecoration(
-                        color: AppColor.secondaryColor.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child: Text(
-                        "${(property['max_adult'] ?? 0 + (property['max_child'] ?? 0))} ${AppLanguage.guestsext[language]}",
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                            color: AppColor.secondaryColor,
-                            fontSize: 8,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: AppFont.fontFamily),
-                      ),
-                    ),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: () {
-                        addFavoriteApiCall(property['property_ad_id'], 1);
-                      },
-                      child: Image.asset(
-                        (property['favourite_status'] ?? 0) == 1
-                            ? AppImage.removeFavouriteIcon
-                            : AppImage.addFavouriteIcons,
-                        width: size.width * 0.06,
-                        height: size.width * 0.06,
-                      ),
+                        const Spacer(),
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width * 2 / 100,
+                        )
+                      ],
                     ),
                     SizedBox(
-                      width: MediaQuery.of(context).size.width * 1 / 100,
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        deeplinkingProp(context, property['property_ad_id']);
-                      },
-                      child: Image.asset(
-                        AppImage.favShareICon,
-                        width: size.width * 0.06,
-                        height: size.width * 0.06,
+                      width: MediaQuery.of(context).size.width * 40 / 100,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            properties[index]['property_name_english'][0] ?? "",
+                            style: const TextStyle(
+                                color: AppColor.secondaryColor,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: AppFont.fontFamily),
+                          ),
+                          Row(
+                            children: [
+                              SizedBox(
+                                width: MediaQuery.of(context).size.width *
+                                    40 /
+                                    100,
+                                child: Text(
+                                  "${AppLanguage.cityText[language]} \u2022 ${properties[index]['city_name'][language] ?? ""}",
+                                  style: const TextStyle(
+                                      color: AppColor.secondaryColor,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w500,
+                                      fontFamily: AppFont.fontFamily),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              SizedBox(
+                                width: MediaQuery.of(context).size.width *
+                                    40 /
+                                    100,
+                                child: Text(
+                                  "${AppLanguage.propertyTypeText[language]} \u2022 ${properties[index]['property_type_name'][language] ?? ""}",
+                                  style: const TextStyle(
+                                      color: AppColor.secondaryColor,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w500,
+                                      fontFamily: AppFont.fontFamily),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              if (properties[index]['rating'] != 0)
+                                Container(
+                                  width: screenWidth > 600
+                                      ? MediaQuery.of(context).size.width *
+                                          8 /
+                                          100
+                                      : MediaQuery.of(context).size.width *
+                                          11 /
+                                          100,
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 2, horizontal: 3),
+                                  decoration: BoxDecoration(
+                                    color: AppColor.secondaryColor
+                                        .withOpacity(0.4),
+                                    borderRadius: BorderRadius.circular(25),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SizedBox(
+                                        width: screenWidth > 600
+                                            ? MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                2 /
+                                                100
+                                            : MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                3 /
+                                                100,
+                                        height: screenWidth > 600
+                                            ? MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                2 /
+                                                100
+                                            : MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                3 /
+                                                100,
+                                        child: Image.asset(AppImage.ratingIcon),
+                                      ),
+                                      SizedBox(
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              1 /
+                                              100),
+                                      Text(
+                                        properties[index]['rating'].toString(),
+                                        style: const TextStyle(
+                                            color: AppColor.secondaryColor,
+                                            fontSize: 8,
+                                            fontWeight: FontWeight.w600,
+                                            fontFamily: AppFont.fontFamily),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              SizedBox(
+                                  width: MediaQuery.of(context).size.width *
+                                      1 /
+                                      100),
+                              Container(
+                                alignment: Alignment.center,
+                                width: MediaQuery.of(context).size.width *
+                                    15 /
+                                    100,
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 2, horizontal: 5),
+                                decoration: BoxDecoration(
+                                  color:
+                                      AppColor.secondaryColor.withOpacity(0.4),
+                                  borderRadius: BorderRadius.circular(25),
+                                ),
+                                child: Text(
+                                  "${(properties[index]['max_adult'] ?? 0 + (properties[index]['max_child'] ?? 0))} ${AppLanguage.guestsext[language]}",
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                      color: AppColor.secondaryColor,
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.w600,
+                                      fontFamily: AppFont.fontFamily),
+                                ),
+                              ),
+                              const Spacer(),
+                              GestureDetector(
+                                onTap: () {
+                                  addFavoriteApiCall(
+                                      properties[index]['property_ad_id'], 1);
+                                },
+                                child: SizedBox(
+                                  //  color: Colors.red,
+                                  width: MediaQuery.of(context).size.width *
+                                      6 /
+                                      100,
+                                  height: MediaQuery.of(context).size.width *
+                                      6 /
+                                      100,
+                                  child: Image.asset(AppImage.favHeartIcon),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 2.0),
+                                child: InkWell(
+                                  onTap: () {
+                                    deeplinkingProp(
+                                      context,
+                                      properties[index]['property_ad_id'],
+                                    );
+                                  },
+                                  child: SizedBox(
+                                    // color: Colors.red,
+                                    width: MediaQuery.of(context).size.width *
+                                        6 /
+                                        100,
+                                    height: MediaQuery.of(context).size.width *
+                                        6 /
+                                        100,
+                                    child: Image.asset(
+                                      AppImage.favShareICon,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(
+                              height:
+                                  MediaQuery.of(context).size.height * 1 / 100)
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-        ],
+              ),
+            );
+          }),
+        ),
       ),
     );
   }

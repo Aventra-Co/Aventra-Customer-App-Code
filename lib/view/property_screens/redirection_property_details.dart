@@ -375,7 +375,7 @@ class _RedirectionPropertyDetailsScreenState
       value: const SystemUiOverlayStyle(
         statusBarColor: AppColor.secondaryColor,
         statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
       ),
       child: PopScope(
         canPop: false,
@@ -936,22 +936,22 @@ class _RedirectionPropertyDetailsScreenState
                                                   .numberOfGuestMsg[language]);
                                           return;
                                         }
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                PropertyBookingDetails(
-                                              adDetails: adDetails,
-                                              adultCount: adultCount,
-                                              childCount: childCount,
-                                              propertyAdId: widget.propertyAdId,
-                                              checkinDate: _rangeStart!,
-                                              checkoutDate: _rangeEnd!,
-                                              totalNights: _totalNights,
-                                              grandTotal: _grandTotal,
-                                            ),
-                                          ),
-                                        );
+                                        // Navigator.push(
+                                        //   context,
+                                        //   MaterialPageRoute(
+                                        //     builder: (context) =>
+                                        //         PropertyBookingDetails(
+                                        //       adDetails: adDetails,
+                                        //       adultCount: adultCount,
+                                        //       childCount: childCount,
+                                        //       propertyAdId: widget.propertyAdId,
+                                        //       checkinDate: _rangeStart!,
+                                        //       checkoutDate: _rangeEnd!,
+                                        //       totalNights: _totalNights,
+                                        //       grandTotal: _grandTotal,
+                                        //     ),
+                                        //   ),
+                                        // );
                                       },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: AppColor.themeColor,

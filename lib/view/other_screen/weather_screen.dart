@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'package:boatapp/controller/app_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
@@ -28,6 +28,8 @@ class WeatherScreenState extends State<WeatherScreen> {
   dynamic weatherData;
   bool isApiCalling = true;
   String city = "";
+  bool _isFetchingLocation = false;
+  String? _errorMessage; // <-- ADD: to show error to user
 
   @override
   void initState() {
@@ -36,92 +38,139 @@ class WeatherScreenState extends State<WeatherScreen> {
   }
 
   void fetchLocation() async {
+    if (_isFetchingLocation) return;
+    _isFetchingLocation = true;
+
     try {
       Position? position = await getCurrentLocation();
       if (position != null) {
         lat = position.latitude;
         long = position.longitude;
-        // lat = 36.0;
-        // long = -123.0;
-        _getAddressFromLatLng(lat, long);
-        print(
-            "Latitudeadfa: ${position.latitude}, Longitude: ${position.longitude}, position: $position");
 
-        weatherData = await getWeatherData(latitude: lat, longitude: long);
-        setState(() {
-          isApiCalling = false;
-        });
-        log("weatherData$weatherData");
-        // fetchWeather(latitude: lat, longitude: long);
+        // Run address lookup and weather fetch concurrently
+        await Future.wait([
+          _getAddressFromLatLng(lat, long),
+          _fetchAndSetWeather(lat, long),
+        ]);
+      } else {
+        // Permission denied or service disabled — stop loader
+        if (mounted) {
+          setState(() {
+            isApiCalling = false;
+            _errorMessage =
+                'Unable to get location. Please enable location services.';
+          });
+        }
       }
     } catch (e) {
-      print("Error: $e");
+      debugPrint("fetchLocation Error: $e");
+      if (mounted) {
+        setState(() {
+          isApiCalling = false;
+          _errorMessage = 'Something went wrong. Please try again.';
+        });
+      }
+    } finally {
+      _isFetchingLocation = false;
     }
   }
 
-  //!get current location
-  Future<Position?> getCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
+  Future<void> _fetchAndSetWeather(double latitude, double longitude) async {
+    final data = await getWeatherData(latitude: latitude, longitude: longitude);
+    if (mounted) {
+      setState(() {
+        weatherData = data;
+        isApiCalling = false;
+        if (data == null) {
+          _errorMessage = 'Weather data unavailable for this location.';
+        }
+      });
+    }
+  }
 
-    //! Check if location services are enabled
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  Future<Position?> getCurrentLocation() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      //! Location services are not enabled
-      SnackBarToastMessage.showSnackBar(
-          context, 'Location services are disabled.');
-      return Future.error('Location services are disabled.');
+      if (mounted) {
+        SnackBarToastMessage.showSnackBar(context,
+            'Location services are disabled. Please enable in Settings.');
+      }
+      return null;
     }
 
-    //! Check location permission
-    permission = await Geolocator.checkPermission();
+    LocationPermission permission = await Geolocator.checkPermission();
+
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        //! Permissions are denied
-        SnackBarToastMessage.showSnackBar(
-            context, 'Location permissions are denied');
-        return Future.error('Location permissions are denied');
-      }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      //! Permissions are permanently denied
-      SnackBarToastMessage.showSnackBar(
-          context, 'Location permissions are permanently denied');
-      return Future.error('Location permissions are permanently denied');
+      // On iOS, once denied forever you MUST open Settings
+      if (mounted) {
+        _showOpenSettingsDialog();
+      }
+      return null;
     }
 
-    //! Get the current position city area
+    if (permission == LocationPermission.denied) {
+      if (mounted) {
+        SnackBarToastMessage.showSnackBar(
+            context, 'Location permission denied.');
+      }
+      return null;
+    }
+
     return await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
+      timeLimit: const Duration(seconds: 15), // prevents hanging forever
     );
   }
 
-  Future<void> _getAddressFromLatLng(lat, long) async {
-    await placemarkFromCoordinates(lat, long)
-        .then((List<Placemark> placemarks) {
-      Placemark place = placemarks[0];
-      print(
-          'Line 105  ${place.street}, ${place.subLocality}, ${place.subAdministrativeArea}, ${place.postalCode}');
-
-      setState(() {
-        city = "${place.subAdministrativeArea}";
-      });
-    }).catchError((e) {
-      print(
-        "Line 95",
-      );
-      debugPrint(e);
-    });
+  void _showOpenSettingsDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Location Permission Required'),
+        content: const Text(
+          'Location access was denied. Please go to Settings > Aventra > Location and allow access.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Geolocator.openAppSettings(); // opens iOS Settings directly
+            },
+            child: const Text('Open Settings'),
+          ),
+        ],
+      ),
+    );
   }
 
-  //!======Fetch Weather API==============
+  Future<void> _getAddressFromLatLng(double lat, double long) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(lat, long);
+      if (placemarks.isNotEmpty) {
+        final place = placemarks[0];
+        if (mounted) {
+          setState(() {
+            city = place.subAdministrativeArea ?? place.locality ?? "";
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Geocoding error: $e");
+    }
+  }
+
   Future<Map<String, dynamic>?> fetchWeather({
     required double latitude,
     required double longitude,
   }) async {
-    // Build the URI with all required parameters
     final uri = Uri.parse('$_baseUrl?'
         'latitude=$latitude&'
         'longitude=$longitude&'
@@ -130,54 +179,43 @@ class WeatherScreenState extends State<WeatherScreen> {
         'timezone=auto&'
         'apikey=${AppConstant.weatherKey}');
 
-    print("uri: $uri");
-
     try {
-      final response = await http.get(uri);
-
+      final response = await http.get(uri).timeout(const Duration(seconds: 15));
       if (response.statusCode == 200) {
-        print("weatherRes: ${response.body}");
-        final data = json.decode(response.body);
-        return data;
+        return json.decode(response.body);
       } else {
-        print('Failed to fetch weather: ${response.statusCode}');
-        print('Response body: ${response.body}');
+        debugPrint(
+            'Weather API failed: ${response.statusCode} - ${response.body}');
         return null;
       }
     } catch (e) {
-      print('Error: $e');
+      debugPrint('fetchWeather error: $e');
       return null;
     }
   }
 
-  //!======Fetch Marine Weather API==============
   Future<Map<String, dynamic>?> fetchMarineWeather({
     required double latitude,
     required double longitude,
   }) async {
-    // Build the URI with all required parameters
     final uri = Uri.parse('https://marine-api.open-meteo.com/v1/marine?'
         'latitude=$latitude&'
         'longitude=$longitude&'
         'hourly=wave_height,wave_direction,wave_period,sea_surface_temperature,sea_level_height_msl&'
         'timezone=auto');
 
-    print("uri: $uri");
-
     try {
-      final response = await http.get(uri);
-
+      final response = await http.get(uri).timeout(const Duration(seconds: 15));
       if (response.statusCode == 200) {
-        print("weatherRes: ${response.body}");
-        final data = json.decode(response.body);
-        return data;
+        return json.decode(response.body);
       } else {
-        print('Failed to fetch weather: ${response.statusCode}');
-        print('Response body: ${response.body}');
+        // *** KEY FIX: Log but don't fail — marine API fails for inland locations ***
+        debugPrint(
+            'Marine API failed: ${response.statusCode} - ${response.body}');
         return null;
       }
     } catch (e) {
-      print('Error: $e');
+      debugPrint('fetchMarineWeather error: $e');
       return null;
     }
   }
@@ -187,71 +225,61 @@ class WeatherScreenState extends State<WeatherScreen> {
     required double longitude,
   }) async {
     try {
-      // Fetch both weather and marine data concurrently
+      // Fetch both concurrently; marine may be null for inland locations
       final results = await Future.wait([
         fetchWeather(latitude: latitude, longitude: longitude),
         fetchMarineWeather(latitude: latitude, longitude: longitude),
       ]);
 
-      final weatherData = results[0];
-      final marineData = results[1];
+      final weatherApiData = results[0];
+      final marineData = results[1]; // MAY BE NULL — handle gracefully
 
-      if (weatherData == null || marineData == null) {
-        print('Failed to fetch one or both weather data sources');
+      // *** KEY FIX: Only fail if weather data is missing; marine is optional ***
+      if (weatherApiData == null) {
+        debugPrint('Failed to fetch weather data');
         return null;
       }
 
-      // Get current time and calculate target hours
       final now = DateTime.now();
       final currentHour = now.hour;
-
-      // Calculate dates for today, tomorrow, and day after tomorrow
       final today = DateTime(now.year, now.month, now.day);
       final tomorrow = today.add(const Duration(days: 1));
       final dayAfterTomorrow = today.add(const Duration(days: 2));
 
-      // Extract hourly data arrays from responses
-      final weatherHourly = weatherData['hourly'] as Map<String, dynamic>?;
-      final marineHourly = marineData['hourly'] as Map<String, dynamic>?;
+      final weatherHourly = weatherApiData['hourly'] as Map<String, dynamic>?;
+      final marineHourly =
+          marineData?['hourly'] as Map<String, dynamic>?; // nullable
 
-      if (weatherHourly == null || marineHourly == null) {
-        print('Missing hourly data in API responses');
+      if (weatherHourly == null) {
+        debugPrint('Missing hourly data in weather response');
         return null;
       }
 
-      // Get the time array to find matching hours
       final timeArray = weatherHourly['time'] as List<dynamic>?;
       if (timeArray == null) {
-        print('Missing time array in weather data');
+        debugPrint('Missing time array in weather data');
         return null;
       }
 
-      // Find indices for current hour of each day
       int? todayIndex;
       int? tomorrowIndex;
       int? dayAfterTomorrowIndex;
 
       for (int i = 0; i < timeArray.length; i++) {
-        final timeString = timeArray[i] as String;
-        final dateTime = DateTime.parse(timeString);
+        final dateTime = DateTime.parse(timeArray[i] as String);
 
-        // Check if this is the current hour of today
         if (dateTime.year == today.year &&
             dateTime.month == today.month &&
             dateTime.day == today.day &&
             dateTime.hour == currentHour) {
           todayIndex = i;
         }
-
-        // Check if this is the current hour of tomorrow
         if (dateTime.year == tomorrow.year &&
             dateTime.month == tomorrow.month &&
             dateTime.day == tomorrow.day &&
             dateTime.hour == currentHour) {
           tomorrowIndex = i;
         }
-
-        // Check if this is the current hour of day after tomorrow
         if (dateTime.year == dayAfterTomorrow.year &&
             dateTime.month == dayAfterTomorrow.month &&
             dateTime.day == dayAfterTomorrow.day &&
@@ -260,7 +288,6 @@ class WeatherScreenState extends State<WeatherScreen> {
         }
       }
 
-      // Helper function to extract data for a specific index
       Map<String, dynamic> extractDataForIndex(int index) {
         final date = DateTime.parse(timeArray[index] as String);
         final formattedDate =
@@ -279,32 +306,26 @@ class WeatherScreenState extends State<WeatherScreen> {
               0.0,
           'wind_speed':
               (weatherHourly['windspeed_10m'] as List<dynamic>?)?[index] ?? 0.0,
+          // *** KEY FIX: Use null-safe access for marine data ***
           'wave_height':
-              (marineHourly['wave_height'] as List<dynamic>?)?[index] ?? 0.0,
-          'tide': (marineHourly['sea_level_height_msl']
+              (marineHourly?['wave_height'] as List<dynamic>?)?[index] ?? 'N/A',
+          'tide': (marineHourly?['sea_level_height_msl']
                   as List<dynamic>?)?[index] ??
-              0.0,
+              'N/A',
         };
       }
 
-      // Build the result map
       Map<String, Map<String, dynamic>> result = {};
-
-      if (todayIndex != null) {
-        result['today'] = extractDataForIndex(todayIndex);
-      }
-
-      if (tomorrowIndex != null) {
+      if (todayIndex != null) result['today'] = extractDataForIndex(todayIndex);
+      if (tomorrowIndex != null)
         result['tomorrow'] = extractDataForIndex(tomorrowIndex);
-      }
-
       if (dayAfterTomorrowIndex != null) {
         result['dayAfterTomorrow'] = extractDataForIndex(dayAfterTomorrowIndex);
       }
 
       return result;
     } catch (e) {
-      print('Error in getWeatherData: $e');
+      debugPrint('Error in getWeatherData: $e');
       return null;
     }
   }
@@ -320,11 +341,13 @@ class WeatherScreenState extends State<WeatherScreen> {
   Widget _buildUIScreen(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
+
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
         systemNavigationBarColor: AppColor.secondaryColor,
         systemNavigationBarIconBrightness: Brightness.dark,
         statusBarColor: AppColor.secondaryColor,
         statusBarIconBrightness: Brightness.dark));
+
     return GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
         child: Scaffold(
@@ -334,28 +357,97 @@ class WeatherScreenState extends State<WeatherScreen> {
               textDirection:
                   language == 1 ? ui.TextDirection.rtl : ui.TextDirection.ltr,
               child: Container(
-                height: screenHeight * 100 / 100,
-                width: screenWidth * 100 / 100,
+                height: screenHeight,
+                width: screenWidth,
                 color: AppColor.secondaryColor,
                 child: Column(children: [
                   AppHeader(
-                      text: AppLanguage.weatherReportText[language],
+                      text: "",
                       onPress: () {
                         Navigator.pop(context);
                       }),
-                  SizedBox(
-                    height: screenHeight * 2 / 100,
-                  ),
-                  if (!isApiCalling)
+                  // SizedBox(height: screenHeight * 2 / 100),
+
+                  // *** ADD: Error state ***
+                  if (!isApiCalling && _errorMessage != null)
+                    Expanded(
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.cloud_off,
+                                  size: 60, color: AppColor.primaryColor),
+                              const SizedBox(height: 16),
+                              Text(
+                                _errorMessage!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontFamily: AppFont.fontFamily,
+                                  fontSize: 14,
+                                  color: AppColor.primaryColor,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    isApiCalling = true;
+                                    _errorMessage = null;
+                                  });
+                                  fetchLocation();
+                                },
+                                child: const Text('Retry'),
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  if (!isApiCalling &&
+                      _errorMessage == null &&
+                      weatherData != null)
                     Expanded(
                       flex: 1,
                       child: SingleChildScrollView(
                         child: Column(
                           children: [
+                            // Sea Report Header
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: screenWidth * 5 / 100,
+                                  vertical: 8),
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                      width: MediaQuery.of(context).size.width *
+                                          15 /
+                                          100,
+                                      height:
+                                          MediaQuery.of(context).size.width *
+                                              15 /
+                                              100,
+                                      child:
+                                          Image.asset(AppImage.seaReportImage)),
+                                  // const SizedBox(width: 5),
+                                  Text(
+                                    AppLanguage.seaReportText[language],
+                                    style: const TextStyle(
+                                        fontFamily: AppFont.fontFamily,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColor.primaryColor),
+                                  ),
+                                ],
+                              ),
+                            ),
                             SizedBox(
                               width: screenWidth * 90 / 100,
                               child: Row(
                                 children: [
+                                  // Labels column
                                   Container(
                                     width: screenWidth * 30 / 100,
                                     decoration: const BoxDecoration(
@@ -369,742 +461,68 @@ class WeatherScreenState extends State<WeatherScreen> {
                                     ),
                                     child: Column(
                                       children: [
-                                        Container(
-                                          alignment: language == 0
-                                              ? Alignment.centerLeft
-                                              : Alignment.centerRight,
-                                          width: screenWidth * 30 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 8.0),
-                                            child: Text(
-                                              AppLanguage.dateText[language],
-                                              style: const TextStyle(
-                                                  fontFamily:
-                                                      AppFont.fontFamily,
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.w500,
-                                                  color: AppColor.primaryColor),
-                                            ),
-                                          ),
+                                        _labelCell(
+                                          screenWidth,
+                                          screenHeight,
+                                          AppLanguage.dateText[language],
+                                          "",
                                         ),
-                                        Container(
-                                          alignment: language == 0
-                                              ? Alignment.centerLeft
-                                              : Alignment.centerRight,
-                                          width: screenWidth * 30 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 8.0),
-                                            child: Text(
-                                              AppLanguage
-                                                  .locationText[language],
-                                              style: const TextStyle(
-                                                  fontFamily:
-                                                      AppFont.fontFamily,
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.w500,
-                                                  color: AppColor.primaryColor),
-                                            ),
-                                          ),
+                                        _labelCell(
+                                          screenWidth,
+                                          screenHeight,
+                                          AppLanguage.locationText[language],
+                                          AppImage.locationImage,
                                         ),
-                                        Container(
-                                          alignment: language == 0
-                                              ? Alignment.centerLeft
-                                              : Alignment.centerRight,
-                                          width: screenWidth * 30 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 8.0),
-                                            child: Text(
-                                              AppLanguage
-                                                  .windSpeedText[language],
-                                              style: const TextStyle(
-                                                  fontFamily:
-                                                      AppFont.fontFamily,
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.w500,
-                                                  color: AppColor.primaryColor),
-                                            ),
-                                          ),
+                                        _labelCell(
+                                          screenWidth,
+                                          screenHeight,
+                                          AppLanguage.windSpeedText[language],
+                                          AppImage.waveImage,
                                         ),
-                                        Container(
-                                          alignment: language == 0
-                                              ? Alignment.centerLeft
-                                              : Alignment.centerRight,
-                                          width: screenWidth * 30 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 8.0),
-                                            child: Text(
-                                              AppLanguage
-                                                  .windDirectionText[language],
-                                              style: const TextStyle(
-                                                  fontFamily:
-                                                      AppFont.fontFamily,
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.w500,
-                                                  color: AppColor.primaryColor),
-                                            ),
-                                          ),
+                                        _labelCell(
+                                          screenWidth,
+                                          screenHeight,
+                                          AppLanguage
+                                              .windDirectionText[language],
+                                          AppImage.windDirectionImage,
                                         ),
-                                        Container(
-                                          alignment: language == 0
-                                              ? Alignment.centerLeft
-                                              : Alignment.centerRight,
-                                          width: screenWidth * 30 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 8.0),
-                                            child: Text(
-                                              AppLanguage
-                                                  .waveHeightText[language],
-                                              style: const TextStyle(
-                                                  fontFamily:
-                                                      AppFont.fontFamily,
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.w500,
-                                                  color: AppColor.primaryColor),
-                                            ),
-                                          ),
+                                        _labelCell(
+                                          screenWidth,
+                                          screenHeight,
+                                          AppLanguage.waveHeightText[language],
+                                          AppImage.waveHeightImage,
                                         ),
-                                        Container(
-                                          alignment: language == 0
-                                              ? Alignment.centerLeft
-                                              : Alignment.centerRight,
-                                          width: screenWidth * 30 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 8.0),
-                                            child: Text(
-                                              "${AppLanguage.temperatureText[language]} (\u1d52C)",
-                                              style: const TextStyle(
-                                                  fontFamily:
-                                                      AppFont.fontFamily,
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.w500,
-                                                  color: AppColor.primaryColor),
-                                            ),
-                                          ),
+                                        _labelCell(
+                                          screenWidth,
+                                          screenHeight,
+                                          "${AppLanguage.temperatureText[language]} (\u1d52C)",
+                                          AppImage.temperatureImage,
                                         ),
-                                        Container(
-                                          alignment: language == 0
-                                              ? Alignment.centerLeft
-                                              : Alignment.centerRight,
-                                          width: screenWidth * 30 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 8.0),
-                                            child: Text(
-                                              "${AppLanguage.humidityText[language]} (%)",
-                                              style: const TextStyle(
-                                                  fontFamily:
-                                                      AppFont.fontFamily,
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.w500,
-                                                  color: AppColor.primaryColor),
-                                            ),
-                                          ),
+                                        _labelCell(
+                                          screenWidth,
+                                          screenHeight,
+                                          "${AppLanguage.humidityText[language]} (%)",
+                                          AppImage.humidityImage,
                                         ),
-                                        Container(
-                                          alignment: language == 0
-                                              ? Alignment.centerLeft
-                                              : Alignment.centerRight,
-                                          width: screenWidth * 30 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 8.0),
-                                            child: Text(
-                                              AppLanguage
-                                                  .tideHeightText[language],
-                                              style: const TextStyle(
-                                                  fontFamily:
-                                                      AppFont.fontFamily,
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.w500,
-                                                  color: AppColor.primaryColor),
-                                            ),
-                                          ),
+                                        _labelCell(
+                                          screenWidth,
+                                          screenHeight,
+                                          AppLanguage.tideHeightText[language],
+                                          AppImage.tideImage,
                                         ),
                                       ],
                                     ),
                                   ),
 
-                                  //!=====Day 1====
-                                  Container(
-                                    width: screenWidth * 20 / 100,
-                                    decoration: const BoxDecoration(
-                                      border: Border(
-                                        top: BorderSide(width: 1),
-                                        right: BorderSide(width: 1),
-                                        bottom: BorderSide(width: 1),
-                                      ),
-                                      color: AppColor.secondaryColor,
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Container(
-                                          width: screenWidth * 20 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 5.0),
-                                            child: Text(
-                                              weatherData['today']['date'] ??
-                                                  "",
-                                              textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                  fontFamily:
-                                                      AppFont.fontFamily,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w500,
-                                                  color: AppColor.primaryColor),
-                                            ),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: screenWidth * 20 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            city,
-                                            textAlign: TextAlign.center,
-                                            style: const TextStyle(
-                                                fontFamily: AppFont.fontFamily,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                                color: AppColor.primaryColor),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: screenWidth * 20 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            "${weatherData['today']['wind_speed'] ?? ""}",
-                                            style: const TextStyle(
-                                                fontFamily: AppFont.fontFamily,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                                color: AppColor.primaryColor),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: screenWidth * 20 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            "${weatherData['today']['wind_direction_degree'] ?? ""}\u1d52",
-                                            style: const TextStyle(
-                                                fontFamily: AppFont.fontFamily,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                                color: AppColor.primaryColor),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: screenWidth * 20 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            "${weatherData['today']['wave_height'] ?? ""}",
-                                            style: const TextStyle(
-                                                fontFamily: AppFont.fontFamily,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                                color: AppColor.primaryColor),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: screenWidth * 20 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            "${weatherData['today']['temperature'] ?? ""}\u1d52C",
-                                            style: const TextStyle(
-                                                fontFamily: AppFont.fontFamily,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                                color: AppColor.primaryColor),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: screenWidth * 20 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            "${weatherData['today']['humidity'] ?? ""}",
-                                            style: const TextStyle(
-                                                fontFamily: AppFont.fontFamily,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                                color: AppColor.primaryColor),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: screenWidth * 20 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            "${weatherData['today']['tide'] ?? ""}m",
-                                            style: const TextStyle(
-                                                fontFamily: AppFont.fontFamily,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                                color: AppColor.primaryColor),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-
-                                  //!=====Day 2====
-                                  Container(
-                                    width: screenWidth * 20 / 100,
-                                    decoration: const BoxDecoration(
-                                      border: Border(
-                                        top: BorderSide(width: 1),
-                                        right: BorderSide(width: 1),
-                                        bottom: BorderSide(width: 1),
-                                      ),
-                                      color: AppColor.secondaryColor,
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Container(
-                                          width: screenWidth * 20 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 5.0),
-                                            child: Text(
-                                              weatherData['tomorrow']['date'] ??
-                                                  "",
-                                              textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                  fontFamily:
-                                                      AppFont.fontFamily,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w500,
-                                                  color: AppColor.primaryColor),
-                                            ),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: screenWidth * 20 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            city,
-                                            textAlign: TextAlign.center,
-                                            style: const TextStyle(
-                                                fontFamily: AppFont.fontFamily,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                                color: AppColor.primaryColor),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: screenWidth * 20 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            "${weatherData['tomorrow']['wind_speed'] ?? ""}",
-                                            style: const TextStyle(
-                                                fontFamily: AppFont.fontFamily,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                                color: AppColor.primaryColor),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: screenWidth * 20 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            "${weatherData['tomorrow']['wind_direction_degree'] ?? ""}\u1d52",
-                                            style: const TextStyle(
-                                                fontFamily: AppFont.fontFamily,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                                color: AppColor.primaryColor),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: screenWidth * 20 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            "${weatherData['tomorrow']['wave_height'] ?? ""}",
-                                            style: const TextStyle(
-                                                fontFamily: AppFont.fontFamily,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                                color: AppColor.primaryColor),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: screenWidth * 20 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            "${weatherData['tomorrow']['temperature'] ?? ""}\u1d52C",
-                                            style: const TextStyle(
-                                                fontFamily: AppFont.fontFamily,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                                color: AppColor.primaryColor),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: screenWidth * 20 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            "${weatherData['tomorrow']['humidity'] ?? ""}",
-                                            style: const TextStyle(
-                                                fontFamily: AppFont.fontFamily,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                                color: AppColor.primaryColor),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: screenWidth * 20 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            "${weatherData['tomorrow']['tide'] ?? ""}m",
-                                            style: const TextStyle(
-                                                fontFamily: AppFont.fontFamily,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                                color: AppColor.primaryColor),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-
-                                  //!=====Day 3====
-                                  Container(
-                                    width: screenWidth * 20 / 100,
-                                    decoration: const BoxDecoration(
-                                      border: Border(
-                                        top: BorderSide(width: 1),
-                                        right: BorderSide(width: 1),
-                                        bottom: BorderSide(width: 1),
-                                      ),
-                                      color: AppColor.secondaryColor,
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Container(
-                                          width: screenWidth * 20 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 5.0),
-                                            child: Text(
-                                              weatherData['dayAfterTomorrow']
-                                                      ['date'] ??
-                                                  "",
-                                              textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                  fontFamily:
-                                                      AppFont.fontFamily,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w500,
-                                                  color: AppColor.primaryColor),
-                                            ),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: screenWidth * 20 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            city,
-                                            textAlign: TextAlign.center,
-                                            style: const TextStyle(
-                                                fontFamily: AppFont.fontFamily,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                                color: AppColor.primaryColor),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: screenWidth * 20 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            "${weatherData['dayAfterTomorrow']['wind_speed'] ?? ""}",
-                                            style: const TextStyle(
-                                                fontFamily: AppFont.fontFamily,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                                color: AppColor.primaryColor),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: screenWidth * 20 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            "${weatherData['dayAfterTomorrow']['wind_direction_degree'] ?? ""}\u1d52",
-                                            style: const TextStyle(
-                                                fontFamily: AppFont.fontFamily,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                                color: AppColor.primaryColor),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: screenWidth * 20 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            "${weatherData['dayAfterTomorrow']['wave_height'] ?? ""}",
-                                            style: const TextStyle(
-                                                fontFamily: AppFont.fontFamily,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                                color: AppColor.primaryColor),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: screenWidth * 20 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            "${weatherData['dayAfterTomorrow']['temperature'] ?? ""}\u1d52C",
-                                            style: const TextStyle(
-                                                fontFamily: AppFont.fontFamily,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                                color: AppColor.primaryColor),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: screenWidth * 20 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(width: 1),
-                                            ),
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            "${weatherData['dayAfterTomorrow']['humidity'] ?? ""}",
-                                            style: const TextStyle(
-                                                fontFamily: AppFont.fontFamily,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                                color: AppColor.primaryColor),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: screenWidth * 20 / 100,
-                                          height: screenHeight * 9 / 100,
-                                          decoration: const BoxDecoration(
-                                            color: AppColor.secondaryColor,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            "${weatherData['dayAfterTomorrow']['tide'] ?? ""}m",
-                                            style: const TextStyle(
-                                                fontFamily: AppFont.fontFamily,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                                color: AppColor.primaryColor),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                  // Today
+                                  _dayColumn(screenWidth, screenHeight,
+                                      weatherData['today']),
+                                  // Tomorrow
+                                  _dayColumn(screenWidth, screenHeight,
+                                      weatherData['tomorrow']),
+                                  // Day After Tomorrow
+                                  _dayColumn(screenWidth, screenHeight,
+                                      weatherData['dayAfterTomorrow']),
                                 ],
                               ),
                             )
@@ -1118,110 +536,133 @@ class WeatherScreenState extends State<WeatherScreen> {
           ),
         ));
   }
-}
 
-//!================PREVIOUS CODE FOR WEATHER DATA WITHOUT TIDE================
-  // Future<Map<String, Map<String, dynamic>>?> getWeatherData({
-  //   required double latitude,
-  //   required double longitude,
-  // }) async {
-  //   try {
-  //     // Fetch both weather and marine data concurrently
-  //     final results = await Future.wait([
-  //       fetchWeather(latitude: latitude, longitude: longitude),
-  //       fetchMarineWeather(latitude: latitude, longitude: longitude),
-  //     ]);
-  //     final weatherData = results[0];
-  //     final marineData = results[1];
-  //     if (weatherData == null || marineData == null) {
-  //       print('Failed to fetch one or both weather data sources');
-  //       return null;
-  //     }
-  //     // Get current time and calculate target hours
-  //     final now = DateTime.now();
-  //     final currentHour = now.hour;
-  //     // Calculate dates for today, tomorrow, and day after tomorrow
-  //     final today = DateTime(now.year, now.month, now.day);
-  //     final tomorrow = today.add(const Duration(days: 1));
-  //     final dayAfterTomorrow = today.add(const Duration(days: 2));
-  //     // Extract hourly data arrays from responses
-  //     final weatherHourly = weatherData['hourly'] as Map<String, dynamic>?;
-  //     final marineHourly = marineData['hourly'] as Map<String, dynamic>?;
-  //     if (weatherHourly == null || marineHourly == null) {
-  //       print('Missing hourly data in API responses');
-  //       return null;
-  //     
-  //     // Get the time array to find matching hours
-  //     final timeArray = weatherHourly['time'] as List<dynamic>?;
-  //     if (timeArray == null) {
-  //       print('Missing time array in weather data');
-  //       return null;
-  //     }
-  //     // Find indices for current hour of each day
-  //     int? todayIndex;
-  //     int? tomorrowIndex;
-  //     int? dayAfterTomorrowIndex;
-  //     for (int i = 0; i < timeArray.length; i++) {
-  //       final timeString = timeArray[i] as String;
-  //       final dateTime = DateTime.parse(timeString);
-  //       // Check if this is the current hour of today
-  //       if (dateTime.year == today.year &&
-  //           dateTime.month == today.month &&
-  //           dateTime.day == today.day &&
-  //           dateTime.hour == currentHour) {
-  //         todayIndex = i;
-  //       }
-  //       // Check if this is the current hour of tomorrow
-  //       if (dateTime.year == tomorrow.year &&
-  //           dateTime.month == tomorrow.month &&
-  //           dateTime.day == tomorrow.day &&
-  //           dateTime.hour == currentHour) {
-  //         tomorrowIndex = i;
-  //       }
-  //       // Check if this is the current hour of day after tomorrow
-  //       if (dateTime.year == dayAfterTomorrow.year &&
-  //           dateTime.month == dayAfterTomorrow.month &&
-  //           dateTime.day == dayAfterTomorrow.day &&
-  //           dateTime.hour == currentHour) {
-  //         dayAfterTomorrowIndex = i;
-  //       }
-  //     }
-  //     // Helper function to extract data for a specific index
-  //     Map<String, dynamic> extractDataForIndex(int index) {
-  //       final date = DateTime.parse(timeArray[index] as String);
-  //       final formattedDate =
-  //           '${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}';
-  //       return {
-  //         'date': formattedDate,
-  //         'temperature':
-  //             (weatherHourly['temperature_2m'] as List<dynamic>?)?[index] ??
-  //                 0.0,
-  //         'wind_direction_degree':
-  //             (weatherHourly['winddirection_10m'] as List<dynamic>?)?[index] ??
-  //                 0.0,
-  //         'humidity': (weatherHourly['relativehumidity_2m']
-  //                 as List<dynamic>?)?[index] ??
-  //             0.0,
-  //         'wind_speed':
-  //             (weatherHourly['windspeed_10m'] as List<dynamic>?)?[index] ?? 0.0,
-  //         'wave_height':
-  //             (marineHourly['wave_height'] as List<dynamic>?)?[index] ?? 0.0,
-  //       };
-  //     }
-  //     // Build the result map
-  //     Map<String, Map<String, dynamic>> result = {};
-  //     if (todayIndex != null) {
-  //       result['today'] = extractDataForIndex(todayIndex);
-  //     }
-  //     if (tomorrowIndex != null) {
-  //       result['tomorrow'] = extractDataForIndex(tomorrowIndex);
-  //     }
-  //     if (dayAfterTomorrowIndex != null) {
-  //       result['dayAfterTomorrow'] = extractDataForIndex(dayAfterTomorrowIndex);
-  //     }
-  //     return result;
-  //   } catch (e) {
-  //     print('Error in getWeatherData: $e');
-  //     return null;
-  //   }
-  // }
+  Widget _labelCell(
+      double screenWidth, double screenHeight, String text, String image,
+      {bool isLast = false}) {
+    return Container(
+      alignment: language == 0 ? Alignment.centerLeft : Alignment.centerRight,
+      width: screenWidth * 40 / 100,
+      height: screenHeight * 9 / 100,
+      decoration: BoxDecoration(
+        border: isLast ? null : const Border(bottom: BorderSide(width: 1)),
+        color: AppColor.secondaryColor,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2.0),
+        child: Row(
+          mainAxisAlignment:
+              language == 0 ? MainAxisAlignment.start : MainAxisAlignment.end,
+          children: language == 0
+              ? [
+                  if (image.isNotEmpty) ...[
+                    SizedBox(
+                        width: MediaQuery.of(context).size.width * 10 / 100,
+                        height: MediaQuery.of(context).size.width * 10 / 100,
+                        child: Image.asset(image)),
+                    // const SizedBox(width: 6),
+                  ],
+                  Flexible(
+                    child: Text(
+                      text,
+                      style: const TextStyle(
+                          fontFamily: AppFont.fontFamily,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: AppColor.primaryColor),
+                    ),
+                  ),
+                ]
+              : [
+                  Flexible(
+                    child: Text(
+                      text,
+                      style: const TextStyle(
+                          fontFamily: AppFont.fontFamily,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: AppColor.primaryColor),
+                    ),
+                  ),
+                  // if (icon != null) ...[
+                  //   const SizedBox(width: 6),
+                  //   Icon(icon, size: 16, color: AppColor.primaryColor),
+                  // ],
+                ],
+        ),
+      ),
+    );
+  }
+
+  Widget _dayColumn(
+      double screenWidth, double screenHeight, Map<String, dynamic>? dayData) {
+    if (dayData == null) {
+      return Container(
+        width: screenWidth * 20 / 100,
+        decoration: const BoxDecoration(
+          border: Border(
+              top: BorderSide(width: 1),
+              right: BorderSide(width: 1),
+              bottom: BorderSide(width: 1)),
+          color: AppColor.secondaryColor,
+        ),
+        child: const Center(child: Text('N/A')),
+      );
+    }
+
+    return Container(
+      width: screenWidth * 20 / 100,
+      decoration: const BoxDecoration(
+        border: Border(
+            top: BorderSide(width: 1),
+            right: BorderSide(width: 1),
+            bottom: BorderSide(width: 1)),
+        color: AppColor.secondaryColor,
+      ),
+      child: Column(
+        children: [
+          _dataCell(screenWidth, screenHeight, dayData['date'] ?? "",
+              isPadded: true),
+          _dataCell(screenWidth, screenHeight, city),
+          _dataCell(
+              screenWidth, screenHeight, "${dayData['wind_speed'] ?? ''}"),
+          _dataCell(screenWidth, screenHeight,
+              "${dayData['wind_direction_degree'] ?? ''}\u1d52"),
+          _dataCell(
+              screenWidth, screenHeight, "${dayData['wave_height'] ?? 'N/A'}"),
+          _dataCell(screenWidth, screenHeight,
+              "${dayData['temperature'] ?? ''}\u1d52C"),
+          _dataCell(screenWidth, screenHeight, "${dayData['humidity'] ?? ''}"),
+          _dataCell(screenWidth, screenHeight,
+              dayData['tide'] == 'N/A' ? 'N/A' : "${dayData['tide']}m",
+              isLast: true),
+        ],
+      ),
+    );
+  }
+
+  Widget _dataCell(double screenWidth, double screenHeight, String text,
+      {bool isLast = false, bool isPadded = false}) {
+    return Container(
+      width: screenWidth * 20 / 100,
+      height: screenHeight * 9 / 100,
+      decoration: BoxDecoration(
+        border: isLast ? null : const Border(bottom: BorderSide(width: 1)),
+        color: AppColor.secondaryColor,
+      ),
+      alignment: Alignment.center,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: isPadded ? 5.0 : 0),
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+              fontFamily: AppFont.fontFamily,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: AppColor.primaryColor),
+        ),
+      ),
+    );
+  }
+}
