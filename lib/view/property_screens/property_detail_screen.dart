@@ -373,6 +373,15 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         if (res['success'] == true) {
           var item = res['data'];
           adDetails = (item != "NA") ? item : [];
+          if (adDetails['one_day_active'] == 1) {
+            isSelected = 1;
+          } else if (adDetails['weekday_active'] == 1) {
+            isSelected = 2;
+          } else if (adDetails['weekend_active'] == 1) {
+            isSelected = 3;
+          } else if (adDetails['full_week_active'] == 1) {
+            isSelected = 4;
+          }
           if (adDetails is Map && adDetails['unavailable_dates'] != null) {
             _unavailableDates =
                 _buildUnavailableDates(adDetails['unavailable_dates']);
@@ -1291,6 +1300,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                               totalNights: _totalNights,
                                               grandTotal: _grandTotal,
                                               propertyAdId: widget.propertyAdId,
+                                              pricingType: isSelected,
                                             ),
                                           ),
                                         );

@@ -8,6 +8,7 @@ import 'package:boatapp/controller/app_header.dart';
 import 'package:boatapp/controller/app_image.dart';
 import 'package:boatapp/controller/app_language.dart';
 import 'package:boatapp/controller/app_snack_bar_toast_message.dart';
+import 'package:boatapp/view/property_screens/property_succress_payment_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -30,16 +31,19 @@ class PropertyBookingDetails extends StatefulWidget {
   final int totalNights;
   final double grandTotal;
   final int propertyAdId;
-  const PropertyBookingDetails(
-      {super.key,
-      required this.adDetails,
-      required this.adultCount,
-      required this.childCount,
-      required this.checkinDate,
-      required this.checkoutDate,
-      required this.totalNights,
-      required this.grandTotal,
-      required this.propertyAdId});
+  final int pricingType;
+  const PropertyBookingDetails({
+    super.key,
+    required this.adDetails,
+    required this.adultCount,
+    required this.childCount,
+    required this.checkinDate,
+    required this.checkoutDate,
+    required this.totalNights,
+    required this.grandTotal,
+    required this.propertyAdId,
+    required this.pricingType,
+  });
 
   @override
   State<PropertyBookingDetails> createState() => _PropertyBookingDetailsState();
@@ -55,6 +59,10 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
   bool isDiscountApplied = false;
   int couponDiscount = 0;
   String couponCode = '';
+  int isPayment = 0;
+  String email = '';
+  int? selectedMethod;
+  String fullName = '';
 
   //map
   double longitudex = 77.4126;
@@ -96,6 +104,7 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
     longitudex = double.parse(adDetails['longitude']);
     initialPosition = LatLng(latitudex, longitudex);
     getUserDetails();
+    paymentStatusApiCall();
   }
 
   Future<dynamic> getUserDetails() async {
@@ -104,6 +113,8 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
     if (userDetails != null) {
       dynamic data = json.decode(userDetails);
       userId = data['user_id'];
+      email = data['email'] ?? "";
+      fullName = data['name'] ?? "";
     }
   }
 
@@ -187,7 +198,7 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
 
       formData.fields['user_id'] = userId.toString();
       formData.fields['property_ad_id'] = widget.propertyAdId.toString();
-      formData.fields['pricing_type'] = "0";
+      formData.fields['pricing_type'] = widget.pricingType.toString();
       formData.fields['total_amount'] = grandTotal.toStringAsFixed(2);
       formData.fields['max_child'] = widget.childCount.toString();
       formData.fields['max_adult'] = widget.adultCount.toString();
@@ -239,6 +250,131 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
         });
       }
     } catch (e) {
+      setState(() {
+        isApiCalling = false;
+      });
+    }
+  }
+
+  //!=============================Payment API===================================//
+  Future<void> paymentStatusApiCall() async {
+    Uri url = Uri.parse("${AppConfigProvider.apiUrl}payment_hide_show");
+    print("url $url");
+    String token = AppConstant.token;
+
+    if (token.isEmpty) {
+      print("Token is missing!");
+      // return;
+    }
+
+    Map<String, String> headers = {'Authorization': 'Bearer $token'};
+
+    try {
+      final response = await http.get(url, headers: headers);
+      print("response $response");
+
+      if (response.statusCode == 200) {
+        dynamic res = jsonDecode(response.body);
+        print("res $res");
+
+        if (res['success'] == true) {
+          setState(() {
+            isPayment = res['payment_data']['payment_status'];
+          });
+        } else {
+          // ignore: use_build_context_synchronously
+          if (res['active_status'] == 0) {
+            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const Login()));
+          }
+        }
+      } else {}
+    } catch (e) {
+      setState(() {
+        isApiCalling = false;
+      });
+    }
+  }
+
+  //!======Create Payment==================
+  Future<void> createPaymentApiCall() async {
+    Uri url = Uri.parse("${AppConfigProvider.apiUrl}create_payment");
+    print("Url $url");
+
+    if (selectedMethod == null) {
+      return;
+    }
+
+    setState(() {
+      isApiCalling = true;
+    });
+
+    String token = AppConstant.token;
+
+    try {
+      var headers = {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json', // 🔥 Important
+      };
+      var body = jsonEncode({
+        'customerName': fullName,
+        'customerEmail': email,
+        'amount': _applyDiscounts(widget.grandTotal).toString(),
+        'paymethod': selectedMethod.toString(),
+      });
+
+      print("Raw JSON Body: $body");
+      http.Response response = await http.post(
+        url,
+        headers: headers,
+        body: body,
+      );
+
+      print("Response Status Code: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+
+      var res = jsonDecode(response.body);
+      final baseTotal = widget.grandTotal;
+      final grandTotal = _applyDiscounts(baseTotal);
+
+      if (response.statusCode == 200) {
+        log("Entringgg 2020202 ${res['success']}");
+        // if (res['success'] == true) {
+        log("Entringgg");
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PropertySuccessPaymentScreen(
+              webUrl: res['bookeeyResponse']['PayUrl'],
+              userId: userId.toString(),
+              checkInDates: _checkInDateForApi(),
+              checkOutDate: _checkOutDateForApi(),
+              couponCode: couponCode.toString(),
+              couponDiscount: couponDiscount.toString(),
+              discountPercentage:
+                  widget.adDetails['discount_percentage'].toString(),
+              grandTotalAmount: grandTotal.toStringAsFixed(2),
+              maxAdult: widget.adultCount.toString(),
+              maxChild: widget.childCount.toString(),
+              pricingType: widget.pricingType.toString(),
+              propertyAdId: widget.propertyAdId.toString(),
+              selectedDates: _selectedDatesForApi(),
+              totalAmount: grandTotal.toStringAsFixed(2),
+            ),
+          ),
+        );
+        // }
+      } else {
+        // Handle non-200 response
+        SnackBarToastMessage.showSnackBar(
+            context, "Something went wrong. Please try again.");
+      }
+    } catch (e) {
+      print("Error: $e");
+      SnackBarToastMessage.showSnackBar(
+          context, "Failed to process the payment.");
+    } finally {
       setState(() {
         isApiCalling = false;
       });
@@ -820,7 +956,23 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
                         child: AppButton(
                           text: AppLanguage.paynowText[language],
                           onPress: () {
-                            propertyBookingApiCall();
+                            if (isPayment == 0) {
+                              SnackBarToastMessage.showSnackBar(
+                                  context, "Booking Done");
+                              AppConstant.selectFooterIndex = 0;
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const MyFooterPage(),
+                                ),
+                              );
+                              return;
+                            }
+                            FocusManager.instance.primaryFocus?.unfocus();
+                            paymentMethodBottomSheet(context);
+                            // createPaymentApiCall();
+                            // tripBookingApiCall();
+                            // propertyBookingApiCall();
                           },
                         ),
                       )
@@ -1080,5 +1232,260 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
         ),
       ],
     );
+  }
+
+  void paymentMethodBottomSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(30),
+          topRight: Radius.circular(30),
+        ),
+      ),
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setModalState) {
+          return Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+            ),
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Handle bar
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Select Payment Method',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Payment Methods
+                  _buildPaymentOption(
+                    setState: setModalState, // Pass the setState function
+                    method: 1,
+                    title: 'Credit Card',
+                    subtitle: 'Pay with your credit card',
+                    icon: Icons.credit_card,
+                    color: Colors.blue,
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildPaymentOption(
+                    setState: setModalState, // Pass the setState function
+                    method: 2,
+                    title: 'KNET',
+                    subtitle: 'Kuwait National Electronic Transfer',
+                    icon: Icons.account_balance,
+                    color: Colors.green,
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildPaymentOption(
+                    setState: setModalState, // Pass the setState function
+                    method: 3,
+                    title: 'American Express',
+                    subtitle: 'Pay with Amex card',
+                    icon: Icons.payment,
+                    color: Colors.orange,
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildPaymentOption(
+                    setState: setModalState, // Pass the setState function
+                    method: 4,
+                    title: 'Bookeey',
+                    subtitle: 'Pay with Bookeey wallet',
+                    icon: Icons.wallet,
+                    color: Colors.purple,
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Action Buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text('Cancel'),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: selectedMethod != null
+                              ? () {
+                                  Navigator.pop(context);
+                                  createPaymentApiCall();
+                                }
+                              : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: selectedMethod != null
+                                ? _getPaymentMethodColor(selectedMethod!)
+                                : Colors.grey,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'Confirm',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          );
+        });
+      },
+    );
+  }
+
+  Widget _buildPaymentOption({
+    required Function(void Function()) setState,
+    required int method,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+  }) {
+    final isSelected = selectedMethod == method;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            selectedMethod = method;
+          });
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: isSelected ? color : Colors.grey.shade300,
+              width: isSelected ? 2 : 1,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            color: isSelected ? color.withOpacity(0.1) : Colors.transparent,
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: 26,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected ? color : Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                child: Icon(
+                  isSelected
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                  color: isSelected ? color : Colors.grey.shade400,
+                  size: 24,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+Color _getPaymentMethodColor(int method) {
+  switch (method) {
+    case 1:
+      return Colors.blue;
+    case 2:
+      return Colors.green;
+    case 3:
+      return Colors.orange;
+    case 4:
+      return Colors.purple;
+    default:
+      return Colors.grey;
   }
 }

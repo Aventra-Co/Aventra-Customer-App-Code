@@ -236,4 +236,6 @@ class AppImage {
   static const waveImage = './assets/icons/waveImage.png';
   static const windDirectionImage = './assets/icons/wind_direction_image.png';
   static const locationImage = './assets/icons/location_image.png';
+  static const dateImage = './assets/icons/date_image.png';
+  static const weatherBg = './assets/icons/weather_bg_image.png';
 }

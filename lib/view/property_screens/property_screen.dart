@@ -339,7 +339,7 @@ class _PropertyScreenState extends State<PropertyScreen> {
   //=============================GET Pickups===================================//
   Future<void> getPickUpsApi(userId, int propertyId) async {
     Uri url = Uri.parse(
-        "${AppConfigProvider.apiUrl}get_all_property_pickup_points?user_id=243&property_type_id=$propertyId&city_id=${widget.cityId}");
+        "${AppConfigProvider.apiUrl}get_all_property_pickup_points?user_id=$userId&property_type_id=$propertyId&city_id=${widget.cityId}");
     print("URL: $url");
 
     String token = AppConstant.token;

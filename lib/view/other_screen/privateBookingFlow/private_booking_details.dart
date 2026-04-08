@@ -2379,6 +2379,8 @@ class PrivateBookingDetailsState extends State<PrivateBookingDetails> {
       ),
     );
   }
+
+
 }
 
 Color _getPaymentMethodColor(int method) {

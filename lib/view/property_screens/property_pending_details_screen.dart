@@ -1,10 +1,15 @@
 import 'dart:convert';
+import 'dart:developer';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../chat/chat_screen.dart';
+import '../../controller/app_button.dart';
 import '../../controller/app_color.dart';
 import '../../controller/app_config_provider.dart';
 import '../../controller/app_constant.dart';
@@ -13,6 +18,7 @@ import '../../controller/app_image.dart';
 import '../../controller/app_language.dart';
 import '../../controller/app_loader.dart';
 import '../../controller/app_snack_bar_toast_message.dart';
+import '../../model/chat_user.dart';
 import '../authentication/login_screen.dart';
 import '../other_screen/cancel_booking.dart';
 import 'property_detail_screen.dart';
@@ -141,6 +147,44 @@ class _PropertyPendingDetailsScreenState
     }
   }
 
+  //!Open Map
+  //!Open Map
+  Future<void> openMap(String latitude, String longitude) async {
+    final String device = AppConstant.deviceType;
+
+    Uri? appUri;
+    final Uri webUri = Uri.parse(
+      "https://www.google.com/maps/search/?api=1&query=$latitude,$longitude",
+    );
+
+    if (device == "android") {
+      // Google Maps app (Android)
+      appUri = Uri.parse("google.navigation:q=$latitude,$longitude");
+    } else if (device == "ios") {
+      // Apple Maps (iOS)
+      appUri = Uri.parse("maps://?q=$latitude,$longitude");
+    }
+
+    try {
+      if (appUri != null && await canLaunchUrl(appUri)) {
+        await launchUrl(
+          appUri,
+          mode: LaunchMode.externalApplication,
+        );
+      } else {
+        await launchUrl(
+          webUri,
+          mode: LaunchMode.externalApplication,
+        );
+      }
+    } catch (e) {
+      await launchUrl(
+        webUri,
+        mode: LaunchMode.externalApplication,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ProgressHUD(
@@ -228,7 +272,7 @@ class _PropertyPendingDetailsScreenState
                                       Row(
                                         children: [
                                           Text(
-                                            AppLanguage.pendingText[language],
+                                            AppLanguage.upcomingText[language],
                                             style: const TextStyle(
                                               fontSize: 12,
                                               fontWeight: FontWeight.w600,
@@ -357,6 +401,44 @@ class _PropertyPendingDetailsScreenState
                                   ),
                                 ),
                                 SizedBox(height: size.height * 0.02),
+
+                                //!View Location
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        openMap(bookingDetails['latitude'],
+                                            bookingDetails['longitude']);
+                                      },
+                                      child: Container(
+                                        color: Colors.transparent,
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                42 /
+                                                100,
+                                        alignment: Alignment.centerRight,
+                                        child: Text(
+                                          AppLanguage
+                                              .getDirectionsText[language],
+                                          style: const TextStyle(
+                                              fontFamily: AppFont.fontFamily,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColor.themeColor,
+                                              decoration:
+                                                  TextDecoration.underline,
+                                              decorationColor:
+                                                  AppColor.themeColor),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(
+                                    height: MediaQuery.of(context).size.height *
+                                        1 /
+                                        100),
 
                                 //!Map
                                 Stack(children: [
@@ -656,6 +738,16 @@ class _PropertyPendingDetailsScreenState
                               ),
                             ),
                           ),
+                          SizedBox(height: size.height * 0.02),
+                          Center(
+                            child: AppButton(
+                                text: AppLanguage.chatText[language],
+                                onPress: () {
+                                  log("bookingDetails['owner_id'] ${bookingDetails['owner_id']}");
+                                  navigateToChatScreen(
+                                      bookingDetails['owner_id'].toString());
+                                }),
+                          ),
                           SizedBox(height: size.height * 0.05),
                         ],
                       ),
@@ -839,7 +931,7 @@ class _PropertyPendingDetailsScreenState
                   ),
                 ),
                 SizedBox(height: size.height * 0.015),
-                 Text(
+                Text(
                   AppLanguage.cancelDetailsText[language],
                   style: const TextStyle(
                     fontSize: 13.8,
@@ -849,7 +941,6 @@ class _PropertyPendingDetailsScreenState
                     height: 1.5,
                   ),
                 ),
-                SizedBox(height: size.height * 0.02),
               ],
             ),
           ),
@@ -1791,5 +1882,42 @@ class _PropertyPendingDetailsScreenState
         );
       },
     );
+  }
+
+// ================navigationchat==========//
+  void navigateToChatScreen(String userId) {
+    print(userId);
+    // Flag to prevent multiple navigations
+    bool isNavigated = false;
+
+    // Listen for changes in the Firestore collection "users"
+    FirebaseFirestore.instance
+        .collection("users")
+        .snapshots()
+        .listen((snapshot) {
+      // If already navigated, return early to prevent further navigation
+      if (isNavigated) return;
+
+      // Find the user with the matching ID
+      for (var doc in snapshot.docs) {
+        var data = doc.data();
+        if (data['id'] == userId) {
+          // Create the ChatUser object from the matched document data
+          ChatUser user = ChatUser.fromJson(data);
+
+          // Navigate to ChatScreen with the user data
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ChatScreen(user: user),
+            ),
+          );
+
+          // Set the flag to true to prevent further navigation
+          isNavigated = true;
+          break; // Exit loop once the user is found and the screen is navigated
+        }
+      }
+    });
   }
 }

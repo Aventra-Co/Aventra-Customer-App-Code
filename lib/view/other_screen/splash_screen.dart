@@ -371,13 +371,13 @@ class _SplashState extends State<Splash> {
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
+        systemNavigationBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light));
     return Scaffold(
       body: Container(
         width: MediaQuery.of(context).size.width * 100 / 100,
         height: MediaQuery.of(context).size.height * 100 / 100,
         decoration: const BoxDecoration(
-          color: AppColor.primaryColor,
           image: DecorationImage(
             image: AssetImage(AppImage.newSplash),
             fit: BoxFit.cover,

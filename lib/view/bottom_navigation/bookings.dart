@@ -1108,206 +1108,219 @@ class _MyTripState extends State<MyTrip> {
 
   Widget _propertyBookingCard(Map<String, dynamic> booking, index) {
     final size = MediaQuery.of(context).size;
-    return GestureDetector(
-        onTap: () {
-          if (booking["booking_status"] == 1) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => PropertyOngoingDetailScreen(
-                          propertyBookingId: booking['property_booking_id'],
-                        )));
-          }
-          if (booking["booking_status"] == 0) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => PropertyPendingDetailsScreen(
-                          propertyBookingId: booking['property_booking_id'],
-                        )));
-          }
-          if (booking["booking_status"] == 2) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => PropertyBookingHistoryDetailScreen(
-                          propertyBookingId: booking['property_booking_id'],
-                          iscompleted: true,
-                        )));
-          }
-        },
-        child: Container(
-          margin: EdgeInsets.symmetric(
-              vertical: size.height * 0.01, horizontal: size.width * 0.02),
-          child: Row(
-            children: [
-              // Date section (left teal box)
-              Container(
-                width: size.width * 0.2,
-                padding: EdgeInsets.symmetric(
-                    vertical: size.height * 0.01,
-                    horizontal: size.width * 0.02),
-                decoration: BoxDecoration(
-                  color: AppColor.themeColor,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      getDatePart(booking['checkin_date'], "month"),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: AppFont.fontFamily,
-                        color: AppColor.secondaryColor,
-                      ),
+    return Column(
+      children: [
+        GestureDetector(
+            onTap: () {
+              if (booking["booking_status"] == 1) {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => PropertyOngoingDetailScreen(
+                              propertyBookingId: booking['property_booking_id'],
+                            )));
+              }
+              if (booking["booking_status"] == 0) {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => PropertyPendingDetailsScreen(
+                              propertyBookingId: booking['property_booking_id'],
+                            )));
+              }
+              if (booking["booking_status"] == 2) {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            PropertyBookingHistoryDetailScreen(
+                              propertyBookingId: booking['property_booking_id'],
+                              iscompleted: true,
+                            )));
+              }
+            },
+            child: Container(
+              // margin: EdgeInsets.symmetric(
+              //     vertical: size.height * 0.01, horizontal: size.width * 0.02),
+              child: Row(
+                children: [
+                  // Date section (left teal box)
+                  Container(
+                    width: MediaQuery.of(context).size.width * 18 / 100,
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 18, horizontal: 3),
+                    decoration: BoxDecoration(
+                      color: AppColor.themeColor,
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    Text(
-                      getDatePart(booking['checkin_date'], "date"),
-                      style: const TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: AppFont.fontFamily,
-                        color: AppColor.secondaryColor,
-                      ),
+                    child: Column(
+                      children: [
+                        Text(
+                          getDatePart(booking['checkin_date'], "month"),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            fontFamily: AppFont.fontFamily,
+                            color: AppColor.secondaryColor,
+                          ),
+                        ),
+                        Text(
+                          getDatePart(booking['checkin_date'], "date"),
+                          style: const TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w500,
+                            fontFamily: AppFont.fontFamily,
+                            color: AppColor.secondaryColor,
+                          ),
+                        ),
+                        Text(
+                          getDatePart(booking['checkin_date'], "year"),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            fontFamily: AppFont.fontFamily,
+                            color: AppColor.secondaryColor,
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      getDatePart(booking['checkin_date'], "year"),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: AppFont.fontFamily,
-                        color: AppColor.secondaryColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Content section
-              SizedBox(width: size.width * 0.02),
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(12),
                   ),
-                  padding: EdgeInsets.symmetric(
-                      horizontal: size.width * 0.03,
-                      vertical: size.height * 0.01),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  propertyBookings[index]
-                                          ['property_name_english'] ??
-                                      "",
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    fontFamily: AppFont.fontFamily,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                Text(
-                                  propertyBookings[index]['property_type_name']
-                                          [0] ??
-                                      "",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    fontFamily: AppFont.fontFamily,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          // Arrow icon
-                          Padding(
-                            padding: const EdgeInsets.symmetric(),
-                            child: Image.asset(
-                              AppImage.rightArrow,
-                              color: AppColor.primaryColor,
-                              width: size.width * 0.07,
-                              height: size.height * 0.07,
-                            ),
-                          ),
-                        ],
+
+                  // Content section
+                  SizedBox(width: size.width * 0.02),
+                  Expanded(
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 70 / 100,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 15, horizontal: 15),
+                      decoration: BoxDecoration(
+                        color: AppColor.creamColor,
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      SizedBox(height: size.height * 0.01),
-                      Row(
-                        // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Duration / Booking
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          Row(
                             children: [
-                              Text(
-                                booking['booking_time_label'] ?? '',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  fontFamily: AppFont.fontFamily,
-                                  color: Colors.black87,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      propertyBookings[index]
+                                              ['property_name_english'] ??
+                                          "",
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        fontFamily: AppFont.fontFamily,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    Text(
+                                      propertyBookings[index]
+                                              ['property_type_name'][0] ??
+                                          "",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        fontFamily: AppFont.fontFamily,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height:
+                                          MediaQuery.of(context).size.height *
+                                              2 /
+                                              100,
+                                    ),
+                                  ],
                                 ),
                               ),
-                              Text(
-                                AppLanguage.bookingText[language],
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w500,
-                                  fontFamily: AppFont.fontFamily,
-                                  color: Colors.grey.shade600,
+                              // Arrow icon
+                              Padding(
+                                padding: const EdgeInsets.symmetric(),
+                                child: Image.asset(
+                                  AppImage.rightArrow,
+                                  color: AppColor.primaryColor,
+                                  width: size.width * 0.07,
+                                  height: size.height * 0.07,
                                 ),
                               ),
                             ],
                           ),
-
-                          SizedBox(width: size.width * 0.15),
-                          // Status
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          SizedBox(height: size.height * 0.01),
+                          Row(
+                            // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                booking['booking_status_label'],
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  fontFamily: AppFont.fontFamily,
-                                  color: booking['booking_status'] == 0
-                                      ? AppColor.yellowColor
-                                      : booking['booking_status'] == 1
-                                          ? AppColor.darkBlueColor
-                                          : AppColor.themeColor,
-                                ),
+                              // Duration / Booking
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    booking['booking_time_label'] ?? '',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      fontFamily: AppFont.fontFamily,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  Text(
+                                    AppLanguage.bookingText[language],
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w500,
+                                      fontFamily: AppFont.fontFamily,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Text(
-                                AppLanguage.statusText[language],
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w500,
-                                  fontFamily: AppFont.fontFamily,
-                                  color: Colors.grey.shade600,
-                                ),
+
+                              SizedBox(width: size.width * 0.15),
+                              // Status
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    booking['booking_status_label'],
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      fontFamily: AppFont.fontFamily,
+                                      color: booking['booking_status'] == 0
+                                          ? AppColor.yellowColor
+                                          : booking['booking_status'] == 1
+                                              ? AppColor.darkBlueColor
+                                              : AppColor.themeColor,
+                                    ),
+                                  ),
+                                  Text(
+                                    AppLanguage.statusText[language],
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w500,
+                                      fontFamily: AppFont.fontFamily,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
-        ));
+            )),
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 2 / 100,
+        ),
+      ],
+    );
   }
 
   Widget _propertyTypeCard(BuildContext context, String imagePath, String label,

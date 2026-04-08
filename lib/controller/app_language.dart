@@ -1065,5 +1065,5 @@ class AppLanguage {
     "Please select the country first",
     "الرجاء اختيار الدولة أولاً",
   ];
-    static const seaReportText = ["Sea Report", ];
+  static const seaReportText = ["Sea Report", "تقرير البحر"];
 }

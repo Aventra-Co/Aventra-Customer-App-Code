@@ -13,16 +13,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 // import 'package:shimmer/shimmer.dart';
 import 'package:table_calendar/table_calendar.dart';
-
 import '../../controller/app_config_provider.dart';
-import '../../controller/app_footer.dart';
 import '../../controller/app_loader.dart';
 import '../../controller/app_snack_bar_toast_message.dart';
-import '../../service/date_selection_service.dart';
-import '../../service/pricing_service.dart';
 import '../authentication/login_screen.dart';
 import '../other_screen/review.dart';
 import 'property_booking_details.dart';
+import 'dart:ui' as ui;
 
 class RedirectionPropertyDetailsScreen extends StatefulWidget {
   const RedirectionPropertyDetailsScreen(
@@ -39,18 +36,16 @@ class _RedirectionPropertyDetailsScreenState
   int currentImageIndex = 0;
   DateTime _focusedDay = DateTime.now();
   int imageSelected = 0;
-  DateTime? _rangeStart;
-  DateTime? _rangeEnd;
   int _totalNights = 0;
   double _grandTotal = 0;
+  int isSelected = 1;
 
-  final DateSelectionService _dateSelectionService = DateSelectionService();
-  final PricingService _pricingService = PricingService();
+  Set<DateTime> _selectedDays = {};
 
   // ── Time slot state ───────────────────────────────────────────────────
   // ─────────────────────────────────────────────────────────────────────
 
-  // Unavailable dates (non-selectable, not blue)
+  // Unavailable dates (non-selectable)
   Set<DateTime> _unavailableDates = {};
 
   int adultCount = 0;
@@ -108,6 +103,98 @@ class _RedirectionPropertyDetailsScreenState
       return false;
     }
     return true;
+  }
+
+  bool _isWeekdayGroup(DateTime day) =>
+      day.weekday == DateTime.sunday || day.weekday <= DateTime.wednesday;
+
+  bool _isWeekendGroup(DateTime day) =>
+      day.weekday >= DateTime.thursday && day.weekday <= DateTime.saturday;
+
+  DateTime _startOfWeekSunday(DateTime day) {
+    final normalisedDay = _normalise(day);
+    final daysFromSunday = normalisedDay.weekday % 7;
+    return normalisedDay.subtract(Duration(days: daysFromSunday));
+  }
+
+  Set<DateTime> _buildBlockFor(DateTime anchor) {
+    final startOfWeek = _startOfWeekSunday(anchor);
+    final dates = <DateTime>{};
+    switch (isSelected) {
+      case 1:
+        dates.add(_normalise(anchor));
+        break;
+      case 2:
+        for (int i = 0; i < 4; i++) {
+          dates.add(startOfWeek.add(Duration(days: i)));
+        }
+        break;
+      case 3:
+        for (int i = 4; i < 7; i++) {
+          dates.add(startOfWeek.add(Duration(days: i)));
+        }
+        break;
+      case 4:
+        for (int i = 0; i < 7; i++) {
+          dates.add(startOfWeek.add(Duration(days: i)));
+        }
+        break;
+      default:
+        break;
+    }
+    return dates;
+  }
+
+  bool _isBlockSelectable(DateTime anchor) {
+    final block = _buildBlockFor(anchor);
+    if (block.isEmpty) {
+      return false;
+    }
+    return block.every(_isSelectableDate);
+  }
+
+  void _selectPricingType(int type) {
+    if (isSelected == type) {
+      return;
+    }
+    setState(() {
+      isSelected = type;
+      _selectedDays = {};
+      _totalNights = 0;
+      _grandTotal = 0;
+    });
+  }
+
+  void _applyBlockSelection(DateTime selectedDay, DateTime focusedDay) {
+    final normalisedDay = _normalise(selectedDay);
+    if (!_isSelectableDate(normalisedDay)) {
+      return;
+    }
+
+    if (isSelected == 2 && !_isWeekdayGroup(normalisedDay)) {
+      SnackBarToastMessage.showSnackBar(
+          context, AppLanguage.selectDateMsg[language]);
+      return;
+    }
+    if (isSelected == 3 && !_isWeekendGroup(normalisedDay)) {
+      SnackBarToastMessage.showSnackBar(
+          context, AppLanguage.selectDateMsg[language]);
+      return;
+    }
+
+    if (!_isBlockSelectable(normalisedDay)) {
+      SnackBarToastMessage.showSnackBar(
+          context, AppLanguage.selectDateMsg[language]);
+      return;
+    }
+
+    final block = _buildBlockFor(normalisedDay);
+    setState(() {
+      _focusedDay = focusedDay;
+      _selectedDays = block;
+      _totalNights = block.length;
+      _recalculateGrandTotal();
+    });
   }
 
   DateTime _clampFocusedDay(DateTime day) {
@@ -185,55 +272,27 @@ class _RedirectionPropertyDetailsScreenState
     }
   }
 
-  void _applyRangeSelection(
-    DateTime? start,
-    DateTime? end, {
-    DateTime? focusedDay,
-    bool showErrors = true,
-  }) {
-    final result = _dateSelectionService.evaluateRange(
-      start: start,
-      end: end,
-      today: _normalise(DateTime.now()),
-      unavailableDates: _unavailableDates,
-      maxNights: 30,
-      maxDays: 365,
-    );
-
-    setState(() {
-      if (focusedDay != null) {
-        _focusedDay = focusedDay;
-      }
-      _rangeStart = result.checkIn;
-      _rangeEnd = result.checkOut;
-      _totalNights = result.totalNights;
-      _recalculateGrandTotal();
-    });
-
-    if (showErrors && result.errorMessage != null) {
-      SnackBarToastMessage.showSnackBar(context, result.errorMessage!);
-    }
-  }
-
   void _recalculateGrandTotal() {
-    if (_rangeStart == null ||
-        _rangeEnd == null ||
-        _totalNights < 1 ||
-        adDetails is! Map) {
+    if (_selectedDays.isEmpty || adDetails is! Map) {
       _grandTotal = 0;
       return;
     }
-
-    final weekdayPrice = _asDouble(adDetails['weekday_price']);
-    final weekendPrice = _asDouble(adDetails['weekend_price']);
-    final fullWeekPrice = _asDouble(adDetails['full_week_price']);
-    _grandTotal = _pricingService.calculateRangeTotal(
-      checkIn: _rangeStart!,
-      checkOut: _rangeEnd!,
-      weekdayPrice: weekdayPrice,
-      weekendPrice: weekendPrice,
-      fullWeekPrice: fullWeekPrice,
-    );
+    switch (isSelected) {
+      case 1:
+        _grandTotal = _asDouble(adDetails['one_day_price']);
+        break;
+      case 2:
+        _grandTotal = _asDouble(adDetails['weekday_price']);
+        break;
+      case 3:
+        _grandTotal = _asDouble(adDetails['weekend_price']);
+        break;
+      case 4:
+        _grandTotal = _asDouble(adDetails['full_week_price']);
+        break;
+      default:
+        _grandTotal = 0;
+    }
   }
 
   double _asDouble(dynamic value) {
@@ -251,7 +310,7 @@ class _RedirectionPropertyDetailsScreenState
   bool isApiCalling = true;
   int selectedImageInd = 0;
   String showFormattedDates = '';
-  List<dynamic> tripImages = [];
+  List<dynamic> propertyImages = [];
   List<dynamic> offerings = [];
   dynamic userDetails;
   int userId = 0;
@@ -317,15 +376,21 @@ class _RedirectionPropertyDetailsScreenState
         if (res['success'] == true) {
           var item = res['data'];
           adDetails = (item != "NA") ? item : [];
+          if (adDetails['one_day_active'] == 1) {
+            isSelected = 1;
+          } else if (adDetails['weekday_active'] == 1) {
+            isSelected = 2;
+          } else if (adDetails['weekend_active'] == 1) {
+            isSelected = 3;
+          } else if (adDetails['full_week_active'] == 1) {
+            isSelected = 4;
+          }
           if (adDetails is Map && adDetails['unavailable_dates'] != null) {
             _unavailableDates =
                 _buildUnavailableDates(adDetails['unavailable_dates']);
-            if (_rangeStart != null || _rangeEnd != null) {
-              _applyRangeSelection(_rangeStart, _rangeEnd, showErrors: false);
-            }
           }
           if (adDetails['property_images'] != "NA") {
-            tripImages.addAll(adDetails['property_images']);
+            propertyImages.addAll(adDetails['property_images']);
             offerings = adDetails['amenities'] ?? [];
           }
           setState(() {
@@ -368,6 +433,7 @@ class _RedirectionPropertyDetailsScreenState
   Widget _buildUIScreen(BuildContext context) {
     final size = MediaQuery.of(context).size;
     // final double sw = MediaQuery.of(context).size.width;
+    final double sw = MediaQuery.of(context).size.width;
     final double sh = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
 
@@ -377,17 +443,9 @@ class _RedirectionPropertyDetailsScreenState
         statusBarIconBrightness: Brightness.dark,
         statusBarBrightness: Brightness.light,
       ),
-      child: PopScope(
-        canPop: false,
-        onPopInvoked: (didPop) {
-          AppConstant.selectFooterIndex = 0;
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const MyFooterPage(),
-            ),
-          );
-        },
+      child: Directionality(
+        textDirection:
+            language == 1 ? ui.TextDirection.rtl : ui.TextDirection.ltr,
         child: Scaffold(
           backgroundColor: Colors.white,
           body: SafeArea(
@@ -399,15 +457,7 @@ class _RedirectionPropertyDetailsScreenState
                 children: [
                   AppHeader(
                       text: AppLanguage.detailsText[language],
-                      onPress: () {
-                        AppConstant.selectFooterIndex = 0;
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const MyFooterPage(),
-                          ),
-                        );
-                      }),
+                      onPress: () => Navigator.pop(context)),
                   SizedBox(height: size.height * 0.01),
                   if (!isApiCalling)
                     Expanded(
@@ -415,8 +465,8 @@ class _RedirectionPropertyDetailsScreenState
                         child: Column(
                           children: [
                             //!==================IMAGE CODE=====================//
-                            if (tripImages.isNotEmpty)
-                              tripImages.isNotEmpty
+                            if (propertyImages.isNotEmpty)
+                              propertyImages.isNotEmpty
                                   ? Container(
                                       color: AppColor.creamColor,
                                       width: MediaQuery.of(context).size.width *
@@ -443,12 +493,12 @@ class _RedirectionPropertyDetailsScreenState
                                               borderRadius:
                                                   BorderRadius.circular(16),
                                               image: DecorationImage(
-                                                  image: tripImages[
+                                                  image: propertyImages[
                                                                   imageSelected]
                                                               ['image_path'] !=
                                                           null
                                                       ? NetworkImage(
-                                                          "${AppConfigProvider.imageURL}${tripImages[imageSelected]['image_path']}")
+                                                          "${AppConfigProvider.imageURL}${propertyImages[imageSelected]['image_path']}")
                                                       : const AssetImage(AppImage
                                                               .imageFrameImage)
                                                           as ImageProvider,
@@ -480,7 +530,7 @@ class _RedirectionPropertyDetailsScreenState
                                                   spacing: 8,
                                                   runSpacing: 6,
                                                   children: List.generate(
-                                                      tripImages.length,
+                                                      propertyImages.length,
                                                       (index) {
                                                     return Padding(
                                                       padding: language == 0
@@ -492,7 +542,7 @@ class _RedirectionPropertyDetailsScreenState
                                                                       : 18
                                                                   : 0,
                                                               right: index ==
-                                                                      tripImages
+                                                                      propertyImages
                                                                               .length -
                                                                           1
                                                                   ? 10
@@ -505,7 +555,7 @@ class _RedirectionPropertyDetailsScreenState
                                                                       : 18
                                                                   : 10,
                                                               left: index ==
-                                                                      tripImages
+                                                                      propertyImages
                                                                               .length -
                                                                           1
                                                                   ? 0
@@ -532,12 +582,12 @@ class _RedirectionPropertyDetailsScreenState
                                                               100,
                                                           decoration: BoxDecoration(
                                                               image: DecorationImage(
-                                                                  image: tripImages[index]
+                                                                  image: propertyImages[index]
                                                                               [
                                                                               'image_path'] !=
                                                                           null
                                                                       ? NetworkImage(
-                                                                          "${AppConfigProvider.imageURL}${tripImages[index]['image_path']}")
+                                                                          "${AppConfigProvider.imageURL}${propertyImages[index]['image_path']}")
                                                                       : const AssetImage(
                                                                               AppImage.imageFrameImage)
                                                                           as ImageProvider,
@@ -658,48 +708,83 @@ class _RedirectionPropertyDetailsScreenState
                                   _detailGrid(adDetails),
                                   SizedBox(height: size.height * 0.04),
 
-                                  // Description
-                                  Text(
-                                    AppLanguage.descriptionText[language],
-                                    style: const TextStyle(
-                                      fontSize: 21,
-                                      fontWeight: FontWeight.w500,
-                                      fontFamily: AppFont.fontFamily,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                  SizedBox(height: size.height * 0.01),
-                                  SizedBox(
-                                    width: MediaQuery.of(context).size.width *
-                                        90 /
-                                        100,
-                                    child: Text(
-                                      language == 0
-                                          ? (((adDetails['description_english'] ??
-                                                      '')
-                                                  .toString()
-                                                  .trim()
-                                                  .isEmpty)
-                                              ? "NA"
-                                              : adDetails[
-                                                  'description_english'])
-                                          : (((adDetails['description_arabic'] ??
-                                                      '')
-                                                  .toString()
-                                                  .trim()
-                                                  .isEmpty)
-                                              ? "N/A"
-                                              : adDetails[
-                                                  'description_arabic']),
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontFamily: AppFont.fontFamily,
-                                        color: Colors.grey.shade700,
-                                        fontWeight: FontWeight.w400,
+                                  // ── DESCRIPTION ──────────────────────────────────────
+                                  if (language == 0) ...[
+                                    if (adDetails['description_english'] !=
+                                            null &&
+                                        adDetails['description_english']
+                                            .isNotEmpty &&
+                                        adDetails['description_english'] !=
+                                            "NA") ...[
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            AppLanguage
+                                                .descriptionText[language],
+                                            style: const TextStyle(
+                                              fontSize: 21,
+                                              fontWeight: FontWeight.w500,
+                                              color: AppColor.primaryColor,
+                                              fontFamily: AppFont.fontFamily,
+                                            ),
+                                          ),
+                                          SizedBox(height: sh * 0.01),
+                                          Text(
+                                            adDetails['description_english'] ??
+                                                "NA",
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w400,
+                                              color: AppColor.primaryColor,
+                                              fontFamily: AppFont.fontFamily,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                  ),
-                                  SizedBox(height: size.height * 0.03),
+                                    ] else if (adDetails[
+                                                'description_arabic'] !=
+                                            null &&
+                                        adDetails['description_arabic']
+                                            .isNotEmpty &&
+                                        adDetails['description_arabic'] !=
+                                            "NA") ...[
+                                      SizedBox(height: sh * 0.02),
+                                      Padding(
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: sw * 0.04),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              AppLanguage
+                                                  .descriptionText[language],
+                                              style: const TextStyle(
+                                                fontSize: 21,
+                                                fontWeight: FontWeight.w500,
+                                                color: AppColor.primaryColor,
+                                                fontFamily: AppFont.fontFamily,
+                                              ),
+                                            ),
+                                            SizedBox(height: sh * 0.01),
+                                            Text(
+                                              adDetails['description_arabic'] ??
+                                                  "NA",
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w400,
+                                                color: AppColor.primaryColor,
+                                                fontFamily: AppFont.fontFamily,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                    SizedBox(height: sh * 0.02),
+                                  ],
 
                                   // What this place offers
                                   Text(
@@ -717,25 +802,25 @@ class _RedirectionPropertyDetailsScreenState
                                   SizedBox(height: size.height * 0.03),
 
                                   // Checkin checkout time
-                                  Text(
-                                    "${AppLanguage.timingText[language]}:",
-                                    style: const TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w700,
-                                      fontFamily: AppFont.fontFamily,
-                                    ),
-                                  ),
-                                  SizedBox(height: size.height * 0.01),
-                                  Text(
-                                    AppLanguage
-                                        .checkinCheckoutTimeText[language],
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w400,
-                                      fontFamily: AppFont.fontFamily,
-                                    ),
-                                  ),
-                                  SizedBox(height: size.height * 0.03),
+                                  // Text(
+                                  //   "${AppLanguage.timingText[language]}:",
+                                  //   style: const TextStyle(
+                                  //     fontSize: 20,
+                                  //     fontWeight: FontWeight.w700,
+                                  //     fontFamily: AppFont.fontFamily,
+                                  //   ),
+                                  // ),
+                                  // SizedBox(height: size.height * 0.01),
+                                  // Text(
+                                  //   AppLanguage
+                                  //       .checkinCheckoutTimeText[language],
+                                  //   style: const TextStyle(
+                                  //     fontSize: 16,
+                                  //     fontWeight: FontWeight.w400,
+                                  //     fontFamily: AppFont.fontFamily,
+                                  //   ),
+                                  // ),
+                                  // SizedBox(height: size.height * 0.03),
 
                                   // Price
                                   Text(
@@ -748,38 +833,300 @@ class _RedirectionPropertyDetailsScreenState
                                   ),
                                   SizedBox(height: size.height * 0.01),
 
-                                  // if (adDetails['one_day_price'] > 0) ...[
-                                  //   _priceRow(
-                                  //     title: AppLanguage.oneDayText[language],
-                                  //     price:
-                                  //         "${adDetails['one_day_price']?.toString() ?? "0"} KWD",
-                                  //   ),
-                                  // ],
+                                  //! One Day Pricing
+                                  if (adDetails['one_day_price'] > 0) ...[
+                                    GestureDetector(
+                                      onTap: () => _selectPricingType(1),
+                                      child: Container(
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            Container(
+                                              width: size.width * 0.05,
+                                              height: size.width * 0.05,
+                                              decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  border: Border.all(
+                                                      color:
+                                                          AppColor.themeColor,
+                                                      width: 2)),
+                                              child: isSelected == 1
+                                                  ? Center(
+                                                      child: Container(
+                                                        width:
+                                                            size.width * 0.025,
+                                                        height:
+                                                            size.width * 0.025,
+                                                        decoration:
+                                                            const BoxDecoration(
+                                                                color: AppColor
+                                                                    .themeColor,
+                                                                shape: BoxShape
+                                                                    .circle),
+                                                      ),
+                                                    )
+                                                  : null,
+                                            ),
+                                            SizedBox(width: size.width * 0.04),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                      AppLanguage
+                                                          .oneDayText[language],
+                                                      style: const TextStyle(
+                                                          fontSize: 16,
+                                                          fontWeight:
+                                                              FontWeight.w400,
+                                                          fontFamily: AppFont
+                                                              .fontFamily,
+                                                          height: 1.4)),
+                                                  SizedBox(
+                                                      height:
+                                                          size.height * 0.005),
+                                                  Text(
+                                                      "${adDetails['one_day_price']?.toString() ?? "0"} KWD",
+                                                      style: const TextStyle(
+                                                          fontSize: 16,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          fontFamily: AppFont
+                                                              .fontFamily)),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(height: size.height * 0.02),
+                                  ],
 
+                                  //! Week Day Pricing
                                   if (adDetails['weekday_price'] > 0) ...[
-                                    _priceRow(
-                                      title: AppLanguage.weekDaysText[language],
-                                      price:
-                                          "${adDetails['weekday_price']?.toString() ?? "0"} KWD${AppLanguage.perDayText[language]}",
+                                    GestureDetector(
+                                      onTap: () => _selectPricingType(2),
+                                      child: Container(
+                                        // margin: EdgeInsets.only(
+                                        //     bottom: size.height * 0.03),
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            Container(
+                                              width: size.width * 0.05,
+                                              height: size.width * 0.05,
+                                              decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  border: Border.all(
+                                                      color:
+                                                          AppColor.themeColor,
+                                                      width: 2)),
+                                              child: isSelected == 2
+                                                  ? Center(
+                                                      child: Container(
+                                                        width:
+                                                            size.width * 0.025,
+                                                        height:
+                                                            size.width * 0.025,
+                                                        decoration:
+                                                            const BoxDecoration(
+                                                                color: AppColor
+                                                                    .themeColor,
+                                                                shape: BoxShape
+                                                                    .circle),
+                                                      ),
+                                                    )
+                                                  : null,
+                                            ),
+                                            SizedBox(width: size.width * 0.04),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                      AppLanguage.weekDaysText[
+                                                          language],
+                                                      style: const TextStyle(
+                                                          fontSize: 16,
+                                                          fontWeight:
+                                                              FontWeight.w400,
+                                                          fontFamily: AppFont
+                                                              .fontFamily,
+                                                          height: 1.4)),
+                                                  SizedBox(
+                                                      height:
+                                                          size.height * 0.005),
+                                                  Text(
+                                                      "${adDetails['weekday_price']?.toString() ?? "0"} KWD",
+                                                      style: const TextStyle(
+                                                          fontSize: 16,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          fontFamily: AppFont
+                                                              .fontFamily)),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ),
+                                    SizedBox(height: size.height * 0.02),
                                   ],
 
+                                  //! Weekend Day Pricing
                                   if (adDetails['weekend_price'] > 0) ...[
-                                    _priceRow(
-                                      title:
-                                          AppLanguage.weekendDaysText[language],
-                                      price:
-                                          "${adDetails['weekend_price']?.toString() ?? "0"} KWD${AppLanguage.perDayText[language]}",
+                                    GestureDetector(
+                                      onTap: () => _selectPricingType(3),
+                                      child: Container(
+                                        // margin: EdgeInsets.only(
+                                        //     bottom: size.height * 0.03),
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            Container(
+                                              width: size.width * 0.05,
+                                              height: size.width * 0.05,
+                                              decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  border: Border.all(
+                                                      color:
+                                                          AppColor.themeColor,
+                                                      width: 2)),
+                                              child: isSelected == 3
+                                                  ? Center(
+                                                      child: Container(
+                                                        width:
+                                                            size.width * 0.025,
+                                                        height:
+                                                            size.width * 0.025,
+                                                        decoration:
+                                                            const BoxDecoration(
+                                                                color: AppColor
+                                                                    .themeColor,
+                                                                shape: BoxShape
+                                                                    .circle),
+                                                      ),
+                                                    )
+                                                  : null,
+                                            ),
+                                            SizedBox(width: size.width * 0.04),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                      AppLanguage
+                                                              .weekendDaysText[
+                                                          language],
+                                                      style: const TextStyle(
+                                                          fontSize: 16,
+                                                          fontWeight:
+                                                              FontWeight.w400,
+                                                          fontFamily: AppFont
+                                                              .fontFamily,
+                                                          height: 1.4)),
+                                                  SizedBox(
+                                                      height:
+                                                          size.height * 0.005),
+                                                  Text(
+                                                      "${adDetails['weekend_price']?.toString() ?? ""} KWD",
+                                                      style: const TextStyle(
+                                                          fontSize: 16,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          fontFamily: AppFont
+                                                              .fontFamily)),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ),
+                                    SizedBox(height: size.height * 0.02),
                                   ],
 
+                                  //! Full Week Pricing
                                   if (adDetails['full_week_price'] > 0) ...[
-                                    _priceRow(
-                                      title: AppLanguage
-                                          .fullWeekDaysText[language],
-                                      price:
-                                          "${adDetails['full_week_price']?.toString() ?? "0"} KWD${AppLanguage.perDayText[language]}",
+                                    GestureDetector(
+                                      onTap: () => _selectPricingType(4),
+                                      child: Container(
+                                        // margin: EdgeInsets.only(
+                                        //     bottom: size.height * 0.03),
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            Container(
+                                              width: size.width * 0.05,
+                                              height: size.width * 0.05,
+                                              decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  border: Border.all(
+                                                      color:
+                                                          AppColor.themeColor,
+                                                      width: 2)),
+                                              child: isSelected == 4
+                                                  ? Center(
+                                                      child: Container(
+                                                        width:
+                                                            size.width * 0.025,
+                                                        height:
+                                                            size.width * 0.025,
+                                                        decoration:
+                                                            const BoxDecoration(
+                                                                color: AppColor
+                                                                    .themeColor,
+                                                                shape: BoxShape
+                                                                    .circle),
+                                                      ),
+                                                    )
+                                                  : null,
+                                            ),
+                                            SizedBox(width: size.width * 0.04),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                      AppLanguage
+                                                              .fullWeekDaysText[
+                                                          language],
+                                                      style: const TextStyle(
+                                                          fontSize: 16,
+                                                          fontWeight:
+                                                              FontWeight.w400,
+                                                          fontFamily: AppFont
+                                                              .fontFamily,
+                                                          height: 1.4)),
+                                                  SizedBox(
+                                                      height:
+                                                          size.height * 0.005),
+                                                  Text(
+                                                      "${adDetails['full_week_price']?.toString() ?? ""} KWD",
+                                                      style: const TextStyle(
+                                                          fontSize: 16,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          fontFamily: AppFont
+                                                              .fontFamily)),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ),
+                                    SizedBox(height: size.height * 0.02),
                                   ],
 
                                   //! Cancellation policy
@@ -812,21 +1159,22 @@ class _RedirectionPropertyDetailsScreenState
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceEvenly,
                                     children: [
-                                      _legendItem('Available', Colors.black87),
-                                      SizedBox(width: size.width * 0.05),
-                                      _legendItem('Unavailable',
-                                          const Color(0xFFE57373)),
-                                      SizedBox(width: size.width * 0.05),
-                                      _legendItem('Selected Range',
-                                          AppColor.themeColor),
+                                      _legendItem(
+                                          AppLanguage.bookNowText[language],
+                                          null),
+                                      SizedBox(width: size.width * 0.08),
+                                      _legendItem('Availability',
+                                          const Color(0xFF009FE3)),
+                                      _legendItem(
+                                          'Selected', AppColor.themeColor),
                                     ],
                                   ),
+
                                   SizedBox(height: size.height * 0.02),
 
                                   // ── CALENDAR (Figma style) ───────────────────────────
                                   _buildCalendar(size),
-
-                                  SizedBox(height: size.height * 0.03),
+                                  SizedBox(height: size.height * 0.02),
                                   Container(
                                     width: double.infinity,
                                     padding: const EdgeInsets.symmetric(
@@ -845,7 +1193,7 @@ class _RedirectionPropertyDetailsScreenState
                                       children: [
                                         Text(
                                           _totalNights > 0
-                                              ? '${AppLanguage.forText[language]} $_totalNights ${AppLanguage.nightsText[language]}'
+                                              ? '${AppLanguage.forText[language]} $_totalNights ${AppLanguage.daysText[language]}'
                                               : AppLanguage
                                                   .selectDatesText[language],
                                           style: const TextStyle(
@@ -919,8 +1267,7 @@ class _RedirectionPropertyDetailsScreenState
                                     width: double.infinity,
                                     child: ElevatedButton(
                                       onPressed: () {
-                                        if (_rangeStart == null ||
-                                            _rangeEnd == null ||
+                                        if (_selectedDays.isEmpty ||
                                             _totalNights < 1) {
                                           SnackBarToastMessage.showSnackBar(
                                               context,
@@ -936,22 +1283,30 @@ class _RedirectionPropertyDetailsScreenState
                                                   .numberOfGuestMsg[language]);
                                           return;
                                         }
-                                        // Navigator.push(
-                                        //   context,
-                                        //   MaterialPageRoute(
-                                        //     builder: (context) =>
-                                        //         PropertyBookingDetails(
-                                        //       adDetails: adDetails,
-                                        //       adultCount: adultCount,
-                                        //       childCount: childCount,
-                                        //       propertyAdId: widget.propertyAdId,
-                                        //       checkinDate: _rangeStart!,
-                                        //       checkoutDate: _rangeEnd!,
-                                        //       totalNights: _totalNights,
-                                        //       grandTotal: _grandTotal,
-                                        //     ),
-                                        //   ),
-                                        // );
+                                        final sortedDays = _selectedDays
+                                            .toList()
+                                          ..sort((a, b) => a.compareTo(b));
+                                        final checkinDate = sortedDays.first;
+                                        final checkoutDate = checkinDate
+                                            .add(Duration(days: _totalNights));
+
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                PropertyBookingDetails(
+                                              adDetails: adDetails,
+                                              adultCount: adultCount,
+                                              childCount: childCount,
+                                              checkinDate: checkinDate,
+                                              checkoutDate: checkoutDate,
+                                              totalNights: _totalNights,
+                                              grandTotal: _grandTotal,
+                                              propertyAdId: widget.propertyAdId,
+                                              pricingType: isSelected,
+                                            ),
+                                          ),
+                                        );
                                       },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: AppColor.themeColor,
@@ -1010,32 +1365,32 @@ class _RedirectionPropertyDetailsScreenState
       lastDay: lastAllowed,
       focusedDay: _focusedDay,
       availableGestures: AvailableGestures.none,
-      enabledDayPredicate: (day) => _isSelectableDate(day),
-      rangeSelectionMode: RangeSelectionMode.toggledOn,
-      rangeStartDay: _rangeStart,
-      rangeEndDay: _rangeEnd,
-      onDaySelected: (selectedDay, focusedDay) {
-        final normalisedDay = _normalise(selectedDay);
+      enabledDayPredicate: (day) {
+        final normalisedDay = _normalise(day);
         if (!_isSelectableDate(normalisedDay)) {
-          return;
+          return false;
         }
-
-        if (_rangeStart == null || _rangeEnd != null) {
-          setState(() {
-            _focusedDay = focusedDay;
-            _rangeStart = normalisedDay;
-            _rangeEnd = null;
-            _totalNights = 0;
-            _recalculateGrandTotal();
-          });
-          return;
+        switch (isSelected) {
+          case 1:
+            return true;
+          case 2:
+            return _isWeekdayGroup(normalisedDay) &&
+                _isBlockSelectable(normalisedDay);
+          case 3:
+            return _isWeekendGroup(normalisedDay) &&
+                _isBlockSelectable(normalisedDay);
+          case 4:
+            return _isBlockSelectable(normalisedDay);
+          default:
+            return false;
         }
-
-        _applyRangeSelection(_rangeStart, normalisedDay,
-            focusedDay: focusedDay);
       },
-      onRangeSelected: (start, end, focusedDay) {
-        _applyRangeSelection(start, end, focusedDay: focusedDay);
+      rangeSelectionMode: RangeSelectionMode.disabled,
+      selectedDayPredicate: (day) {
+        return _selectedDays.any((d) => isSameDay(d, day));
+      },
+      onDaySelected: (selectedDay, focusedDay) {
+        _applyBlockSelection(selectedDay, focusedDay);
       },
       onPageChanged: (focusedDay) =>
           setState(() => _focusedDay = _clampFocusedDay(focusedDay)),
@@ -1096,18 +1451,22 @@ class _RedirectionPropertyDetailsScreenState
           );
         },
 
-        // Default day cell
+        // Default day cell (available dates)
         defaultBuilder: (context, day, focusedDay) {
-          return _dayCell(day, bgColor: null, textColor: Colors.black87);
+          return _dayCell(
+            day,
+            bgColor: AppColor.blueColor,
+            textColor: Colors.white,
+          );
         },
 
         // Today (unselected)
         todayBuilder: (context, day, focusedDay) {
           return _dayCell(
             day,
-            bgColor: AppColor.themeColor.withOpacity(0.15),
-            textColor: Colors.black87,
-            borderColor: AppColor.themeColor,
+            bgColor: AppColor.blueColor,
+            textColor: Colors.white,
+            borderColor: AppColor.blueColor,
           );
         },
 
@@ -1157,8 +1516,8 @@ class _RedirectionPropertyDetailsScreenState
           if (_isUnavailable(day)) {
             return _dayCell(
               day,
-              bgColor: const Color(0xFFE57373).withOpacity(0.2),
-              textColor: const Color(0xFFE57373),
+              bgColor: Colors.grey.shade200,
+              textColor: Colors.grey.shade500,
             );
           }
           return _dayCell(day, bgColor: null, textColor: Colors.grey.shade500);
@@ -1504,7 +1863,7 @@ class _RedirectionPropertyDetailsScreenState
                       MaterialPageRoute(
                           builder: (context) => Review(
                                 tripId: widget.propertyAdId.toString(),
-                                tripImages: tripImages,
+                                tripImages: propertyImages,
                                 isProperty: true,
                               )));
                 }
