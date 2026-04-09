@@ -1277,8 +1277,6 @@ class _BeachesState extends State<Beaches> {
                         ],
                       ),
                     ),
-                 
-                 
                   isLoading
                       ? tripsShimmerEffect(context)
                       : Expanded(
@@ -1397,7 +1395,8 @@ class _BeachesState extends State<Beaches> {
                                                                     oceanExploreList[
                                                                             index]
                                                                         [
-                                                                        'trip_id'], 0);
+                                                                        'trip_id'],
+                                                                    0);
                                                               },
                                                               child: SizedBox(
                                                                 width: MediaQuery.of(
@@ -2475,7 +2474,8 @@ class _BeachesState extends State<Beaches> {
                                                                     oceanExploreList[
                                                                             index]
                                                                         [
-                                                                        'trip_id'], 0);
+                                                                        'trip_id'],
+                                                                    0);
                                                               },
                                                               child: SizedBox(
                                                                 width: MediaQuery.of(
@@ -2692,11 +2692,17 @@ class _BeachesState extends State<Beaches> {
           builder: (context, setState) {
             //==========================DATE FUNCTION=======================//
             Future<void> _selectDate(BuildContext context) async {
+              final now = DateTime.now();
+              final today = DateTime(now.year, now.month, now.day);
+              final DateTime initialDate =
+                  (selectedDate != null && !selectedDate!.isBefore(today))
+                      ? selectedDate!
+                      : today;
               DateTime? picked = await showDatePicker(
                 context: context,
-                initialDate: selectedDate ?? DateTime(2000, 1, 1),
-                firstDate: DateTime(1900),
-                lastDate: DateTime.now(),
+                initialDate: initialDate,
+                firstDate: today,
+                lastDate: DateTime(2100),
               );
               if (picked != null && picked != selectedDate) {
                 var sendDate1 = DateFormat('yyyy-MM-dd').format(picked);

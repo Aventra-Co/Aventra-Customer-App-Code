@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:boatapp/view/other_screen/publicBookingFlow/public_trip_details.dart';
+import '/view/other_screen/publicBookingFlow/public_trip_details.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';

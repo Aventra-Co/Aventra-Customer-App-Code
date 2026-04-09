@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:boatapp/controller/app_footer.dart';
-import 'package:boatapp/view/property_screens/property_bookinghistory_screen.dart';
-import 'package:boatapp/view/property_screens/property_ongoing_details_screen.dart';
-import 'package:boatapp/view/property_screens/property_pending_details_screen.dart';
+import '/controller/app_footer.dart';
+import '/view/property_screens/property_bookinghistory_screen.dart';
+import '/view/property_screens/property_ongoing_details_screen.dart';
+import '/view/property_screens/property_pending_details_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../controller/app_config_provider.dart';

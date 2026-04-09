@@ -1,4 +1,4 @@
-import 'package:boatapp/controller/app_header.dart';
+import '/controller/app_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../controller/app_loader.dart';
@@ -52,7 +52,7 @@ class BoatDetailsScreenState extends State<BoatDetailsScreen> {
 
   Widget _buildUIScreen(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-         statusBarColor: Colors.transparent,
+        statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark));
     return Scaffold(
       backgroundColor: AppColor.secondaryColor,

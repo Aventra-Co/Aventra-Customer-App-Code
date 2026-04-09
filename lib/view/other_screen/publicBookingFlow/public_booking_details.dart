@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:boatapp/controller/app_footer.dart';
-import 'package:boatapp/view/other_screen/success_payment_screen.dart';
+import '/controller/app_footer.dart';
+import '/view/other_screen/success_payment_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -460,7 +460,6 @@ class _PublicBookingDetailsState extends State<PublicBookingDetails> {
                 sendSlotIds: selectedSlotIds.join(',')),
           ),
         );
-
       } else {
         // Handle non-200 response
         SnackBarToastMessage.showSnackBar(
@@ -666,7 +665,6 @@ class _PublicBookingDetailsState extends State<PublicBookingDetails> {
                                                         .width *
                                                     1 /
                                                     100),
-                                     
                                             SizedBox(
                                                 width: MediaQuery.of(context)
                                                         .size
@@ -718,7 +716,6 @@ class _PublicBookingDetailsState extends State<PublicBookingDetails> {
                                                 AppColor.themeColor),
                                       ),
                                     ),
-                                 
                                   ],
                                 ),
                               ],
@@ -1858,7 +1855,6 @@ class _PublicBookingDetailsState extends State<PublicBookingDetails> {
                                   titleCentered: true,
                                 ),
                                 calendarStyle: const CalendarStyle(
-                        
                                   selectedDecoration: BoxDecoration(
                                     color: AppColor.themeColor,
                                     shape: BoxShape.circle,
@@ -2090,7 +2086,6 @@ class _PublicBookingDetailsState extends State<PublicBookingDetails> {
                                               }
                                               setTime();
                                               setState(() {});
-                                  
                                             }
                                           },
                                           child: Container(

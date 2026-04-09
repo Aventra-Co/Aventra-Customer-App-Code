@@ -2,8 +2,8 @@
 
 import 'dart:convert';
 import 'dart:developer';
-import 'package:boatapp/controller/app_footer.dart';
-import 'package:boatapp/view/other_screen/change_language_screen.dart';
+import '/controller/app_footer.dart';
+import '/view/other_screen/change_language_screen.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';

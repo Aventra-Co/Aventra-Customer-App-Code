@@ -1,8 +1,8 @@
-// import 'package:boatapp/controller/app_color.dart';
-// import 'package:boatapp/controller/app_constant.dart';
-// import 'package:boatapp/controller/app_font.dart';
-// import 'package:boatapp/controller/app_header.dart';
-// import 'package:boatapp/controller/app_language.dart';
+// import '/controller/app_color.dart';
+// import '/controller/app_constant.dart';
+// import '/controller/app_font.dart';
+// import '/controller/app_header.dart';
+// import '/controller/app_language.dart';
 // import 'package:flutter/material.dart';
 // import 'package:table_calendar/table_calendar.dart';
 

@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:boatapp/view/authentication/notification_screen.dart';
+import '/view/authentication/notification_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';

@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:boatapp/controller/app_color.dart';
-import 'package:boatapp/controller/app_constant.dart';
-import 'package:boatapp/controller/app_font.dart';
-import 'package:boatapp/controller/app_header.dart';
-import 'package:boatapp/controller/app_image.dart';
-import 'package:boatapp/controller/app_language.dart';
+import '/controller/app_color.dart';
+import '/controller/app_constant.dart';
+import '/controller/app_font.dart';
+import '/controller/app_header.dart';
+import '/controller/app_image.dart';
+import '/controller/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';

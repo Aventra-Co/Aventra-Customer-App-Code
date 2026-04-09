@@ -1,6 +1,5 @@
-
-import 'package:boatapp/controller/app_font.dart';
-import 'package:boatapp/controller/app_language.dart';
+import '/controller/app_font.dart';
+import '/controller/app_language.dart';
 import 'package:flutter/material.dart';
 
 import '../controller/app_constant.dart';
@@ -10,7 +9,6 @@ void showSortBottomSheet(
   required String selectedSort,
   required ValueChanged<String> onSelected,
 }) {
-
   String currentSort = selectedSort;
 
   showModalBottomSheet(

@@ -1,11 +1,11 @@
 import 'dart:convert';
-import 'package:boatapp/controller/app_button.dart';
-import 'package:boatapp/controller/app_color.dart';
-import 'package:boatapp/controller/app_constant.dart';
-import 'package:boatapp/controller/app_font.dart';
-import 'package:boatapp/controller/app_image.dart';
-import 'package:boatapp/controller/app_language.dart';
-import 'package:boatapp/view/property_screens/view_property_details_screen.dart';
+import '/controller/app_button.dart';
+import '/controller/app_color.dart';
+import '/controller/app_constant.dart';
+import '/controller/app_font.dart';
+import '/controller/app_image.dart';
+import '/controller/app_language.dart';
+import '/view/property_screens/view_property_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 import 'package:google_maps_flutter/google_maps_flutter.dart';

@@ -1,4 +1,4 @@
-import 'package:boatapp/controller/app_constant.dart';
+import '/controller/app_constant.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'app_color.dart';

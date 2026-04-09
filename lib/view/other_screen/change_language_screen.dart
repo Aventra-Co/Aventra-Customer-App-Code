@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:boatapp/controller/app_footer.dart';
-import 'package:boatapp/view/authentication/login_screen.dart';
+import '/controller/app_footer.dart';
+import '/view/authentication/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,7 +36,6 @@ class ChangePasswordState extends State<ChangeLanguage> {
       "id": 1,
       "title": "Arabic",
     },
- 
   ];
   dynamic languageId;
   @override

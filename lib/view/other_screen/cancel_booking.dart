@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:boatapp/controller/app_footer.dart';
+import '/controller/app_footer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;

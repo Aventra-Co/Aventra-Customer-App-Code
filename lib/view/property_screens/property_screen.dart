@@ -1,17 +1,18 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:ui' as ui;
-import 'package:boatapp/controller/app_color.dart';
-import 'package:boatapp/controller/app_constant.dart';
-import 'package:boatapp/controller/app_font.dart';
-import 'package:boatapp/controller/app_image.dart';
-import 'package:boatapp/controller/app_language.dart';
-import 'package:boatapp/model/sort_model.dart';
+import '/controller/app_color.dart';
+import '/controller/app_constant.dart';
+import '/controller/app_font.dart';
+import '/controller/app_image.dart';
+import '/controller/app_language.dart';
+import '/model/sort_model.dart';
 import 'package:flutter/material.dart';
-import 'package:boatapp/view/property_screens/property_detail_screen.dart';
+import '/view/property_screens/property_detail_screen.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../controller/app_config_provider.dart';
@@ -46,6 +47,21 @@ class _PropertyScreenState extends State<PropertyScreen> {
   int selectedPropTypeId = 0;
   String selectedSort = '';
   bool searchStatus = false;
+  List<dynamic> amenities = [
+    {"name": "WiFi"},
+    {"name": "Coffee"},
+    {"name": "AC"},
+  ];
+  bool isPetFriendlty = false;
+  int maxAdult = 0;
+  int maxChild = 0;
+  DateTime? selectedDate;
+  String date = '';
+  var sendDate = "";
+  String sendAddress = '';
+  int sendPropertyId = 0;
+  List<int> sendAmmenities = [];
+  int isToggle = 2;
 
   //! MAP
   double longitudex = 77.4126;
@@ -96,18 +112,20 @@ class _PropertyScreenState extends State<PropertyScreen> {
       userId = data['user_id'];
     }
     isApiCalling = false;
-    getAllAdvertisementApi(userId, widget.propertyAdId);
+    getAllAdvertisementApi(userId, widget.propertyAdId, "", "", "", "", "");
     getPickUpsApi(userId, widget.propertyAdId);
     propertyTypesApiCall(userId);
+    getAmmenitiesApi(userId);
     setState(() {});
   }
 
-  Future<void> getAllAdvertisementApi(userId, int propTypeId) async {
+  Future<void> getAllAdvertisementApi(userId, propTypeId, String ammenitiesIds,
+      maxAdult, maxChild, String sendDate, String address) async {
     setState(() {
       isApiCalling = true;
     });
     Uri url = Uri.parse(
-        "${AppConfigProvider.apiUrl}get_advertisement_city_property_type?user_id=$userId&property_type=$propTypeId&city_id=${widget.cityId}");
+        "${AppConfigProvider.apiUrl}get_advertisement_city_property_type?user_id=$userId&property_type=$propTypeId&city_id=${widget.cityId}&amenities_id=$ammenitiesIds&max_adult=$maxAdult&max_child=$maxChild&checkin_date=$sendDate&pet_friendly=$isToggle&address=$address");
     print("url $url");
     String token = AppConstant.token;
     Map<String, String> headers = {'Authorization': 'Bearer $token'};
@@ -363,10 +381,64 @@ class _PropertyScreenState extends State<PropertyScreen> {
         if (res['success'] == true) {
           var item = res['data'];
           locationsList = (item != "NA") ? item : [];
+
           // pickUpList = locationsList;
           if (locationsList.isNotEmpty) {
             beaches = convertApiDataToBeaches(locationsList);
           }
+          setState(() {
+            isApiCalling = false;
+          });
+        } else {
+          if (res['active_status'] == 0) {
+            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const Login()),
+            );
+          }
+          setState(() {
+            isApiCalling = false;
+          });
+        }
+      } else {
+        setState(() {
+          isApiCalling = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        isApiCalling = false;
+      });
+    }
+  }
+
+  //=============================GET Ammenities===================================//
+  Future<void> getAmmenitiesApi(userId) async {
+    Uri url = Uri.parse("${AppConfigProvider.apiUrl}get_all_amenities_list");
+    print("URL: $url");
+
+    String token = AppConstant.token;
+
+    if (token.isEmpty) {}
+
+    Map<String, String> headers = {
+      'Authorization': 'Bearer $token', // Use 'Bearer' if required
+    };
+
+    setState(() {
+      isApiCalling = true;
+    });
+
+    try {
+      final response = await http.get(url, headers: headers);
+
+      if (response.statusCode == 200) {
+        dynamic res = jsonDecode(response.body);
+
+        if (res['success'] == true) {
+          var item = res['data'];
+          amenities = (item != "NA") ? item : [];
           setState(() {
             isApiCalling = false;
           });
@@ -439,6 +511,7 @@ class _PropertyScreenState extends State<PropertyScreen> {
 
   Widget _buildUIScreen(BuildContext context) {
     final size = MediaQuery.of(context).size;
+
     double screenWidth = MediaQuery.of(context).size.width;
     final topInset = MediaQuery.of(context).padding.top;
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -651,204 +724,6 @@ class _PropertyScreenState extends State<PropertyScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  void showFilterModal(BuildContext context, screenWidth) {
-    showModalBottomSheet<void>(
-      isScrollControlled: true,
-      constraints: BoxConstraints.expand(
-          width: screenWidth,
-          height: MediaQuery.of(context).size.height * 60 / 100),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
-        ),
-      ),
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return Container(
-              height: MediaQuery.of(context).size.height * 55 / 100,
-              width: MediaQuery.of(context).size.width * 100 / 100,
-              decoration: const BoxDecoration(
-                color: AppColor.secondaryColor,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(30),
-                  topRight: Radius.circular(30),
-                ),
-              ),
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height * 4 / 100,
-                  ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 90 / 100,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(AppLanguage.selectProTypeText[language],
-                            style: TextStyle(
-                                color: AppColor.primaryColor,
-                                fontFamily: AppFont.fontFamily,
-                                fontWeight: FontWeight.w700,
-                                fontSize: screenWidth > 600 ? 20 : 16)),
-                        InkWell(
-                          onTap: () {
-                            selectedPropTypeId = 0;
-                            Navigator.pop(context);
-                            getAllAdvertisementApi(userId, widget.propertyAdId);
-                            getPickUpsApi(userId, widget.propertyAdId);
-                          },
-                          child: Text(AppLanguage.clearAllText[language],
-                              style: TextStyle(
-                                  color: AppColor.themeColor,
-                                  fontFamily: AppFont.fontFamily,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: screenWidth > 600 ? 18 : 14)),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height * 3 / 100,
-                  ),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width * 90 / 100,
-                            child: Wrap(
-                              spacing: 15,
-                              runSpacing: 10,
-                              // alignment: WrapAlignment.spaceBetween,
-                              children: List.generate(propertyTypeList.length,
-                                  (index) {
-                                return Column(
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () {
-                                        selectedPropTypeId =
-                                            propertyTypeList[index]
-                                                ['property_type_id'];
-                                        Navigator.pop(context);
-                                        getAllAdvertisementApi(
-                                            userId,
-                                            propertyTypeList[index]
-                                                ['property_type_id']);
-                                        getPickUpsApi(
-                                            userId,
-                                            propertyTypeList[index]
-                                                ['property_type_id']);
-                                      },
-                                      child: Container(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                26 /
-                                                100,
-                                        height:
-                                            MediaQuery.of(context).size.width *
-                                                26 /
-                                                100,
-                                        // padding:
-                                        //     const EdgeInsets.only(left: 15),
-                                        decoration: BoxDecoration(
-                                          image: DecorationImage(
-                                            image: propertyTypeList[index][
-                                                        'property_type_image'] !=
-                                                    null
-                                                ? NetworkImage(
-                                                    "${AppConfigProvider.imageURL}${propertyTypeList[index]['property_type_image']}")
-                                                : const AssetImage(
-                                                        AppImage.dummyIcon)
-                                                    as ImageProvider,
-                                            fit: BoxFit.cover,
-                                            colorFilter: (selectedPropTypeId ==
-                                                    propertyTypeList[index]
-                                                        ['property_type_id'])
-                                                ? ColorFilter.mode(
-                                                    Colors.black.withOpacity(
-                                                        0.4), // Adjust the opacity
-                                                    BlendMode
-                                                        .darken, // You can change the BlendMode if needed
-                                                  )
-                                                : ColorFilter.mode(
-                                                    Colors.black.withOpacity(
-                                                        0.0), // Adjust the opacity
-                                                    BlendMode
-                                                        .darken, // You can change the BlendMode if needed
-                                                  ),
-                                          ),
-                                          borderRadius:
-                                              BorderRadius.circular(15),
-                                        ),
-                                        child: (selectedPropTypeId ==
-                                                propertyTypeList[index]
-                                                    ['property_type_id'])
-                                            ? Center(
-                                                child: SizedBox(
-                                                  width: MediaQuery.of(context)
-                                                          .size
-                                                          .width *
-                                                      8 /
-                                                      100,
-                                                  height: MediaQuery.of(context)
-                                                          .size
-                                                          .width *
-                                                      8 /
-                                                      100,
-                                                  child: Image.asset(
-                                                      AppImage.checkIcon),
-                                                ),
-                                              )
-                                            : Container(),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                        height:
-                                            MediaQuery.of(context).size.height *
-                                                1 /
-                                                100),
-                                    Container(
-                                      width: MediaQuery.of(context).size.width *
-                                          26 /
-                                          100,
-                                      alignment: Alignment.center,
-                                      child: Text(
-                                        propertyTypeList[index]
-                                                    ['property_type_label']
-                                                [language] ??
-                                            '',
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                            color: AppColor.primaryColor,
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                            fontFamily: AppFont.fontFamily),
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              }),
-                            ),
-                          ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 2 / 100),
-                        ],
-                      ),
-                    ),
-                  )
-                ],
-              ),
-            );
-          },
-        );
-      },
     );
   }
 
@@ -1495,7 +1370,8 @@ class _PropertyScreenState extends State<PropertyScreen> {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      showFilterModal(context, screenWidth);
+                      // showFilterModal(context, screenWidth);
+                      filterBottomSheet(context, screenWidth);
                     },
                     child: Row(
                       children: [
@@ -1612,6 +1488,807 @@ class _PropertyScreenState extends State<PropertyScreen> {
                     ),
         ),
         SizedBox(height: size.height * 0.02),
+      ],
+    );
+  }
+
+  apply() {
+    getAllAdvertisementApi(
+        userId,
+        sendPropertyId == 0 ? widget.propertyAdId : sendPropertyId,
+        sendAmmenities.join(","),
+        maxAdult == 0 ? "" : maxAdult,
+        maxChild == 0 ? "" : maxChild,
+        sendDate,
+        sendAddress);
+  }
+
+  reset() {
+    setState(() {
+      sendAddress = "";
+      selectedDate;
+      date = '';
+      sendDate = "";
+      sendPropertyId = 0;
+      sendAmmenities.clear();
+      isToggle = 2;
+      maxAdult = 0;
+      maxChild = 0;
+    });
+    getAllAdvertisementApi(userId, widget.propertyAdId, "", "", "", "", "");
+  }
+
+  void filterBottomSheet(BuildContext context, screenWidth) {
+    final size = MediaQuery.of(context).size;
+    showModalBottomSheet<void>(
+      isScrollControlled: true,
+      constraints: BoxConstraints.expand(
+          width: screenWidth,
+          height: MediaQuery.of(context).size.height * 95 / 100),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(30),
+          topRight: Radius.circular(30),
+        ),
+      ),
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            //==========================DATE FUNCTION=======================//
+            Future<void> _selectDate(BuildContext context) async {
+              final now = DateTime.now();
+              final today = DateTime(now.year, now.month, now.day);
+              final DateTime initialDate =
+                  (selectedDate != null && !selectedDate!.isBefore(today))
+                      ? selectedDate!
+                      : today;
+              DateTime? picked = await showDatePicker(
+                context: context,
+                initialDate: initialDate,
+                firstDate: today,
+                lastDate: DateTime(2100),
+              );
+              if (picked != null && picked != selectedDate) {
+                var sendDate1 = DateFormat('yyyy-MM-dd').format(picked);
+                var showDate = DateFormat('dd/MM/yyyy').format(picked);
+                setState(() {
+                  date = showDate.toString();
+
+                  sendDate = sendDate1;
+                });
+              }
+            }
+
+            return Directionality(
+              textDirection:
+                  language == 1 ? ui.TextDirection.rtl : ui.TextDirection.ltr,
+              child: Container(
+                height: MediaQuery.of(context).size.height * 95 / 100,
+                width: MediaQuery.of(context).size.width * 100 / 100,
+                decoration: const BoxDecoration(
+                  color: AppColor.secondaryColor,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(30),
+                    topRight: Radius.circular(30),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 2 / 100,
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            //reset cancel
+                            SizedBox(
+                              width:
+                                  MediaQuery.of(context).size.width * 90 / 100,
+                              child: Row(
+                                children: [
+                                  //cancel image
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                    },
+                                    child: SizedBox(
+                                      width: MediaQuery.of(context).size.width *
+                                          6 /
+                                          100,
+                                      height:
+                                          MediaQuery.of(context).size.width *
+                                              6 /
+                                              100,
+                                      child: Image.asset(
+                                        AppImage.filterCancel,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                                  const Spacer(),
+
+                                  //APPLy
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      apply();
+                                    },
+                                    child: Text(
+                                      AppLanguage.applyText[language],
+                                      style: const TextStyle(
+                                          fontFamily: AppFont.fontFamily,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColor.themeColor),
+                                    ),
+                                  ),
+                                  Container(
+                                    width: MediaQuery.of(context).size.width *
+                                        4 /
+                                        100,
+                                    alignment: Alignment.center,
+                                    child: const Text(
+                                      "|",
+                                      style: TextStyle(
+                                          fontFamily: AppFont.fontFamily,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColor.themeColor),
+                                    ),
+                                  ),
+
+                                  //reset
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      reset();
+                                    },
+                                    child: Text(
+                                      AppLanguage.resetText[language],
+                                      style: const TextStyle(
+                                          fontFamily: AppFont.fontFamily,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColor.themeColor),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(
+                              height:
+                                  MediaQuery.of(context).size.height * 2 / 100,
+                            ),
+
+                            //Date text
+                            Container(
+                              alignment: language == 0
+                                  ? Alignment.centerLeft
+                                  : Alignment.centerRight,
+                              width:
+                                  MediaQuery.of(context).size.width * 90 / 100,
+                              child: Text(
+                                AppLanguage.dateText[language],
+                                style: const TextStyle(
+                                    fontFamily: AppFont.fontFamily,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColor.primaryColor),
+                              ),
+                            ),
+                            SizedBox(
+                              height:
+                                  MediaQuery.of(context).size.height * 2 / 100,
+                            ),
+
+                            //-----------DOB field---------------
+                            SizedBox(
+                              width:
+                                  MediaQuery.of(context).size.width * 90 / 100,
+                              height:
+                                  MediaQuery.of(context).size.height * 6 / 100,
+                              child: TextFormField(
+                                readOnly: true,
+                                onTap: () => _selectDate(context),
+                                decoration: InputDecoration(
+                                  suffixIcon: Image.asset(
+                                    AppImage.calenderIcon,
+                                    scale: 3.5,
+                                  ),
+                                  hintText: date != ''
+                                      ? date.replaceAll('-', '/')
+                                      : AppLanguage.chooseDateText[language],
+                                  hintStyle: const TextStyle(
+                                      color: AppColor.themeColor,
+                                      fontFamily: AppFont.fontFamily,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14),
+                                  border: const OutlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: AppColor.textColor),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(16)),
+                                  ),
+                                  enabledBorder: const OutlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: AppColor.textColor),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(16)),
+                                  ),
+                                  focusedBorder: const OutlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: AppColor.textColor),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(16)),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height *
+                                    2 /
+                                    100),
+
+                            //pickup text
+                            if (locationsList.isNotEmpty)
+                              Container(
+                                alignment: language == 0
+                                    ? Alignment.centerLeft
+                                    : Alignment.centerRight,
+                                width: MediaQuery.of(context).size.width *
+                                    90 /
+                                    100,
+                                child: Text(
+                                  AppLanguage.locationText[language],
+                                  style: const TextStyle(
+                                      fontFamily: AppFont.fontFamily,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColor.primaryColor),
+                                ),
+                              ),
+                            SizedBox(
+                              height:
+                                  MediaQuery.of(context).size.height * 2 / 100,
+                            ),
+
+                            //pickup list
+                            Container(
+                              alignment: language == 0
+                                  ? Alignment.centerLeft
+                                  : Alignment.centerRight,
+                              width:
+                                  MediaQuery.of(context).size.width * 90 / 100,
+                              child: Wrap(
+                                alignment: WrapAlignment.start,
+                                spacing: 15,
+                                runSpacing: 10,
+                                children: List.generate(locationsList.length,
+                                    (index) {
+                                  return (GestureDetector(
+                                    onTap: () {
+                                      if (sendAddress ==
+                                          locationsList[index]["name"]) {
+                                        setState(() {
+                                          sendAddress = "";
+                                        });
+                                        log(sendAddress);
+                                      } else {
+                                        setState(() {
+                                          sendAddress =
+                                              locationsList[index]["name"];
+                                        });
+                                        log(sendAddress);
+                                      }
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.all(1),
+                                      decoration: BoxDecoration(
+                                          color: sendAddress ==
+                                                  locationsList[index]["name"]
+                                              ? AppColor.themeColor
+                                              : AppColor.secondaryColor,
+                                          border: Border.all(
+                                              width: 1,
+                                              color: sendAddress ==
+                                                      locationsList[index]
+                                                          ["name"]
+                                                  ? AppColor.themeColor
+                                                  : AppColor.primaryColor),
+                                          borderRadius:
+                                              BorderRadius.circular(10)),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 4.0, horizontal: 12.0),
+                                        child: Text(
+                                          locationsList[index]['name'] ?? "",
+                                          textAlign: TextAlign.start,
+                                          style: TextStyle(
+                                              color: sendAddress ==
+                                                      locationsList[index]
+                                                          ["name"]
+                                                  ? AppColor.secondaryColor
+                                                  : AppColor.themeColor,
+                                              fontFamily: AppFont.fontFamily,
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 12),
+                                        ),
+                                      ),
+                                    ),
+                                  ));
+                                }),
+                              ),
+                            ),
+                            SizedBox(
+                              height:
+                                  MediaQuery.of(context).size.height * 3 / 100,
+                            ),
+
+                            //property type text
+                            if (propertyTypeList.isNotEmpty)
+                              Container(
+                                alignment: language == 0
+                                    ? Alignment.centerLeft
+                                    : Alignment.centerRight,
+                                width: MediaQuery.of(context).size.width *
+                                    90 /
+                                    100,
+                                child: Text(
+                                  AppLanguage.propertyTypeText[language],
+                                  style: const TextStyle(
+                                      fontFamily: AppFont.fontFamily,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColor.primaryColor),
+                                ),
+                              ),
+                            SizedBox(
+                              height:
+                                  MediaQuery.of(context).size.height * 2 / 100,
+                            ),
+
+                            //property type list
+                            Container(
+                              alignment: language == 0
+                                  ? Alignment.centerLeft
+                                  : Alignment.centerRight,
+                              width:
+                                  MediaQuery.of(context).size.width * 90 / 100,
+                              child: Wrap(
+                                alignment: WrapAlignment.start,
+                                spacing: 15,
+                                runSpacing: 10,
+                                children: List.generate(propertyTypeList.length,
+                                    (index) {
+                                  return (GestureDetector(
+                                    onTap: () {
+                                      if (sendPropertyId ==
+                                          propertyTypeList[index]
+                                              ['property_type_id']) {
+                                        setState(() {
+                                          sendPropertyId = 0;
+                                        });
+                                        log("$sendPropertyId");
+                                      } else {
+                                        setState(() {
+                                          sendPropertyId =
+                                              propertyTypeList[index]
+                                                  ['property_type_id'];
+                                        });
+                                        log("$sendPropertyId");
+                                      }
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.all(1),
+                                      decoration: BoxDecoration(
+                                          color: sendPropertyId ==
+                                                  propertyTypeList[index]
+                                                      ['property_type_id']
+                                              ? AppColor.themeColor
+                                              : AppColor.secondaryColor,
+                                          border: Border.all(
+                                              width: 1,
+                                              color: sendPropertyId ==
+                                                      propertyTypeList[index]
+                                                          ['property_type_id']
+                                                  ? AppColor.themeColor
+                                                  : AppColor.primaryColor),
+                                          borderRadius:
+                                              BorderRadius.circular(10)),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 4.0, horizontal: 12.0),
+                                        child: Text(
+                                          propertyTypeList[index]
+                                                      ['property_type_label']
+                                                  [language] ??
+                                              "",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                              color: sendPropertyId ==
+                                                      propertyTypeList[index]
+                                                          ['property_type_id']
+                                                  ? AppColor.secondaryColor
+                                                  : AppColor.themeColor,
+                                              fontFamily: AppFont.fontFamily,
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 12),
+                                        ),
+                                      ),
+                                    ),
+                                  ));
+                                }),
+                              ),
+                            ),
+                            SizedBox(
+                              height:
+                                  MediaQuery.of(context).size.height * 3 / 100,
+                            ),
+
+                            //ammenities text
+                            if (amenities.isNotEmpty)
+                              Container(
+                                alignment: language == 0
+                                    ? Alignment.centerLeft
+                                    : Alignment.centerRight,
+                                width: MediaQuery.of(context).size.width *
+                                    90 /
+                                    100,
+                                child: Text(
+                                  AppLanguage.whatPropertyOfferText[language],
+                                  style: const TextStyle(
+                                      fontFamily: AppFont.fontFamily,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColor.primaryColor),
+                                ),
+                              ),
+                            SizedBox(
+                              height:
+                                  MediaQuery.of(context).size.height * 2 / 100,
+                            ),
+
+                            //ammenities list
+                            Container(
+                              alignment: language == 0
+                                  ? Alignment.centerLeft
+                                  : Alignment.centerRight,
+                              width:
+                                  MediaQuery.of(context).size.width * 90 / 100,
+                              child: Wrap(
+                                alignment: WrapAlignment.start,
+                                spacing: 15,
+                                runSpacing: 10,
+                                children:
+                                    List.generate(amenities.length, (index) {
+                                  return (GestureDetector(
+                                    onTap: () {
+                                      if (sendAmmenities.contains(
+                                          amenities[index]['amenity_id'])) {
+                                        setState(() {
+                                          sendAmmenities.remove(
+                                              amenities[index]['amenity_id']);
+                                        });
+                                      } else {
+                                        setState(() {
+                                          sendAmmenities.add(
+                                              amenities[index]['amenity_id']);
+                                        });
+                                      }
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.all(1),
+                                      decoration: BoxDecoration(
+                                          color: sendAmmenities.contains(
+                                                  amenities[index]
+                                                      ['amenity_id'])
+                                              ? AppColor.themeColor
+                                              : AppColor.secondaryColor,
+                                          border: Border.all(
+                                              width: 1,
+                                              color: sendAmmenities.contains(
+                                                      amenities[index]
+                                                          ['amenity_id'])
+                                                  ? AppColor.themeColor
+                                                  : AppColor.primaryColor),
+                                          borderRadius:
+                                              BorderRadius.circular(10)),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 4.0, horizontal: 12.0),
+                                        child: Text(
+                                          amenities[index]['amenity_name'] ??
+                                              "",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                              color: sendAmmenities.contains(
+                                                      amenities[index]
+                                                          ['amenity_id'])
+                                                  ? AppColor.secondaryColor
+                                                  : AppColor.themeColor,
+                                              fontFamily: AppFont.fontFamily,
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 12),
+                                        ),
+                                      ),
+                                    ),
+                                  ));
+                                }),
+                              ),
+                            ),
+                            SizedBox(
+                              height:
+                                  MediaQuery.of(context).size.height * 3 / 100,
+                            ),
+
+                            //ammenities text
+                            if (amenities.isNotEmpty)
+                              Container(
+                                alignment: language == 0
+                                    ? Alignment.centerLeft
+                                    : Alignment.centerRight,
+                                width: MediaQuery.of(context).size.width *
+                                    90 /
+                                    100,
+                                child: Text(
+                                  AppLanguage.petFriendlyText[language],
+                                  style: const TextStyle(
+                                      fontFamily: AppFont.fontFamily,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColor.primaryColor),
+                                ),
+                              ),
+                            SizedBox(
+                              height:
+                                  MediaQuery.of(context).size.height * 3 / 100,
+                            ),
+
+                            //! Pet Friendly
+                            SizedBox(
+                              width:
+                                  MediaQuery.of(context).size.width * 90 / 100,
+                              child: Row(
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        if (isToggle == 1) {
+                                          isToggle = 2;
+                                        } else {
+                                          isToggle = 1;
+                                        }
+                                      });
+                                    },
+                                    child: SizedBox(
+                                      width: size.width * 8 / 100,
+                                      height: size.width * 8 / 100,
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(100),
+                                        child: Image.asset(
+                                          isToggle == 1
+                                              ? AppImage.activeRadio
+                                              : AppImage.deactiveRadio,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: size.width * 0.02),
+
+                                  /// YES
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        if (isToggle == 1) {
+                                          isToggle = 2;
+                                        } else {
+                                          isToggle = 1;
+                                        }
+                                      });
+                                    },
+                                    child: Text(
+                                      AppLanguage.yesText[language],
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontFamily: AppFont.fontFamily,
+                                        fontWeight: FontWeight.w400,
+                                        color: AppColor.themeColor,
+                                      ),
+                                    ),
+                                  ),
+
+                                  SizedBox(width: size.width * 0.1),
+
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        if (isToggle == 0) {
+                                          isToggle = 2;
+                                        } else {
+                                          isToggle = 0;
+                                        }
+                                      });
+                                    },
+                                    child: SizedBox(
+                                      width: size.width * 8 / 100,
+                                      height: size.width * 8 / 100,
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(100),
+                                        child: Image.asset(
+                                          isToggle == 0
+                                              ? AppImage.activeRadio
+                                              : AppImage.deactiveRadio,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: size.width * 0.02),
+
+                                  /// NO
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        if (isToggle == 0) {
+                                          isToggle = 2;
+                                        } else {
+                                          isToggle = 0;
+                                        }
+                                      });
+                                    },
+                                    child: Text(
+                                      AppLanguage.noText[language],
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontFamily: AppFont.fontFamily,
+                                        fontWeight: FontWeight.w400,
+                                        color: AppColor.themeColor,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(
+                              height:
+                                  MediaQuery.of(context).size.height * 3 / 100,
+                            ),
+
+                            //! Adult Child Counter
+                            SizedBox(
+                              width:
+                                  MediaQuery.of(context).size.width * 90 / 100,
+                              child: Column(
+                                children: [
+                                  Container(
+                                    alignment: language == 0
+                                        ? Alignment.centerLeft
+                                        : Alignment.centerRight,
+                                    width: MediaQuery.of(context).size.width *
+                                        90 /
+                                        100,
+                                    child: Text(
+                                      AppLanguage
+                                          .numberofMaxPeopleText[language],
+                                      style: const TextStyle(
+                                          fontFamily: AppFont.fontFamily,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColor.primaryColor),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: MediaQuery.of(context).size.height *
+                                        2 /
+                                        100,
+                                  ),
+                                  _guestCounterRow(context, maxAdult, 100000,
+                                      label: AppLanguage.adultText[language],
+                                      count: maxAdult, onDecrement: () {
+                                    if (maxAdult > 0) {
+                                      setState(() => maxAdult--);
+                                    }
+                                  }, onIncrement: () {
+                                    if (maxAdult < 100000) {
+                                      setState(() => maxAdult++);
+                                    }
+                                  }),
+                                  SizedBox(
+                                    height: MediaQuery.of(context).size.height *
+                                        2 /
+                                        100,
+                                  ),
+                                  _guestCounterRow(context, maxChild, 100000,
+                                      label: AppLanguage.childText[language],
+                                      count: maxChild, onDecrement: () {
+                                    if (maxChild > 0) {
+                                      setState(() => maxChild--);
+                                    }
+                                  }, onIncrement: () {
+                                    if (maxChild < 100000) {
+                                      setState(() => maxChild++);
+                                    }
+                                  }),
+                                ],
+                              ),
+                            ),
+                            SizedBox(
+                              height:
+                                  MediaQuery.of(context).size.height * 3 / 100,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _guestCounterRow(BuildContext context, int value, int max,
+      {required String label,
+      required int count,
+      required VoidCallback onDecrement,
+      required VoidCallback onIncrement}) {
+    final size = MediaQuery.of(context).size;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label,
+            style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w400,
+                fontFamily: AppFont.fontFamily,
+                color: AppColor.themeColor)),
+        Container(
+          decoration: BoxDecoration(
+              border: Border.all(color: AppColor.primaryColor, width: 1),
+              borderRadius: BorderRadius.circular(5)),
+          child: Padding(
+            padding: const EdgeInsets.all(4.0),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: onDecrement,
+                  child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: Image.asset(value == 0
+                          ? AppImage.disableDecreamentIcon
+                          : AppImage.decreamentIcon)),
+                ),
+                SizedBox(width: size.width * 0.04),
+                Text('$count',
+                    style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: AppFont.fontFamily,
+                        color: Colors.black)),
+                SizedBox(width: size.width * 0.04),
+                GestureDetector(
+                  onTap: onIncrement,
+                  child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: Image.asset(max == value
+                          ? AppImage.disableIncreamentIcon
+                          : AppImage.increamentIcon)),
+                ),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }

@@ -1,4 +1,4 @@
-import 'package:boatapp/propertymodule/property_review.dart';
+import '/propertymodule/property_review.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -51,7 +51,6 @@ class _PropertyRateNowState extends State<PropertyRateNow> {
               text: AppLanguage.rateNowText[language],
               onPress: () => Navigator.pop(context),
             ),
-
             Expanded(
               child: SingleChildScrollView(
                 padding: EdgeInsets.symmetric(horizontal: size.width * 0.05),
@@ -131,8 +130,6 @@ class _PropertyRateNowState extends State<PropertyRateNow> {
 
                     SizedBox(height: size.height * 0.015),
 
-                  
-
                     // Clean rating
                     _buildRatingRow("Clean:", cleanRating, (rating) {
                       setState(() {
@@ -144,7 +141,8 @@ class _PropertyRateNowState extends State<PropertyRateNow> {
                     SizedBox(height: size.height * 0.01),
 
                     // Arrangement rating
-                    _buildRatingRow("Arrangement:", arrangementRating, (rating) {
+                    _buildRatingRow("Arrangement:", arrangementRating,
+                        (rating) {
                       setState(() {
                         arrangementRating = rating;
                         _calculateTotalRating();
@@ -203,7 +201,10 @@ class _PropertyRateNowState extends State<PropertyRateNow> {
                     AppButton(
                       text: AppLanguage.submitButtonText[language],
                       onPress: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context)=> PropertyReview()));
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => PropertyReview()));
                       },
                     ),
 
@@ -269,7 +270,8 @@ class _PropertyRateNowState extends State<PropertyRateNow> {
     }
 
     setState(() {
-      totalRating = count > 0 ? double.parse((sum / count).toStringAsFixed(1)) : 0;
+      totalRating =
+          count > 0 ? double.parse((sum / count).toStringAsFixed(1)) : 0;
     });
   }
 

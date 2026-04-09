@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:boatapp/view/other_screen/viewAll_boats_screen.dart';
-import 'package:boatapp/view/property_screens/property_screen.dart';
-import 'package:boatapp/view/property_screens/viewAll_property_screen.dart';
-import 'package:boatapp/view/property_screens/property_detail_screen.dart';
+import '/view/other_screen/viewAll_boats_screen.dart';
+import '/view/property_screens/property_screen.dart';
+import '/view/property_screens/viewAll_property_screen.dart';
+import '/view/property_screens/property_detail_screen.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

@@ -1,7 +1,7 @@
 // ignore_for_file: prefer_const_literals_to_create_immutables
 import 'dart:developer';
-import 'package:boatapp/view/other_screen/publicBookingFlow/public_redirection_trip_details.dart';
-import 'package:boatapp/view/property_screens/redirection_property_details.dart';
+import '/view/other_screen/publicBookingFlow/public_redirection_trip_details.dart';
+import '/view/property_screens/redirection_property_details.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';

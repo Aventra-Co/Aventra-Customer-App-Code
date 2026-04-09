@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:boatapp/view/other_screen/failed_payment_popup.dart';
+import '/view/other_screen/failed_payment_popup.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../controller/app_color.dart';

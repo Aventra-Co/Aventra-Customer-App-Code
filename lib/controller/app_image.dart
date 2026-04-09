@@ -238,4 +238,6 @@ class AppImage {
   static const locationImage = './assets/icons/location_image.png';
   static const dateImage = './assets/icons/date_image.png';
   static const weatherBg = './assets/icons/weather_bg_image.png';
+  static const activeRadio = './assets/icons/active_radio.png';
+  static const deactiveRadio = './assets/icons/deactive_radio.png';
 }

@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:boatapp/controller/app_image.dart';
+import '/controller/app_image.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -90,7 +90,6 @@ class _ChatState extends State<AdminChat> {
       'Authorization': 'Bearer $token', // Use 'Bearer' if required
     };
 
-
     try {
       final response = await http.get(url, headers: headers);
 
@@ -122,8 +121,7 @@ class _ChatState extends State<AdminChat> {
         url,
         mode: LaunchMode.externalApplication,
       );
-    } else {
-    }
+    } else {}
   }
 
   @override
@@ -169,15 +167,12 @@ class _ChatState extends State<AdminChat> {
       userCreatedChatId = userChatId;
 
       otherUserCreatedChatId = 'u_${otherUserId}__u_$userId';
-
     }
 
     await FirebaseDatabase.instance
         .ref('message/$userCreatedChatId')
         .get()
         .then((snap) {
-
-
       if (snap.value == null) {
         isMessageEmpty = true;
       }
@@ -195,7 +190,6 @@ class _ChatState extends State<AdminChat> {
 // Format datetime to a string
     String formattedDateTime =
         DateFormat('yyyy-MM-dd HH:mm:ss').format(datetime);
-
 
     String formattedTime =
         DateFormat('h:mm a').format(formattedDateTime as DateTime);
@@ -239,11 +233,9 @@ class _ChatState extends State<AdminChat> {
   }
 
   getTime(timestamp) {
-
     DateTime datetime = DateTime.fromMillisecondsSinceEpoch(timestamp);
     String formattedDateTime =
         DateFormat('yyyy-MM-dd HH:mm:ss').format(datetime);
-
   }
 
   @override
@@ -359,7 +351,6 @@ class _ChatState extends State<AdminChat> {
                         ),
                       ),
                     ),
-                 
 
                     Container(
                       padding: const EdgeInsets.only(bottom: 11),
@@ -383,7 +374,6 @@ class _ChatState extends State<AdminChat> {
                             for (var i = 0; i < item.length; i++) {
                               if (item[i]['senderId'] == 1) {
                                 item[i]['MsgTimeShamp'] = item[i]['timestamp'];
-                              
                               }
                               if (item[i]['senderId'] != 1) {
                                 item[i]['MsgTimeShamp'] = item[i]['timestamp'];
@@ -788,6 +778,6 @@ class _ChatState extends State<AdminChat> {
   }
 
   bool shouldHideKeyboard() {
-    return true; 
+    return true;
   }
 }

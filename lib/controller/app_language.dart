@@ -964,6 +964,10 @@ class AppLanguage {
     "Pet Friendly:",
     "مسموح بالحيوانات الأليفة:",
   ];
+  static const petFriendlyText = [
+    "Pet Friendly",
+    "مسموح بالحيوانات الأليفة",
+  ];
   static const guardText = [
     "Guard",
     "الحارس",
@@ -1066,4 +1070,12 @@ class AppLanguage {
     "الرجاء اختيار الدولة أولاً",
   ];
   static const seaReportText = ["Sea Report", "تقرير البحر"];
+  static const whatPropertyOfferText = [
+    'What Property Offer',
+    'ما يقدمه العقار',
+  ];
+  static const numberofMaxPeopleText = [
+    'Number of Max People',
+    'عدد الأشخاص الأقصى',
+  ];
 }

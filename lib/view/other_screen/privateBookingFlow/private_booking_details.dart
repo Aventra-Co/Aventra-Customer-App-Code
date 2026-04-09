@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:boatapp/view/other_screen/success_payment_screen.dart';
+import '/view/other_screen/success_payment_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -2379,8 +2379,6 @@ class PrivateBookingDetailsState extends State<PrivateBookingDetails> {
       ),
     );
   }
-
-
 }
 
 Color _getPaymentMethodColor(int method) {

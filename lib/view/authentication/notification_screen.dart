@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'package:boatapp/view/property_screens/property_bookinghistory_screen.dart';
-import 'package:boatapp/view/property_screens/property_ongoing_details_screen.dart';
-import 'package:boatapp/view/property_screens/property_pending_details_screen.dart';
+import '/view/property_screens/property_bookinghistory_screen.dart';
+import '/view/property_screens/property_ongoing_details_screen.dart';
+import '/view/property_screens/property_pending_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';

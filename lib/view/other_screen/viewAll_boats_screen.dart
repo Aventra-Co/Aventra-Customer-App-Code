@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:boatapp/controller/app_shimmers.dart';
+import '/controller/app_shimmers.dart';
 import 'package:http/http.dart' as http;
-import 'package:boatapp/controller/app_color.dart';
-import 'package:boatapp/controller/app_constant.dart';
-import 'package:boatapp/controller/app_font.dart';
-import 'package:boatapp/controller/app_header.dart';
-import 'package:boatapp/controller/app_image.dart';
-import 'package:boatapp/controller/app_language.dart';
+import '/controller/app_color.dart';
+import '/controller/app_constant.dart';
+import '/controller/app_font.dart';
+import '/controller/app_header.dart';
+import '/controller/app_image.dart';
+import '/controller/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
@@ -687,7 +687,7 @@ class _ViewAllBoatScreenState extends State<ViewAllBoatScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(AppLanguage.selectProTypeText[language],
+                        Text(AppLanguage.selectActivityText[language],
                             style: TextStyle(
                                 color: AppColor.primaryColor,
                                 fontFamily: AppFont.fontFamily,

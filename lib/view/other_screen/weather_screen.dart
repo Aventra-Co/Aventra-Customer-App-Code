@@ -1,4 +1,4 @@
-import 'package:boatapp/controller/app_image.dart';
+import '/controller/app_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
