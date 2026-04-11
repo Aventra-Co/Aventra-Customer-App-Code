@@ -70,25 +70,44 @@ class _PropertyScreenState extends State<PropertyScreen> {
   LatLng initialPosition = const LatLng(23.2599, 77.4126);
   List<dynamic> locationsList = [];
   List<Map<String, dynamic>> beaches = [];
+  int? selectedMapPropertyId;
 
   Set<Marker> get beachMarkers {
     return beaches.asMap().entries.map((entry) {
+      final propertyAdId = entry.value['property_ad_id'];
+      final markerTitle =
+          (entry.value['name'] ?? '').toString().trim().isNotEmpty
+              ? entry.value['name'].toString()
+              : AppLanguage.propertyText[language];
+      final markerId = MarkerId('property_${propertyAdId ?? entry.key}');
       if (widget.toOpen.isNotEmpty) {
         // Highlight the selected beach marker differently
         if (entry.value['name'] == widget.toOpen) {
           return Marker(
-            markerId: MarkerId('beach_${entry.key}'),
+            markerId: markerId,
             position: entry.value['position'],
-            infoWindow: InfoWindow(title: entry.value['name']),
+            infoWindow: InfoWindow(title: markerTitle),
             icon: BitmapDescriptor.defaultMarkerWithHue(
                 BitmapDescriptor.hueAzure), // Different color
+            onTap: () {
+              setState(() {
+                selectedMapPropertyId = propertyAdId;
+              });
+              mapController?.showMarkerInfoWindow(markerId);
+            },
           );
         }
       }
       return Marker(
-        markerId: MarkerId('beach_${entry.key}'),
+        markerId: markerId,
         position: entry.value['position'],
-        infoWindow: InfoWindow(title: entry.value['name']),
+        infoWindow: InfoWindow(title: markerTitle),
+        onTap: () {
+          setState(() {
+            selectedMapPropertyId = propertyAdId;
+          });
+          mapController?.showMarkerInfoWindow(markerId);
+        },
       );
     }).toSet();
   }
@@ -113,7 +132,6 @@ class _PropertyScreenState extends State<PropertyScreen> {
     }
     isApiCalling = false;
     getAllAdvertisementApi(userId, widget.propertyAdId, "", "", "", "", "");
-    getPickUpsApi(userId, widget.propertyAdId);
     propertyTypesApiCall(userId);
     getAmmenitiesApi(userId);
     setState(() {});
@@ -137,21 +155,33 @@ class _PropertyScreenState extends State<PropertyScreen> {
           var item = res['favourite_arr'];
           properties = (item != "NA") ? item : [];
           searchProperties = (item != "NA") ? item : [];
+          locationsList = _buildLocationListFromProperties(properties);
+          if (properties.isNotEmpty) {
+            beaches = convertApiDataToBeaches(properties);
+          } else {
+            beaches = [];
+          }
           _sortProperties(notify: false);
           setState(() => isApiCalling = false);
         } else {
           properties = [];
           searchProperties = [];
+          locationsList = [];
+          beaches = [];
           setState(() => isApiCalling = false);
         }
       } else {
         properties = [];
         searchProperties = [];
+        locationsList = [];
+        beaches = [];
         setState(() => isApiCalling = false);
       }
     } catch (e) {
       properties = [];
       searchProperties = [];
+      locationsList = [];
+      beaches = [];
       setState(() => isApiCalling = false);
     }
   }
@@ -354,65 +384,6 @@ class _PropertyScreenState extends State<PropertyScreen> {
     setState(() {});
   }
 
-  //=============================GET Pickups===================================//
-  Future<void> getPickUpsApi(userId, int propertyId) async {
-    Uri url = Uri.parse(
-        "${AppConfigProvider.apiUrl}get_all_property_pickup_points?user_id=$userId&property_type_id=$propertyId&city_id=${widget.cityId}");
-    print("URL: $url");
-
-    String token = AppConstant.token;
-
-    if (token.isEmpty) {}
-
-    Map<String, String> headers = {
-      'Authorization': 'Bearer $token', // Use 'Bearer' if required
-    };
-
-    setState(() {
-      isApiCalling = true;
-    });
-
-    try {
-      final response = await http.get(url, headers: headers);
-
-      if (response.statusCode == 200) {
-        dynamic res = jsonDecode(response.body);
-
-        if (res['success'] == true) {
-          var item = res['data'];
-          locationsList = (item != "NA") ? item : [];
-
-          // pickUpList = locationsList;
-          if (locationsList.isNotEmpty) {
-            beaches = convertApiDataToBeaches(locationsList);
-          }
-          setState(() {
-            isApiCalling = false;
-          });
-        } else {
-          if (res['active_status'] == 0) {
-            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const Login()),
-            );
-          }
-          setState(() {
-            isApiCalling = false;
-          });
-        }
-      } else {
-        setState(() {
-          isApiCalling = false;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        isApiCalling = false;
-      });
-    }
-  }
-
   //=============================GET Ammenities===================================//
   Future<void> getAmmenitiesApi(userId) async {
     Uri url = Uri.parse("${AppConfigProvider.apiUrl}get_all_amenities_list");
@@ -478,19 +449,81 @@ class _PropertyScreenState extends State<PropertyScreen> {
     return beaches[0]['position']; // Default to first beach
   }
 
+  List<Map<String, dynamic>> _buildLocationListFromProperties(
+      List<dynamic> items) {
+    final seen = <String>{};
+    final result = <Map<String, dynamic>>[];
+    for (final item in items) {
+      final location = _propertyLocationLabel(item);
+      if (location.isEmpty) continue;
+      if (seen.add(location)) {
+        result.add({"name": location});
+      }
+    }
+    return result;
+  }
+
+  String _propertyLocationLabel(dynamic item) {
+    final candidates = [
+      item['property_address'],
+      item['address'],
+      item['location'],
+      item['pickup_point'],
+      item['property_location'],
+    ];
+    for (final candidate in candidates) {
+      if (candidate == null) continue;
+      final value = candidate.toString().trim();
+      if (value.isNotEmpty) return value;
+    }
+    final city = item['city_name'];
+    if (city is List && city.length > language && city[language] != null) {
+      final value = city[language].toString().trim();
+      if (value.isNotEmpty) return value;
+    }
+    return '';
+  }
+
+  String _propertyNameLabel(dynamic item) {
+    final name = item['property_name_english'];
+    if (name is List) {
+      if (name.length > language && name[language] != null) {
+        final value = name[language].toString().trim();
+        if (value.isNotEmpty) return value;
+      }
+      if (name.isNotEmpty && name[0] != null) {
+        final value = name[0].toString().trim();
+        if (value.isNotEmpty) return value;
+      }
+    } else if (name != null) {
+      final value = name.toString().trim();
+      if (value.isNotEmpty) return value;
+    }
+    return '';
+  }
+
   List<Map<String, dynamic>> convertApiDataToBeaches(List<dynamic> apiData) {
     return apiData.map((item) {
-      final positionString = item['position']
-          .replaceAll("LatLng(", "")
-          .replaceAll(")", "")
-          .split(',');
-
-      final double latitude = double.parse(positionString[0].trim());
-      final double longitude = double.parse(positionString[1].trim());
+      double latitude;
+      double longitude;
+      final position = item['position'];
+      if (position != null && position.toString().contains("LatLng(")) {
+        final positionString = position
+            .toString()
+            .replaceAll("LatLng(", "")
+            .replaceAll(")", "")
+            .split(',');
+        latitude = double.parse(positionString[0].trim());
+        longitude = double.parse(positionString[1].trim());
+      } else {
+        latitude = double.tryParse(item['latitude'].toString()) ?? 0;
+        longitude = double.tryParse(item['longitude'].toString()) ?? 0;
+      }
 
       return {
-        "name": item['name'],
+        "name": _propertyNameLabel(item),
         "position": LatLng(latitude, longitude),
+        "property_ad_id": item['property_ad_id'],
       };
     }).toList();
   }
@@ -537,6 +570,7 @@ class _PropertyScreenState extends State<PropertyScreen> {
                     Image.asset(AppImage.propertyHomeImage),
 
                     // Back and Search buttons
+
                     Positioned(
                       top: topInset + 10,
                       left: 16,
@@ -555,24 +589,27 @@ class _PropertyScreenState extends State<PropertyScreen> {
                               onPressed: () => Navigator.pop(context),
                             ),
                           ),
-                          SizedBox(
-                            width: size.width * 0.1,
-                            height: size.width * 0.1,
-                            child: IconButton(
-                              padding: EdgeInsets.zero,
-                              icon: Image.asset(AppImage.searchicon2),
-                              onPressed: () {
-                                setState(() {
-                                  searchStatus = !searchStatus;
-                                });
-                              },
+                          if (searchStatus &&
+                              selectedView != AppLanguage.maptext[language])
+                            SizedBox(
+                              width: size.width * 0.1,
+                              height: size.width * 0.1,
+                              child: IconButton(
+                                padding: EdgeInsets.zero,
+                                icon: Image.asset(AppImage.searchicon2),
+                                onPressed: () {
+                                  setState(() {
+                                    searchStatus = !searchStatus;
+                                  });
+                                },
+                              ),
                             ),
-                          ),
                         ],
                       ),
                     ),
 
-                    if (searchStatus)
+                    if (searchStatus &&
+                        selectedView != AppLanguage.maptext[language])
                       Positioned(
                         left: screenWidth * 20 / 100,
                         top: screenWidth * 12 / 100,
@@ -1287,7 +1324,17 @@ class _PropertyScreenState extends State<PropertyScreen> {
 
   // Map View
   Widget _buildMapView() {
-    return (locationsList.isNotEmpty)
+    Map<String, dynamic>? selectedProperty;
+    if (selectedMapPropertyId != null) {
+      selectedProperty = properties.firstWhere(
+        (prop) => prop['property_ad_id'] == selectedMapPropertyId,
+        orElse: () => {},
+      );
+      if (selectedProperty!.isEmpty) {
+        selectedProperty = null;
+      }
+    }
+    return (beaches.isNotEmpty)
         ? Stack(
             children: [
               ClipRRect(
@@ -1310,10 +1357,30 @@ class _PropertyScreenState extends State<PropertyScreen> {
                         mapController = controller;
                       });
                     },
+                    onTap: (_) {
+                      if (selectedMapPropertyId != null) {
+                        setState(() {
+                          selectedMapPropertyId = null;
+                        });
+                      }
+                    },
                     markers: beachMarkers,
                   ),
                 ),
               ),
+              if (selectedProperty != null)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 30,
+                  child: Center(
+                    child: _propertyCard(
+                      selectedProperty,
+                      properties.indexOf(selectedProperty),
+                      MediaQuery.of(context).size.width,
+                    ),
+                  ),
+                ),
             ],
           )
         : Column(

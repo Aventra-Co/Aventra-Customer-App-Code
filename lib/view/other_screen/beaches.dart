@@ -80,24 +80,42 @@ class _BeachesState extends State<Beaches> {
   List<dynamic> locationsList = [];
   List<Map<String, dynamic>> beaches = [];
   String selectedToOpen = "";
+  int? selectedMapTripId;
   Set<Marker> get beachMarkers {
     return beaches.asMap().entries.map((entry) {
+      final tripId = entry.value['trip_id'];
+      final markerTitle = (entry.value['name'] ?? '').toString().trim().isNotEmpty
+          ? entry.value['name'].toString()
+          : AppLanguage.tripText[language];
+      final markerId = MarkerId('trip_${tripId ?? entry.key}');
       if (widget.toOpen.isNotEmpty) {
         // Highlight the selected beach marker differently
         if (entry.value['name'] == widget.toOpen) {
           return Marker(
-            markerId: MarkerId('beach_${entry.key}'),
+            markerId: markerId,
             position: entry.value['position'],
-            infoWindow: InfoWindow(title: entry.value['name']),
+            infoWindow: InfoWindow(title: markerTitle),
             icon: BitmapDescriptor.defaultMarkerWithHue(
                 BitmapDescriptor.hueAzure), // Different color
+            onTap: () {
+              setState(() {
+                selectedMapTripId = tripId;
+              });
+              mapController?.showMarkerInfoWindow(markerId);
+            },
           );
         }
       }
       return Marker(
-        markerId: MarkerId('beach_${entry.key}'),
+        markerId: markerId,
         position: entry.value['position'],
-        infoWindow: InfoWindow(title: entry.value['name']),
+        infoWindow: InfoWindow(title: markerTitle),
+        onTap: () {
+          setState(() {
+            selectedMapTripId = tripId;
+          });
+          mapController?.showMarkerInfoWindow(markerId);
+        },
       );
     }).toSet();
   }
@@ -155,8 +173,6 @@ class _BeachesState extends State<Beaches> {
     );
     getAddonsApi(userId);
     getActivityApi(userId);
-    getPickUpsApi(userId);
-    getLatLongsApi(userId, widget.destinationId);
     setState(() {});
   }
 
@@ -165,7 +181,7 @@ class _BeachesState extends State<Beaches> {
       advertisementType, String addOnsIds, String activityIds) async {
     Uri url = Uri.parse(
         "${AppConfigProvider.apiUrl}fetch_trip_according_destination_activity?user_id=$userId&activity_id=$activityIds&destination_id=${widget.destinationId}&pickup_location=$pickUp&advertisement_type=$advertisementType&addone_id=$addOnsIds&date=$date");
-
+    print(url);
     String token = AppConstant.token;
 
     if (token.isEmpty) {}
@@ -188,6 +204,11 @@ class _BeachesState extends State<Beaches> {
           var item = res['trip_arr'];
           oceanExploreList = (item != "NA") ? item : [];
           searchOceanExploreList = (item != "NA") ? item : [];
+          locationsList = oceanExploreList;
+          pickUpList = _buildPickUpList(oceanExploreList);
+          if (locationsList.isNotEmpty) {
+            beaches = convertApiDataToBeaches(locationsList);
+          }
 
           destination = res['destination_arr'][language];
           rating = res['destinationRating'].toString();
@@ -328,78 +349,421 @@ class _BeachesState extends State<Beaches> {
   }
 
   //=============================GET Pickups===================================//
-  Future<void> getPickUpsApi(userId) async {
-    Uri url = Uri.parse(
-        "${AppConfigProvider.apiUrl}get_all_pickup_points?user_id=$userId&destination_id=${widget.destinationId}");
-    print("URL: $url");
-
-    String token = AppConstant.token;
-
-    if (token.isEmpty) {}
-
-    Map<String, String> headers = {
-      'Authorization': 'Bearer $token', // Use 'Bearer' if required
-    };
-
-    setState(() {
-      isApiCalling = true;
-    });
-
-    try {
-      final response = await http.get(url, headers: headers);
-
-      if (response.statusCode == 200) {
-        dynamic res = jsonDecode(response.body);
-
-        if (res['success'] == true) {
-          var item = res['data'];
-          locationsList = (item != "NA") ? item : [];
-          pickUpList = locationsList;
-          if (locationsList.isNotEmpty) {
-            beaches = convertApiDataToBeaches(locationsList);
-          }
-          setState(() {
-            isApiCalling = false;
-          });
-        } else {
-          if (res['active_status'] == 0) {
-            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const Login()),
-            );
-          }
-          setState(() {
-            isApiCalling = false;
-          });
-        }
-      } else {
-        setState(() {
-          isApiCalling = false;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        isApiCalling = false;
-      });
-    }
-  }
+  // Future<void> getPickUpsApi(userId) async {
+  //   Uri url = Uri.parse(
+  //       "${AppConfigProvider.apiUrl}get_all_pickup_points?user_id=$userId&destination_id=${widget.destinationId}&trip_type_id=${widget.activityId}");
+  //   print("URL: $url");
+  //   String token = AppConstant.token;
+  //   if (token.isEmpty) {}
+  //   Map<String, String> headers = {
+  //     'Authorization': 'Bearer $token', // Use 'Bearer' if required
+  //   };
+  //   setState(() {
+  //     isApiCalling = true;
+  //   });
+  //   try {
+  //     final response = await http.get(url, headers: headers);
+  //     if (response.statusCode == 200) {
+  //       dynamic res = jsonDecode(response.body);
+  //       if (res['success'] == true) {
+  //         var item = res['data'];
+  //         locationsList = (item != "NA") ? item : [];
+  //         pickUpList = locationsList;
+  //         if (locationsList.isNotEmpty) {
+  //           beaches = convertApiDataToBeaches(locationsList);
+  //         }
+  //         setState(() {
+  //           isApiCalling = false;
+  //         });
+  //       } else {
+  //         if (res['active_status'] == 0) {
+  //           SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
+  //           Navigator.pushReplacement(
+  //             context,
+  //             MaterialPageRoute(builder: (context) => const Login()),
+  //           );
+  //         }
+  //         setState(() {
+  //           isApiCalling = false;
+  //         });
+  //       }
+  //     } else {
+  //       setState(() {
+  //         isApiCalling = false;
+  //       });
+  //     }
+  //   } catch (e) {
+  //     setState(() {
+  //       isApiCalling = false;
+  //     });
+  //   }
+  // }
 
   List<Map<String, dynamic>> convertApiDataToBeaches(List<dynamic> apiData) {
     return apiData.map((item) {
-      final positionString = item['position']
-          .replaceAll("LatLng(", "")
-          .replaceAll(")", "")
-          .split(',');
-
-      final double latitude = double.parse(positionString[0].trim());
-      final double longitude = double.parse(positionString[1].trim());
+      double latitude;
+      double longitude;
+      final position = item['position'];
+      if (position != null && position.toString().contains("LatLng(")) {
+        final positionString = position
+            .toString()
+            .replaceAll("LatLng(", "")
+            .replaceAll(")", "")
+            .split(',');
+        latitude = double.parse(positionString[0].trim());
+        longitude = double.parse(positionString[1].trim());
+      } else {
+        latitude = double.tryParse(item['latitude'].toString()) ?? 0;
+        longitude = double.tryParse(item['longitude'].toString()) ?? 0;
+      }
 
       return {
-        "name": item['name'],
+        "name": item['boat_name'],
         "position": LatLng(latitude, longitude),
+        "trip_id": item['trip_id'],
       };
     }).toList();
+  }
+
+  List<Map<String, dynamic>> _buildPickUpList(List<dynamic> trips) {
+    final seen = <String>{};
+    final result = <Map<String, dynamic>>[];
+    for (final trip in trips) {
+      final pickupPoint = (trip['pickup_point'] ?? '').toString().trim();
+      if (pickupPoint.isEmpty) continue;
+      if (seen.add(pickupPoint)) {
+        result.add({"name": pickupPoint});
+      }
+    }
+    return result;
+  }
+
+  int _findTripIndexById(int tripId) {
+    for (var i = 0; i < oceanExploreList.length; i++) {
+      if (oceanExploreList[i]['trip_id'] == tripId) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  Widget _tripCard(Map<String, dynamic> trip, int index, screenWidth) {
+    return Stack(
+      children: [
+        GestureDetector(
+          onTap: () {
+            if (trip['advertisement_type'] == 0) {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => PrivateTripDetailsScreen(
+                          tripId: trip['trip_id'].toString())));
+            } else {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => PublicTripDetailsScreen(
+                          tripId: trip['trip_id'].toString())));
+            }
+          },
+          child: Container(
+            width: MediaQuery.of(context).size.width * 90 / 100,
+            height: MediaQuery.of(context).size.height * 20 / 100,
+            padding: language == 1
+                ? const EdgeInsets.only(top: 12, right: 12)
+                : const EdgeInsets.only(top: 12, left: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              image: DecorationImage(
+                image: trip['trip_image'] != null
+                    ? NetworkImage(
+                        "${AppConfigProvider.imageURL}${trip['trip_image']}")
+                    : const AssetImage(AppImage.imageFrameImage)
+                        as ImageProvider,
+                fit: BoxFit.cover,
+                colorFilter: ColorFilter.mode(
+                  Colors.black.withOpacity(0.2),
+                  BlendMode.darken,
+                ),
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 80 / 100,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          addFavoriteApiCall(index, trip['trip_id'], 0);
+                        },
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width * 6.5 / 100,
+                          height: MediaQuery.of(context).size.width * 6.5 / 100,
+                          child: Image.asset(trip['favourite_status'] == 0
+                              ? AppImage.likeDeactiveIcon
+                              : AppImage.likeActiveIcon),
+                        ),
+                      ),
+                      SizedBox(
+                          width: MediaQuery.of(context).size.width * 2 / 100),
+                      InkWell(
+                        onTap: () {
+                          deeplinking(context, trip['trip_id'],
+                              trip['advertisement_type']);
+                        },
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width * 6.5 / 100,
+                          height: MediaQuery.of(context).size.width * 6.5 / 100,
+                          child: Image.asset(AppImage.shareIcon),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      trip['boat_name'] ?? "",
+                      style: const TextStyle(
+                          color: AppColor.secondaryColor,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: AppFont.fontFamily),
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          AppLanguage.cityNameInputText[language],
+                          style: const TextStyle(
+                              color: AppColor.secondaryColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              fontFamily: AppFont.fontFamily),
+                        ),
+                        SizedBox(
+                            width: MediaQuery.of(context).size.width * 1 / 100),
+                        Container(
+                          width: MediaQuery.of(context).size.width * 1 / 100,
+                          height: MediaQuery.of(context).size.width * 1 / 100,
+                          margin: const EdgeInsets.only(top: 2),
+                          decoration: const BoxDecoration(
+                              color: AppColor.secondaryColor,
+                              shape: BoxShape.circle),
+                        ),
+                        SizedBox(
+                            width: MediaQuery.of(context).size.width * 1 / 100),
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width * 70 / 100,
+                          child: Text(
+                            "${trip['city_name'][language] ?? ""}",
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                color: AppColor.secondaryColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                fontFamily: AppFont.fontFamily),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          AppLanguage.tripTypeText[language],
+                          style: const TextStyle(
+                              color: AppColor.secondaryColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              fontFamily: AppFont.fontFamily),
+                        ),
+                        SizedBox(
+                            width: MediaQuery.of(context).size.width * 1 / 100),
+                        Container(
+                          width: MediaQuery.of(context).size.width * 1 / 100,
+                          height: MediaQuery.of(context).size.width * 1 / 100,
+                          margin: const EdgeInsets.only(top: 2),
+                          decoration: const BoxDecoration(
+                              color: AppColor.secondaryColor,
+                              shape: BoxShape.circle),
+                        ),
+                        SizedBox(
+                            width: MediaQuery.of(context).size.width * 1 / 100),
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width * 69 / 100,
+                          child: Text(
+                            trip['advertisement_type'] == 0
+                                ? AppLanguage.privateText[language]
+                                : AppLanguage.publicText[language],
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                color: AppColor.secondaryColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                fontFamily: AppFont.fontFamily),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                        height: screenWidth > 600
+                            ? MediaQuery.of(context).size.height * 1 / 100
+                            : null),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            if (trip['rating'].toString() != "0.00")
+                              Container(
+                                width: screenWidth > 600
+                                    ? MediaQuery.of(context).size.width *
+                                        10 /
+                                        100
+                                    : MediaQuery.of(context).size.width *
+                                        14 /
+                                        100,
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 4, horizontal: 2),
+                                decoration: BoxDecoration(
+                                    color: AppColor.secondaryColor
+                                        .withOpacity(0.3),
+                                    borderRadius: BorderRadius.circular(25)),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(
+                                      width: screenWidth > 600
+                                          ? MediaQuery.of(context).size.width *
+                                              2 /
+                                              100
+                                          : MediaQuery.of(context).size.width *
+                                              4 /
+                                              100,
+                                      height: screenWidth > 600
+                                          ? MediaQuery.of(context).size.width *
+                                              2 /
+                                              100
+                                          : MediaQuery.of(context).size.width *
+                                              4 /
+                                              100,
+                                      child: Image.asset(AppImage.ratingIcon),
+                                    ),
+                                    SizedBox(
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                1 /
+                                                100),
+                                    Text(
+                                      trip['rating'].toString(),
+                                      style: const TextStyle(
+                                          color: AppColor.secondaryColor,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          fontFamily: AppFont.fontFamily),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            SizedBox(
+                                width: MediaQuery.of(context).size.width *
+                                    2 /
+                                    100),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 4, horizontal: 5),
+                              decoration: BoxDecoration(
+                                color: AppColor.secondaryColor.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(25),
+                              ),
+                              child: Text(
+                                "${trip['max_people']} ${AppLanguage.memberstext[language]}",
+                                style: const TextStyle(
+                                    color: AppColor.secondaryColor,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    fontFamily: AppFont.fontFamily),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 5, horizontal: 20),
+                          decoration: BoxDecoration(
+                              color: AppColor.themeColor,
+                              borderRadius: language == 1
+                                  ? const BorderRadius.only(
+                                      topRight: Radius.circular(4),
+                                      bottomLeft: Radius.circular(20))
+                                  : const BorderRadius.only(
+                                      topLeft: Radius.circular(4),
+                                      bottomRight: Radius.circular(20))),
+                          child: Row(
+                            children: [
+                              Text(
+                                "${trip['price_per_hour']} ${AppLanguage.kwdtext[language]}",
+                                style: const TextStyle(
+                                    color: AppColor.secondaryColor,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    fontFamily: AppFont.fontFamily),
+                              ),
+                            ],
+                          ),
+                        )
+                      ],
+                    )
+                  ],
+                )
+              ],
+            ),
+          ),
+        ),
+        if (trip['discount'] != null && trip['discount'] > 0) ...[
+          Positioned(
+            top: language == 0 ? -30 : -30,
+            left: language == 0 ? -22 : null,
+            right: language == 1 ? -22 : null,
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width * 30 / 100,
+              height: MediaQuery.of(context).size.height * 15 / 100,
+              child: Image.asset(language == 0
+                  ? AppImage.discountStrip
+                  : AppImage.discountStripInverted),
+            ),
+          ),
+          Positioned(
+            top: language == 0 ? 15 : 13,
+            left: language == 0 ? -25 : null,
+            right: language == 1 ? -27 : null,
+            child: Transform.rotate(
+              angle: language == 0 ? -.65 : .65,
+              child: Container(
+                alignment: Alignment.center,
+                width: MediaQuery.of(context).size.width * 30 / 100,
+                child: Text(
+                  "${trip['discount']}% ${AppLanguage.offText[language]}",
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      fontFamily: AppFont.fontFamily,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: AppColor.secondaryColor),
+                ),
+              ),
+            ),
+          )
+        ],
+      ],
+    );
   }
 
   //---------------------SEARCH FUNCTION Trips--------------------///
@@ -610,6 +974,10 @@ class _BeachesState extends State<Beaches> {
 
   Widget _buildUIScreen(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
+    final int selectedTripIndex =
+        selectedMapTripId == null ? -1 : _findTripIndexById(selectedMapTripId!);
+    final Map<String, dynamic>? selectedTrip =
+        selectedTripIndex == -1 ? null : oceanExploreList[selectedTripIndex];
     // double screenHeight = MediaQuery.of(context).size.height;
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -2584,10 +2952,32 @@ class _BeachesState extends State<Beaches> {
                                                           controller;
                                                     });
                                                   },
+                                                  onTap: (_) {
+                                                    if (selectedMapTripId !=
+                                                        null) {
+                                                      setState(() {
+                                                        selectedMapTripId =
+                                                            null;
+                                                      });
+                                                    }
+                                                  },
                                                   markers: beachMarkers,
                                                 ),
                                               ),
                                             ),
+                                            if (selectedTrip != null)
+                                              Positioned(
+                                                left: 0,
+                                                right: 0,
+                                                bottom: 30,
+                                                child: Center(
+                                                  child: _tripCard(
+                                                    selectedTrip,
+                                                    selectedTripIndex,
+                                                    screenWidth,
+                                                  ),
+                                                ),
+                                              ),
                                           ],
                                         )
                                       : Column(

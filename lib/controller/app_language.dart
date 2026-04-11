@@ -1078,4 +1078,8 @@ class AppLanguage {
     'Number of Max People',
     'عدد الأشخاص الأقصى',
   ];
+  static const tripText = [
+    'Trip',
+    'رحلة',
+  ];
 }
