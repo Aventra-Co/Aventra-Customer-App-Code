@@ -495,6 +495,7 @@ class _SignupState extends State<Signup> {
             FirebaseProvider.firebaseCreateUser(true);
             APIs.userArry = res['userDataArray'];
             APIs.user_id = res['userDataArray']['user_id'].toString();
+            APIs.getSelfInfo();
 
             if (await userExists(res['userDataArray']['user_id']) && mounted) {
               print("mounted $mounted");

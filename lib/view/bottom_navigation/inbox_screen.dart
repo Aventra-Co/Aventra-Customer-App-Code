@@ -58,6 +58,17 @@ class _InboxState extends State<Inbox> {
   void initState() {
     super.initState();
     _searchController.addListener(_onSearchChanged);
+    SystemChannels.lifecycle.setMessageHandler((message) {
+      if (APIs.user_id != "") {
+        if (message.toString().contains('resume')) {
+          APIs.updateActiveStatus(true);
+        }
+        if (message.toString().contains('pause')) {
+          APIs.updateActiveStatus(false);
+        }
+      }
+      return Future.value(message);
+    });
     getUserDetails();
   }
 
@@ -326,8 +337,7 @@ class _InboxState extends State<Inbox> {
                     },
                   ),
                 ),
-
-            ],
+              ],
             ),
           )),
         ),

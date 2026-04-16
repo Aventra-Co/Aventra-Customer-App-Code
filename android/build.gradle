@@ -1,5 +1,5 @@
 buildscript {
-  ext.kotlin_version = '2.1.0'
+    ext.kotlin_version = '1.9.0'
 
     repositories {
         google()
@@ -86,11 +86,9 @@ subprojects {
                         case 'file_picker':
                             namespace 'com.mr.flutter.plugin.filepicker'
                             break
-
-                               case 'unilink':
-                              namespace 'com.unilink'
-                                break
-                        // Add other plugins as needed...
+                        case 'unilink':
+                            namespace 'com.unilink'
+                            break
                         default:
                             def cleanedName = project.name.replace('-', '_')
                             namespace "io.${cleanedName}"
@@ -105,6 +103,18 @@ subprojects {
             project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
                 kotlinOptions {
                     jvmTarget = '17'
+                    freeCompilerArgs += [
+                        '-Xskip-metadata-version-check',
+                        '-Xsuppress-version-warnings'
+                    ]
+                    if (project.name == 'package_info_plus') {
+                        freeCompilerArgs += [
+                            '-XXLanguage:-NonNullTypeParameter',
+                            '-Xno-param-assertions',
+                            '-Xno-call-assertions',
+                            '-Xno-receiver-assertions'
+                        ]
+                    }
                 }
             }
         }

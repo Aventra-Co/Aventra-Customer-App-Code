@@ -179,6 +179,7 @@ class _SplashState extends State<Splash> {
             FirebaseProvider.firebaseCreateUser(true);
             APIs.userArry = res['userDataArray'];
             APIs.user_id = res['userDataArray']['user_id'].toString();
+            APIs.getSelfInfo();
 
             print("kfjjg${AppConstant.playerID}");
             await updateUser(res['userDataArray'],
@@ -250,6 +251,7 @@ class _SplashState extends State<Splash> {
             AppConstant.token = res['token'];
             AppConstant.selectFooterIndex = 0;
             APIs.user_id = res['userDataArray']['user_id'].toString();
+            APIs.getSelfInfo();
 
             if (await userExists(res['userDataArray']['user_id']) && mounted) {
               print("mounted $mounted");

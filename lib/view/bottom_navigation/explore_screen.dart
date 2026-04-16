@@ -1140,7 +1140,7 @@ class _ExploreState extends State<Explore> {
         _categoryCard(
           context: context,
           image: AppImage.seaImage,
-          title: AppLanguage.seaText[language],
+          title: AppLanguage.seaActivityText[language],
           subtitle: AppLanguage.seaCardText[language],
           isSelected: _selectedCard == _CardSelection.sea,
           onTap: () => setState(() {
@@ -1157,7 +1157,7 @@ class _ExploreState extends State<Explore> {
         _categoryCard(
           context: context,
           image: AppImage.propertyImage,
-          title: AppLanguage.propertyText[language],
+          title: AppLanguage.landActivityText[language],
           subtitle: AppLanguage.propertyCardText[language],
           isSelected: _selectedCard == _CardSelection.property,
           onTap: () => setState(() {

@@ -936,13 +936,21 @@ class AppLanguage {
   ];
   //26-02
 
+  // static const mostPopularpropertiesText = [
+  //   "Most Popular Properties",
+  //   "العقارات الأكثر شهرة",
+  // ];
+  // static const mostPopularBoatsText = [
+  //   "Most Popular Boats",
+  //   "أكثر القوارب شهرة",
+  // ];
   static const mostPopularpropertiesText = [
-    "Most Popular Properties",
-    "العقارات الأكثر شهرة",
+    "Most Popular Land Activity",
+    "أكثر الأنشطة البرية شهرة",
   ];
   static const mostPopularBoatsText = [
-    "Most Popular Boats",
-    "أكثر القوارب شهرة",
+    "Most Popular Sea Activity",
+    "أكثر الأنشطة البحرية شهرة",
   ];
 
   static const guestsText = ["Guests", "ضيف"];
@@ -1081,5 +1089,13 @@ class AppLanguage {
   static const tripText = [
     'Trip',
     'رحلة',
+  ];
+  static const seaActivityText = [
+    'Sea Activity',
+    'أنشطة بحرية',
+  ];
+  static const landActivityText = [
+    'Land Activity',
+    'أنشطة برية',
   ];
 }
