@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>83903925512-meu4tv1hperj2osn6qon4cfifig85tlu.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.83903925512-meu4tv1hperj2osn6qon4cfifig85tlu</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>83903925512-7d1i3mbg3k6fdkjc48jdj2d7uscr8kke.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCkLcebXdT_4pOoUPRR9k0BEKS76EZ6PSA</string>
+	<key>GCM_SENDER_ID</key>
+	<string>83903925512</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.app.boatappcustomer</string>
+	<key>PROJECT_ID</key>
+	<string>my-boat-a9c54</string>
+	<key>STORAGE_BUCKET</key>
+	<string>my-boat-a9c54.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:83903925512:ios:0ce518e4784e20107bb0bd</string>
+	<key>DATABASE_URL</key>
+	<string>https://my-boat-a9c54-default-rtdb.firebaseio.com</string>
+</dict>
+</plist>
