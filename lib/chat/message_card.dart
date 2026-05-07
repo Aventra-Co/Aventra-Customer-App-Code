@@ -43,7 +43,7 @@ class _MessageCardState extends State<MessageCard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: EdgeInsets.all(widget.message.type == Type.image
+                padding: EdgeInsets.all(widget.message.type == TypeEnum.image
                     ? MediaQuery.of(context).size.width * .01
                     : MediaQuery.of(context).size.width * .04),
                 margin: EdgeInsets.symmetric(
@@ -57,7 +57,7 @@ class _MessageCardState extends State<MessageCard> {
                         bottomLeft: Radius.circular(15),
                         topRight: Radius.circular(15),
                         bottomRight: Radius.circular(15))),
-                child: widget.message.type == Type.text
+                child: widget.message.type == TypeEnum.text
                     ?
                     //show text
                     Column(
@@ -134,7 +134,7 @@ class _MessageCardState extends State<MessageCard> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Container(
-                padding: EdgeInsets.all(widget.message.type == Type.image
+                padding: EdgeInsets.all(widget.message.type == TypeEnum.image
                     ? MediaQuery.of(context).size.width * .01
                     : MediaQuery.of(context).size.width * .04),
                 margin: EdgeInsets.symmetric(
@@ -148,7 +148,7 @@ class _MessageCardState extends State<MessageCard> {
                         topLeft: Radius.circular(15),
                         bottomRight: Radius.circular(15),
                         bottomLeft: Radius.circular(15))),
-                child: widget.message.type == Type.text
+                child: widget.message.type == TypeEnum.text
                     ?
                     //show text
                     Text(
@@ -232,7 +232,7 @@ class _MessageCardState extends State<MessageCard> {
                     borderRadius: BorderRadius.all(Radius.circular(8))),
               ),
 
-              widget.message.type == Type.text
+              widget.message.type == TypeEnum.text
                   ?
                   //copy option
                   _OptionItem(
@@ -270,7 +270,7 @@ class _MessageCardState extends State<MessageCard> {
                 ),
 
               //edit option
-              if (widget.message.type == Type.text && isMe)
+              if (widget.message.type == TypeEnum.text && isMe)
                 _OptionItem(
                     icon: const Icon(Icons.edit, color: Colors.blue, size: 26),
                     name: 'Edit Message',

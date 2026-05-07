@@ -42,8 +42,8 @@ class Explore extends StatefulWidget {
 
 class _ExploreState extends State<Explore> {
   // ── Carousel controllers — one per section ──────────────────────────────
-  final CarouselController carouselController = CarouselController();
-  final CarouselController _propertyCarouselController = CarouselController();
+  final CarouselSliderController carouselController = CarouselSliderController();
+  final CarouselSliderController _propertyCarouselController = CarouselSliderController();
   static const String _baseUrl = 'https://api.open-meteo.com/v1/forecast';
 
   _CardSelection _selectedCard = _CardSelection.sea;

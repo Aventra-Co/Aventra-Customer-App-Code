@@ -59,6 +59,41 @@ class _SuccessPaymentScreenState extends State<SuccessPaymentScreen> {
   var paymentId;
   var transactionStatus;
   var error;
+  late final WebViewController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onProgress: (int progress) {
+            log("WebView is loading (progress : $progress%)");
+            setState(() {
+              loadingProgress = progress;
+              if (progress == 100) {
+                isLoading = false;
+              }
+            });
+          },
+          onPageStarted: (String url) {
+            log('Page started loading: $url');
+            setState(() {
+              isLoading = true;
+              loadingProgress = 0;
+            });
+          },
+          onPageFinished: (String url) {
+            log("Final Loaded URL: $url");
+            setState(() => isLoading = false);
+            _handlePaymentResponse(url);
+          },
+        ),
+      )
+      ..loadRequest(Uri.parse(widget.webUrl));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,8 +107,7 @@ class _SuccessPaymentScreenState extends State<SuccessPaymentScreen> {
             width: MediaQuery.of(context).size.width * 100 / 100,
             color: AppColor.secondaryColor,
             child: Directionality(
-              textDirection:
-                  language == 1 ? TextDirection.rtl : TextDirection.ltr,
+              textDirection: language == 1 ? TextDirection.rtl : TextDirection.ltr,
               child: Stack(
                 children: [
                   Column(
@@ -81,119 +115,93 @@ class _SuccessPaymentScreenState extends State<SuccessPaymentScreen> {
                       Expanded(
                         child: SingleChildScrollView(
                           child: SizedBox(
-                            width:
-                                MediaQuery.of(context).size.width * 100 / 100,
-                            height:
-                                MediaQuery.of(context).size.height * 100 / 100,
-                            child: WebView(
-                                initialUrl: widget.webUrl,
-                                javascriptMode: JavascriptMode.unrestricted,
-                                onProgress: (int progress) {
-                                  log("WebView is loading (progress : $progress%)");
-                                  setState(() {
-                                    loadingProgress = progress;
-                                    if (progress == 100) {
-                                      isLoading = false;
-                                    }
-                                  });
-                                },
-                                onPageStarted: (String url) {
-                                  log('Page started loading: $url');
-                                  setState(() {
-                                    isLoading = true;
-                                    loadingProgress = 0;
-                                  });
-                                },
-                                onPageFinished: (String url) {
-                                  log("Final Loaded URL: $url");
-                                  setState(() {
-                                    isLoading = false;
-                                  });
-                                  _handlePaymentResponse(url);
-                                }),
+                            width: MediaQuery.of(context).size.width * 100 / 100,
+                            height: MediaQuery.of(context).size.height * 100 / 100,
+                            child: WebViewWidget(
+                              controller: _controller,
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
                   // Loading overlay
-                  if (isLoading)
-                    Container(
-                      width: double.infinity,
-                      height: double.infinity,
-                      color: AppColor.secondaryColor,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                // App logo behind the loading indicator
-                                Container(
-                                  width: 80,
-                                  height: 80,
-                                  decoration: const BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: AppColor.secondaryColor,
-                                  ),
-                                  child: ClipOval(
-                                    child: Image.asset(
-                                      AppImage
-                                          .appIcon, // Replace with your app logo path
-                                      width: 60,
-                                      height: 60,
-                                      fit: BoxFit.contain,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                        // Fallback if image doesn't exist
-                                        return Container(
-                                          width: 60,
-                                          height: 60,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: AppColor.primaryColor
-                                                .withOpacity(0.1),
-                                          ),
-                                          child: const Icon(
-                                            Icons.directions_boat,
-                                            size: 40,
-                                            color: AppColor.primaryColor,
-                                          ),
-                                        );
-                                      },
-                                    ),
+                  if (isLoading) Container(
+                    width: double.infinity,
+                    height: double.infinity,
+                    color: AppColor.secondaryColor,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              // App logo behind the loading indicator
+                              Container(
+                                width: 80,
+                                height: 80,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: AppColor.secondaryColor,
+                                ),
+                                child: ClipOval(
+                                  child: Image.asset(
+                                    AppImage
+                                        .appIcon, // Replace with your app logo path
+                                    width: 60,
+                                    height: 60,
+                                    fit: BoxFit.contain,
+                                    errorBuilder:
+                                        (context, error, stackTrace) {
+                                      // Fallback if image doesn't exist
+                                      return Container(
+                                        width: 60,
+                                        height: 60,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: AppColor.primaryColor
+                                              .withOpacity(0.1),
+                                        ),
+                                        child: const Icon(
+                                          Icons.directions_boat,
+                                          size: 40,
+                                          color: AppColor.primaryColor,
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ),
-                                // Circular progress indicator
-                                SizedBox(
-                                  width: 90,
-                                  height: 90,
-                                  child: CircularProgressIndicator(
-                                    value: loadingProgress / 100,
-                                    strokeWidth: 3,
-                                    valueColor:
-                                        const AlwaysStoppedAnimation<Color>(
-                                      AppColor.primaryColor,
-                                    ),
-                                    backgroundColor:
-                                        AppColor.primaryColor.withOpacity(0.2),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              '$loadingProgress%',
-                              style: const TextStyle(
-                                color: AppColor.primaryColor,
-                                fontSize: 14,
                               ),
+                              // Circular progress indicator
+                              SizedBox(
+                                width: 90,
+                                height: 90,
+                                child: CircularProgressIndicator(
+                                  value: loadingProgress / 100,
+                                  strokeWidth: 3,
+                                  valueColor:
+                                  const AlwaysStoppedAnimation<Color>(
+                                    AppColor.primaryColor,
+                                  ),
+                                  backgroundColor:
+                                  AppColor.primaryColor.withOpacity(0.2),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            '$loadingProgress%',
+                            style: const TextStyle(
+                              color: AppColor.primaryColor,
+                              fontSize: 14,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
+                  ),
                 ],
               ),
             ),

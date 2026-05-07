@@ -73,7 +73,7 @@ class _ChatUserCardState extends State<ChatUserCard> {
 
                 // Last message
                 subtitle: Text(
-                  _message!.type == Type.image ? 'Image' : _message!.msg,
+                  _message!.type == TypeEnum.image ? 'Image' : _message!.msg,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),

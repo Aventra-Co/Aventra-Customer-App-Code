@@ -1,11 +1,12 @@
 // ignore_for_file: prefer_const_literals_to_create_immutables
 import 'dart:developer';
+import 'package:app_links/app_links.dart';
+
 import '/view/other_screen/publicBookingFlow/public_redirection_trip_details.dart';
 import '/view/property_screens/redirection_property_details.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:uni_links/uni_links.dart';
 import '../main.dart';
 import '../view/bottom_navigation/explore_screen.dart';
 import '../view/bottom_navigation/inbox_screen.dart';
@@ -54,29 +55,27 @@ class _MyFooterPageState extends State<MyFooterPage> {
   Future<void> initUniLinks() async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
+      final AppLinks appLinks = AppLinks();
 
-      String? initialLink = await getInitialLink();
+      // Initial link
+      final Uri? initialLink = await appLinks.getInitialLink();
       String? savedLink = prefs.getString('deep_link');
 
-      if (initialLink != null && initialLink != savedLink) {
-        await prefs.setString('deep_link', initialLink); // Save deep link
-        handleDeepLink(Uri.parse(initialLink));
+      if (initialLink != null && initialLink.toString() != savedLink) {
+        await prefs.setString('deep_link', initialLink.toString());
+        handleDeepLink(initialLink);
 
-        // Clear deep link after use
-        Future.delayed(Duration(seconds: 1), () async {
-          await prefs.remove('deep_link');
-        });
+        Future.delayed(Duration(seconds: 1), () async => await prefs.remove('deep_link'));
       }
 
-      uriLinkStream.listen((Uri? uri) async {
-        if (uri != null && uri.toString() != savedLink) {
+      // Stream listener
+      appLinks.uriLinkStream.listen((Uri uri) async {
+        String? savedLink = prefs.getString('deep_link');
+        if (uri.toString() != savedLink) {
           await prefs.setString('deep_link', uri.toString());
           handleDeepLink(uri);
 
-          // Clear deep link after use
-          Future.delayed(Duration(seconds: 1), () async {
-            await prefs.remove('deep_link');
-          });
+          Future.delayed(Duration(seconds: 1), () async => await prefs.remove('deep_link'));
         }
       });
     } on PlatformException {

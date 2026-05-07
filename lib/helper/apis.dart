@@ -208,7 +208,7 @@ class APIs {
 
   // for adding an user to my user when first message is send
   static Future<void> sendFirstMessage(
-      ChatUser chatUser, String msg, Type type, bool isActive) async {
+      ChatUser chatUser, String msg, TypeEnum type, bool isActive) async {
     await firestore
         .collection('users')
         .doc(chatUser.id)
@@ -283,7 +283,7 @@ class APIs {
 
   // for sending message
   static Future<void> sendMessage(
-      ChatUser chatUser, String msg, Type type, bool isActive) async {
+      ChatUser chatUser, String msg, TypeEnum type, bool isActive) async {
     //message sending time (also used as id)
     final time = DateTime.now().millisecondsSinceEpoch.toString();
 
@@ -300,7 +300,7 @@ class APIs {
         .collection('chats/${getConversationID(chatUser.id)}/messages/');
     await ref.doc(time).set(message.toJson()).then((value) =>
         sendPushNotification(
-            chatUser, type == Type.text ? msg : 'image', isActive));
+            chatUser, type == TypeEnum.text ? msg : 'image', isActive));
   }
 
   //update read status of message
@@ -341,7 +341,7 @@ class APIs {
 
     //updating image in firestore database
     final imageUrl = await ref.getDownloadURL();
-    await sendMessage(chatUser, imageUrl, Type.image, isActive);
+    await sendMessage(chatUser, imageUrl, TypeEnum.image, isActive);
   }
 
   //delete message
@@ -351,7 +351,7 @@ class APIs {
         .doc(message.sent)
         .delete();
 
-    if (message.type == Type.image) {
+    if (message.type == TypeEnum.image) {
       await storage.refFromURL(message.msg).delete();
     }
   }

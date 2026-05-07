@@ -15,7 +15,7 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initOneSignal(AppConstant.oneSignalAppId);
+  await initOneSignal();
   await OneSignalService.initOneSignal();
 
   runApp(const MyApp());
@@ -28,22 +28,14 @@ Future<void> main() async {
           projectId: AppConstant.projectId));
 }
 
-Future<void> initOneSignal(oneSignalAppId) async {
-  if (AppConstant.deviceType == "android") {
-  } else {}
-  await OneSignal.shared.setAppId(AppConstant.oneSignalAppId);
+Future<void> initOneSignal() async {
+  OneSignal.initialize(AppConstant.oneSignalAppId);
 
-  OneSignal.shared
-      .promptUserForPushNotificationPermission()
-      .then((accepted) {});
+  await OneSignal.Notifications.requestPermission(true);
 
-  final status = await OneSignal.shared.getDeviceState();
-  if (status != null) {
-    var tokenId = status.userId;
-    if (tokenId != null) {
-      AppConstant.playerID = tokenId;
-    }
-  }
+  final OneSignalPushSubscription pushSubscription = OneSignal.User.pushSubscription;
+  final String? tokenId = pushSubscription.id;
+  if (tokenId != null) AppConstant.playerID = tokenId;
 }
 
 class MyApp extends StatelessWidget {

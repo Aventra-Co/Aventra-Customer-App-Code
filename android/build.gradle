@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.9.0'
+    ext.kotlin_version = '2.1.0'
 
     repositories {
         google()
@@ -94,7 +94,7 @@ subprojects {
                             namespace "io.${cleanedName}"
                     }
                 }
-                compileSdk 35
+                compileSdk 36
                 compileOptions {
                     sourceCompatibility JavaVersion.VERSION_17
                     targetCompatibility JavaVersion.VERSION_17

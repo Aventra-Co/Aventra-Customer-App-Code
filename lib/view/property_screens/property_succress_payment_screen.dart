@@ -48,8 +48,7 @@ class PropertySuccessPaymentScreen extends StatefulWidget {
       _PropertySuccessPaymentScreenState();
 }
 
-class _PropertySuccessPaymentScreenState
-    extends State<PropertySuccessPaymentScreen> {
+class _PropertySuccessPaymentScreenState extends State<PropertySuccessPaymentScreen> {
   bool isApiCalling = false;
   bool isLoading = true; // Added loading state
   int loadingProgress = 0; // Track loading progress
@@ -57,11 +56,41 @@ class _PropertySuccessPaymentScreenState
   var paymentId;
   var transactionStatus;
   var error;
+  late final WebViewController _controller;
 
   @override
   void initState() {
     super.initState();
     log("Check the gateway ${widget.webUrl}");
+
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onProgress: (int progress) {
+            log("WebView is loading (progress : $progress%)");
+            setState(() {
+              loadingProgress = progress;
+              if (progress == 100) {
+                isLoading = false;
+              }
+            });
+          },
+          onPageStarted: (String url) {
+            log('Page started loading: $url');
+            setState(() {
+              isLoading = true;
+              loadingProgress = 0;
+            });
+          },
+          onPageFinished: (String url) {
+            log("Final Loaded URL: $url");
+            setState(() => isLoading = false);
+            _handlePaymentResponse(url);
+          },
+        ),
+      )
+      ..loadRequest(Uri.parse(widget.webUrl));
   }
 
   @override
@@ -76,8 +105,7 @@ class _PropertySuccessPaymentScreenState
             width: MediaQuery.of(context).size.width * 100 / 100,
             color: AppColor.secondaryColor,
             child: Directionality(
-              textDirection:
-                  language == 1 ? TextDirection.rtl : TextDirection.ltr,
+              textDirection: language == 1 ? TextDirection.rtl : TextDirection.ltr,
               child: Stack(
                 children: [
                   Column(
@@ -85,44 +113,18 @@ class _PropertySuccessPaymentScreenState
                       Expanded(
                         child: SingleChildScrollView(
                           child: SizedBox(
-                            width:
-                                MediaQuery.of(context).size.width * 100 / 100,
-                            height:
-                                MediaQuery.of(context).size.height * 100 / 100,
-                            child: WebView(
-                                initialUrl: widget.webUrl,
-                                javascriptMode: JavascriptMode.unrestricted,
-                                onProgress: (int progress) {
-                                  log("WebView is loading (progress : $progress%)");
-                                  setState(() {
-                                    loadingProgress = progress;
-                                    if (progress == 100) {
-                                      isLoading = false;
-                                    }
-                                  });
-                                },
-                                onPageStarted: (String url) {
-                                  log('Page started loading: $url');
-                                  setState(() {
-                                    isLoading = true;
-                                    loadingProgress = 0;
-                                  });
-                                },
-                                onPageFinished: (String url) {
-                                  log("Final Loaded URL: $url");
-                                  setState(() {
-                                    isLoading = false;
-                                  });
-                                  _handlePaymentResponse(url);
-                                }),
+                            width: MediaQuery.of(context).size.width * 100 / 100,
+                            height: MediaQuery.of(context).size.height * 100 / 100,
+                            child: WebViewWidget(
+                              controller: _controller,
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
                   // Loading overlay
-                  if (isLoading)
-                    Container(
+                  if (isLoading) Container(
                       width: double.infinity,
                       height: double.infinity,
                       color: AppColor.secondaryColor,

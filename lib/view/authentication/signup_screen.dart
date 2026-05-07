@@ -925,30 +925,29 @@ class _SignupState extends State<Signup> {
                                   initialDate: initialDate,
                                   firstDate: minDate,
                                   lastDate: maxDate,
-                                  builder:
-                                      (BuildContext context, Widget? child) {
+                                  builder: (BuildContext context, Widget? child) {
                                     return Theme(
                                       data: ThemeData.light().copyWith(
                                         primaryColor: AppColor.themeColor,
                                         colorScheme: const ColorScheme.light(
                                           primary: AppColor.themeColor,
                                           onPrimary: AppColor.secondaryColor,
+                                          surface: AppColor.themeColor,
                                         ),
                                         buttonTheme: const ButtonThemeData(
                                           textTheme: ButtonTextTheme.primary,
                                         ),
                                         textButtonTheme: TextButtonThemeData(
-                                          style: TextButton.styleFrom(
-                                              foregroundColor:
-                                                  AppColor.themeColor),
+                                          style: TextButton.styleFrom(foregroundColor: AppColor.themeColor),
                                         ),
-                                        backgroundColor: AppColor.themeColor,
-                                        dialogBackgroundColor:
-                                            AppColor.themeColor,
+                                        dialogTheme: const DialogThemeData(
+                                          backgroundColor: AppColor.themeColor,
+                                        ),
                                         highlightColor: AppColor.themeColor,
                                         textTheme: const TextTheme(
-                                          bodyText2: TextStyle(
-                                              color: AppColor.themeColor),
+                                          bodyMedium: TextStyle(
+                                            color: AppColor.themeColor,
+                                          ),
                                         ),
                                       ),
                                       child: child!,

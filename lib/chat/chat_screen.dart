@@ -700,11 +700,11 @@ class _ChatScreenState extends State<ChatScreen> {
                   if (_list.isEmpty) {
                     //on first message (add user to my_user collection of chat user)
                     APIs.sendFirstMessage(
-                        widget.user, _textController.text, Type.text, isActive);
+                        widget.user, _textController.text, TypeEnum.text, isActive);
                   } else {
                     //simply send message
                     APIs.sendMessage(
-                        widget.user, _textController.text, Type.text, isActive);
+                        widget.user, _textController.text, TypeEnum.text, isActive);
                   }
                   _textController.text = '';
                 }
@@ -860,11 +860,11 @@ class _ChatScreenState extends State<ChatScreen> {
           if (_list.isEmpty) {
             //on first message (add user to my_user collection of chat user)
             APIs.sendFirstMessage(
-                widget.user, selectedImagePath, Type.image, isActive);
+                widget.user, selectedImagePath, TypeEnum.image, isActive);
           } else {
             //simply send message
             APIs.sendMessage(
-                widget.user, selectedImagePath, Type.image, isActive);
+                widget.user, selectedImagePath, TypeEnum.image, isActive);
           }
           // sendImage(selectedImagePath);
         } else {

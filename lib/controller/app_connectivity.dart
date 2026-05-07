@@ -9,26 +9,20 @@ class ConnectionProvider extends ChangeNotifier {
   ConnectionStatus get status => _status;
 
   void initialize() {
-    Connectivity().onConnectivityChanged.listen((result) {
-      updateConnectionStatus(result);
+    Connectivity().onConnectivityChanged.listen((results) {
+      updateConnectionStatus(results);
     });
   }
 
-  void updateConnectionStatus(ConnectivityResult result) {
-    print(result);
-    switch (result) {
-      case ConnectivityResult.wifi:
-        _status = ConnectionStatus.WiFi;
-        break;
-      case ConnectivityResult.mobile:
-        _status = ConnectionStatus.Mobile;
-        break;
-      case ConnectivityResult.none:
-        _status = ConnectionStatus.Offline;
-        break;
-      default:
-        _status = ConnectionStatus.Offline;
-        break;
+  void updateConnectionStatus(List<ConnectivityResult> results) {
+    if (results.contains(ConnectivityResult.wifi)) {
+      _status = ConnectionStatus.WiFi;
+    }
+    else if (results.contains(ConnectivityResult.mobile)) {
+      _status = ConnectionStatus.Mobile;
+    }
+    else {
+      _status = ConnectionStatus.Offline;
     }
     notifyListeners();
   }
