@@ -15,6 +15,38 @@
       },
       "oauth_client": [
         {
+          "client_id": "83903925512-7d1i3mbg3k6fdkjc48jdj2d7uscr8kke.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.app.boatappcustomer",
+            "certificate_hash": "54ca58230d08e3d2c21119f58b7b9f685bed5233"
+          }
+        },
+        {
+          "client_id": "83903925512-8dc6865l2rfheq716b2vdjjhl2vvqhn5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.app.boatappcustomer",
+            "certificate_hash": "b2884b99564ddc2e03afc1b6196bc0aa79c745d1"
+          }
+        },
+        {
+          "client_id": "83903925512-8pe0lpf8ms0hildrfq8bccop19m0hvh7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.app.boatappcustomer",
+            "certificate_hash": "a623438cfc2038a288d6413caafb6576e029bef0"
+          }
+        },
+        {
+          "client_id": "83903925512-e37ej8obq9e4sfppass6fb9t4oghqcu7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.app.boatappcustomer",
+            "certificate_hash": "c136854045141d496693a064bfcbeeb41271dd4c"
+          }
+        },
+        {
           "client_id": "83903925512-7qrmb26v5284ch7psd9hvb5npjdgjg95.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -30,6 +62,13 @@
             {
               "client_id": "83903925512-7qrmb26v5284ch7psd9hvb5npjdgjg95.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "83903925512-3c3ct8tr2e8b2pv8ecc9582s4amufdfi.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.app.boatappowner"
+              }
             }
           ]
         }
@@ -67,6 +106,13 @@
             {
               "client_id": "83903925512-7qrmb26v5284ch7psd9hvb5npjdgjg95.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "83903925512-3c3ct8tr2e8b2pv8ecc9582s4amufdfi.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.app.boatappowner"
+              }
             }
           ]
         }

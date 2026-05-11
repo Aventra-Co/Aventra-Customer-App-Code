@@ -10,7 +10,8 @@ buildscript {
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.android.tools.build:gradle:8.3.2'
-        classpath 'com.google.gms:google-services:4.4.0'
+        classpath 'com.google.gms:google-services:4.4.2'
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.2'
     }
 }
 
@@ -58,6 +59,9 @@ subprojects {
                             break
                         case 'firebase_storage':
                             namespace 'io.flutter.plugins.firebase.storage'
+                            break
+                        case 'firebase_crashlytics':
+                            namespace 'io.flutter.plugins.firebase.crashlytics'
                             break
                         case 'onesignal_flutter':
                             namespace 'com.onesignal.flutter'

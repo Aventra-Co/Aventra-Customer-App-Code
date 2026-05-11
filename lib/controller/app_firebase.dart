@@ -233,6 +233,7 @@ class FirebaseProvider {
     deviceToken,
     userId,
     otherUserId,
+    {String? imageUrl}
   ) async {
     final url = Uri.parse("https://onesignal.com/api/v1/notifications");
 
@@ -240,12 +241,20 @@ class FirebaseProvider {
       'Content-Type': 'application/json',
       'Authorization': "ZTg2ZTQxYmYtZjZjYi00YmViLWI5ZDktMThkNTY0ODRmZDE",
     };
-    print("otherUserName$otherUserName");
-    print("otherUserName256$userId");
+    final bool hasRemoteImage = imageUrl != null &&
+        imageUrl.isNotEmpty &&
+        imageUrl != 'NA' &&
+        (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'));
     var body = {
       'app_id': '60e0937d-d285-4bdd-b86e-23b960793f2e',
       // 'include_player_ids': [AppConstant.playerID],
       'contents': {'en': '$otherUserName sent you a new message.'},
+      if (hasRemoteImage) 'large_icon': imageUrl,
+      if (hasRemoteImage) 'big_picture': imageUrl,
+      if (hasRemoteImage) 'chrome_big_picture': imageUrl,
+      if (hasRemoteImage) 'ios_attachments': {'image': imageUrl},
+      if (hasRemoteImage) 'mutable_content': true,
+      if (hasRemoteImage) 'content_available': true,
       'data': {
         'click_action': 'FLUTTER_NOTIFICATION_CLICK',
         'id': '1025525',
@@ -271,7 +280,6 @@ class FirebaseProvider {
       // Parse the JSON response
       var res = jsonDecode(response.body);
       print("res $res");
-      print("Notification sent successfully");
     } else {
       print("Failed to send notification: ${response.statusCode}");
       print("Response body: ${response.body}");

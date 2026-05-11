@@ -27,6 +27,10 @@ class OneSignalService {
       AppConstant.playerID = tokenId;
       print("playerID : ${AppConstant.playerID}");
     }
+    assert(() {
+      debugPrint('OneSignal pushSubscription.id (immediate): ${OneSignal.User.pushSubscription.id}');
+      return true;
+    }());
 
     // Listen for ID changes (in case it loads after init)
     OneSignal.User.pushSubscription.addObserver((state) {
@@ -36,6 +40,13 @@ class OneSignalService {
         print("playerID updated: ${AppConstant.playerID}");
       }
     });
+
+    assert(() {
+      Future.delayed(const Duration(seconds: 2), () {
+        debugPrint('OneSignal pushSubscription.id (after 2s): ${OneSignal.User.pushSubscription.id}');
+      });
+      return true;
+    }());
 
     // Notification opened handler
     OneSignal.Notifications.addClickListener((OSNotificationClickEvent event) async {
