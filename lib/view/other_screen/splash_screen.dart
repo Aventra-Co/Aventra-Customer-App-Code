@@ -39,7 +39,7 @@ class _SplashState extends State<Splash> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 3), () => getUserDetails());
+    WidgetsBinding.instance.addPostFrameCallback((_) => getUserDetails());
   }
 
   // Check for pending OneSignal notifications

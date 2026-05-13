@@ -927,26 +927,24 @@ class _SignupState extends State<Signup> {
                                   lastDate: maxDate,
                                   builder: (BuildContext context, Widget? child) {
                                     return Theme(
-                                      data: ThemeData.light().copyWith(
-                                        primaryColor: AppColor.themeColor,
-                                        colorScheme: const ColorScheme.light(
-                                          primary: AppColor.themeColor,
-                                          onPrimary: AppColor.secondaryColor,
-                                          surface: AppColor.themeColor,
+                                      data: Theme.of(context).copyWith(
+                                        colorScheme: Theme.of(context).colorScheme.copyWith(
+                                              primary: AppColor.themeColor,
+                                              onPrimary: Colors.white,
+                                              surface: Colors.white,
+                                              onSurface: Colors.black,
+                                            ),
+                                        dialogTheme: const DialogThemeData(
+                                          backgroundColor: Colors.white,
+                                          surfaceTintColor: Colors.white,
                                         ),
-                                        buttonTheme: const ButtonThemeData(
-                                          textTheme: ButtonTextTheme.primary,
+                                        datePickerTheme: const DatePickerThemeData(
+                                          backgroundColor: Colors.white,
+                                          surfaceTintColor: Colors.white,
                                         ),
                                         textButtonTheme: TextButtonThemeData(
-                                          style: TextButton.styleFrom(foregroundColor: AppColor.themeColor),
-                                        ),
-                                        dialogTheme: const DialogThemeData(
-                                          backgroundColor: AppColor.themeColor,
-                                        ),
-                                        highlightColor: AppColor.themeColor,
-                                        textTheme: const TextTheme(
-                                          bodyMedium: TextStyle(
-                                            color: AppColor.themeColor,
+                                          style: TextButton.styleFrom(
+                                            foregroundColor: AppColor.themeColor,
                                           ),
                                         ),
                                       ),

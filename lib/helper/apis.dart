@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/services.dart';
 import '../model/chat_user.dart';
 import '../model/message.dart';
 
@@ -40,14 +41,29 @@ class APIs {
 
   // for getting firebase messaging token
   static Future<void> getFirebaseMessagingToken() async {
-    await fMessaging.requestPermission();
+    try {
+      final settings = await fMessaging.requestPermission();
+      if (settings.authorizationStatus == AuthorizationStatus.denied) return;
 
-    await fMessaging.getToken().then((t) {
+      if (Platform.isIOS) {
+        for (int i = 0; i < 6; i++) {
+          final apnsToken = await fMessaging.getAPNSToken();
+          if (apnsToken != null) break;
+          await Future.delayed(const Duration(milliseconds: 400));
+        }
+      }
+
+      final String? t = await fMessaging.getToken();
       if (t != null) {
         me.pushToken = t;
         log('Push Token: $t');
       }
-    });
+    } on PlatformException catch (e) {
+      if (e.code == 'apns-token-not-set') return;
+      log('Firebase Messaging token error: ${e.code}');
+    } catch (e) {
+      log('Firebase Messaging token error: $e');
+    }
   }
 
   // for sending push notification (Updated Codes)

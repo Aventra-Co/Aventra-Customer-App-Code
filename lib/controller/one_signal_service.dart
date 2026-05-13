@@ -19,7 +19,10 @@ class OneSignalService {
 
     OneSignal.initialize(AppConstant.oneSignalAppId);
 
-    await OneSignal.Notifications.requestPermission(true);
+    try {
+      await OneSignal.Notifications.requestPermission(true)
+          .timeout(const Duration(seconds: 6), onTimeout: () => false);
+    } catch (_) {}
 
     // Get player ID
     final String? tokenId = OneSignal.User.pushSubscription.id;

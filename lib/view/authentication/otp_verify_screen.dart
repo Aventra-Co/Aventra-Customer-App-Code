@@ -258,7 +258,7 @@ class _OTPState extends State<OTP> {
                               AppLanguage.otpVerficationText[language],
                               textAlign: TextAlign.center,
                               style: const TextStyle(
-                                  color: AppColor.violetColor,
+                                  color: AppColor.themeColor,
                                   fontSize: 30,
                                   fontFamily: AppFont.fontFamily,
                                   fontWeight: FontWeight.w800),

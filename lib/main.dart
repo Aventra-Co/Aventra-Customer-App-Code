@@ -51,15 +51,14 @@ Future<void> main() async {
 
     await FirebaseCrashlytics.instance
         .setCrashlyticsCollectionEnabled(!kDebugMode);
-
-    await initFirebaseAuth();
-    await initOneSignal();
-    await OneSignalService.initOneSignal();
     runApp(const MyApp());
+    unawaited(initFirebaseAuth());
+    unawaited(OneSignalService.initOneSignal());
   }, (error, stack) {
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
   });
 }
+
 
 Future<void> initOneSignal() async {
   OneSignal.initialize(AppConstant.oneSignalAppId);
@@ -76,6 +75,32 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData appTheme = ThemeData(
+      useMaterial3: false,
+      brightness: Brightness.light,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: AppColor.themeColor,
+        brightness: Brightness.light,
+      ),
+      fontFamily: AppFont.fontFamily,
+      dialogTheme: const DialogThemeData(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+      ),
+      datePickerTheme: const DatePickerThemeData(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+      ),
+      timePickerTheme: const TimePickerThemeData(
+        backgroundColor: Colors.white,
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: AppColor.themeColor,
+        ),
+      ),
+    );
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
@@ -93,10 +118,8 @@ class MyApp extends StatelessWidget {
         navigatorObservers: [routeObserver],
         title: 'Aventra',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: AppColor.themeColor),
-          fontFamily: AppFont.fontFamily,
-        ),
+        theme: appTheme,
+        darkTheme: appTheme,
         navigatorKey: navigatorKey,
         routes: routes,
         home: AppInitializer(),
