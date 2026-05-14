@@ -77,13 +77,11 @@ class PrivateAddOnsState extends State<PrivateAddOns> {
       userId = data['user_id'];
       tripDetails = widget.tripDetails;
       addOnsList = widget.tripDetails['selected_addons'];
-       selectedTimesShow = widget.allTimeSlots.isNotEmpty
+      selectedTimesShow = widget.allTimeSlots.isNotEmpty
           ? widget.allTimeSlots.split(", ").map((e) => e).toList()
           : [];
-      grandTotal = (double.parse(tripDetails['price_per_hour']) *
-              selectedTimesShow.length).toStringAsFixed(2);
       resetQuantity();
-      // getGrandTotal();
+      getGrandTotal();
     }
     for (int i = 0; i < addOnsList.length; i++) {
       showSelectedAddons.add({
@@ -112,19 +110,21 @@ class PrivateAddOnsState extends State<PrivateAddOns> {
   }
 
   void getGrandTotal() {
-    double total = 0;
+    double addonsTotal = 0;
     for (int i = 0; i < addOnsList.length; i++) {
       final subAddons = addOnsList[i]["subAddons"] as List<dynamic>;
       for (int j = 0; j < subAddons.length; j++) {
-        if (subAddons[j]['quantity'] > 0) {
-          total += subAddons[j]['total_price'];
+        final int qty = (subAddons[j]['quantity'] as num).toInt();
+        if (qty > 0) {
+          final double unitPrice =
+              double.parse(subAddons[j]['price'].toString());
+          addonsTotal += unitPrice * qty;
         }
       }
     }
-    grandTotal = ((double.parse(tripDetails['price_per_hour']) *
-                tripDetails['minimum_hours']) +
-            total)
-        .toStringAsFixed(1);
+    final double baseTrip = selectedTimesShow.length *
+        double.parse(tripDetails['price_per_hour'].toString());
+    grandTotal = (baseTrip + addonsTotal).toStringAsFixed(2);
     setState(() {});
   }
 
@@ -852,9 +852,6 @@ class PrivateAddOnsState extends State<PrivateAddOns> {
                                           mainIndex++;
                                         });
                                       } else {
-                                        resetQuantity();
-                                        grandTotal = '0';
-                                        setState(() {});
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(

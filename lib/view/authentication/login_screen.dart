@@ -182,7 +182,7 @@ class _LoginState extends State<Login> {
             AppConstant.token = res['token'];
             print("AppConstant.token ${AppConstant.token}");
 
-            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
+            // SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
             final prefs = await SharedPreferences.getInstance();
             print("prefs =================>${res['userDataArray']}");
             prefs.setString("userDetails", jsonEncode(res['userDataArray']));

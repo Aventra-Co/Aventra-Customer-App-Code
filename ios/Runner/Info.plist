@@ -9,10 +9,10 @@
     <string>Aventra</string>
 
     <key>CFBundleShortVersionString</key>
-    <string>3.0.1</string>
+    <string>3.0.2</string>
 
     <key>CFBundleVersion</key>
-    <string>4</string>
+    <string>5</string>
 
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
@@ -88,5 +88,8 @@
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
+
+	<key>OneSignal_app_groups_key</key>
+	<string>group.com.app.aventraappowner.onesignal</string>
 </dict>
 </plist>
