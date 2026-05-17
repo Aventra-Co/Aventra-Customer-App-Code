@@ -14,6 +14,8 @@ class NotificationService: UNNotificationServiceExtension {
         self.contentHandler = contentHandler
         bestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent)
 
+        NSLog("OneSignal NSE didReceive: \(request.content.userInfo)")
+
         if let bestAttemptContent {
             OneSignalExtension.didReceiveNotificationExtensionRequest(
                 receivedRequest,
@@ -27,6 +29,7 @@ class NotificationService: UNNotificationServiceExtension {
 
     override func serviceExtensionTimeWillExpire() {
         if let contentHandler = contentHandler, let bestAttemptContent = bestAttemptContent {
+            NSLog("OneSignal NSE timeWillExpire")
             OneSignalExtension.serviceExtensionTimeWillExpireRequest(receivedRequest, with: bestAttemptContent)
             contentHandler(bestAttemptContent)
         }

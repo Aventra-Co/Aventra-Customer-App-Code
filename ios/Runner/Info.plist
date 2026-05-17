@@ -9,10 +9,10 @@
     <string>Aventra</string>
 
     <key>CFBundleShortVersionString</key>
-    <string>3.0.2</string>
+    <string>3.0.3</string>
 
     <key>CFBundleVersion</key>
-    <string>5</string>
+    <string>6</string>
 
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
@@ -90,6 +90,6 @@
 	</array>
 
 	<key>OneSignal_app_groups_key</key>
-	<string>group.com.app.aventraappowner.onesignal</string>
+	<string>group.com.app.boatappcustomer.onesignal</string>
 </dict>
 </plist>
