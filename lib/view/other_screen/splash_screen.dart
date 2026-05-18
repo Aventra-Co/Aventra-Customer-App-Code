@@ -149,7 +149,7 @@ class _SplashState extends State<Splash> {
     print("Url $url");
 
     try {
-      String playeID = AppConstant.playerID.toString();
+      final String playeID = await OneSignalService.getPlayerId();
       print("playeID line number 101 $playeID");
       http.MultipartRequest formData = http.MultipartRequest('POST', url);
 
@@ -220,6 +220,7 @@ class _SplashState extends State<Splash> {
     print("Url $url");
 
     try {
+      final String playeID = await OneSignalService.getPlayerId();
       var headers = {
         'token': AppConstant.token,
       };
@@ -227,7 +228,7 @@ class _SplashState extends State<Splash> {
         'social_type': "google",
         'social_id': data['google_id'].toString(),
         'device_type': AppConstant.deviceType.toString(),
-        'player_id': AppConstant.playerID.toString(),
+        'player_id': playeID,
         'social_email': data['email']
       };
 

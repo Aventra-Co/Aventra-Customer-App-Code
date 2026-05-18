@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import '/view/authentication/notification_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -13,6 +14,7 @@ class OneSignalService {
   static Map<String, dynamic>? _pendingNotificationData;
   static bool _hasPendingBroadcast = false;
   static bool _isAppInitialized = false;
+  static Completer<String>? _playerIdCompleter;
 
   static Future<void> initOneSignal() async {
     print("Initializing OneSignal");
@@ -28,6 +30,8 @@ class OneSignalService {
     final String? tokenId = OneSignal.User.pushSubscription.id;
     if (tokenId != null) {
       AppConstant.playerID = tokenId;
+      _playerIdCompleter?.complete(tokenId);
+      _playerIdCompleter = null;
       print("playerID : ${AppConstant.playerID}");
     }
     assert(() {
@@ -40,6 +44,8 @@ class OneSignalService {
       final String? id = state.current.id;
       if (id != null) {
         AppConstant.playerID = id;
+        _playerIdCompleter?.complete(id);
+        _playerIdCompleter = null;
         print("playerID updated: ${AppConstant.playerID}");
       }
     });
@@ -70,6 +76,25 @@ class OneSignalService {
         }
       }
     });
+  }
+
+  static Future<String> getPlayerId({Duration timeout = const Duration(seconds: 4)}) async {
+    final current = OneSignal.User.pushSubscription.id;
+    if (current != null && current.toString().trim().isNotEmpty) {
+      AppConstant.playerID = current;
+      return current;
+    }
+
+    final cached = AppConstant.playerID.toString().trim();
+    if (cached.isNotEmpty) return cached;
+
+    _playerIdCompleter ??= Completer<String>();
+
+    try {
+      return await _playerIdCompleter!.future.timeout(timeout);
+    } catch (_) {
+      return AppConstant.playerID.toString().trim();
+    }
   }
 
   // Store pending notification and set flags
