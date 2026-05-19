@@ -97,6 +97,10 @@ class _SplashState extends State<Splash> {
     final prefs = await SharedPreferences.getInstance();
     dynamic userDetails = prefs.getString("userDetails");
     dynamic password = prefs.getString("password");
+    final String savedToken = prefs.getString("token") ?? "";
+    if (savedToken.toString().trim().isNotEmpty) {
+      AppConstant.token = savedToken.toString();
+    }
     dynamic langId = prefs.getString("language_id");
     log("dfd$langId");
 
@@ -124,10 +128,37 @@ class _SplashState extends State<Splash> {
         if (data['otp_verify'] == 1) {
           if (data['login_type'] == 0) {
             log("line51 - Normal Login ${data['login_type']}");
-            await _performNormalLogin(email, password);
+            final String p = password?.toString() ?? "";
+            if (AppConstant.token.toString().trim().isNotEmpty) {
+              _isLoginSuccessful = true;
+              APIs.userArry = data;
+              APIs.user_id = data['user_id'].toString();
+              APIs.getSelfInfo();
+              _handlePostLoginNavigation();
+            } else if (p.trim().isEmpty) {
+              _isLoginSuccessful = true;
+              APIs.userArry = data;
+              APIs.user_id = data['user_id'].toString();
+              APIs.getSelfInfo();
+              _handlePostLoginNavigation();
+            } else {
+              await _performNormalLogin(email, p);
+            }
           } else {
             log("Social Login ${data['login_type']}");
-            await _performSocialLogin(data, prefs);
+            if (AppConstant.token.toString().trim().isNotEmpty) {
+              _isLoginSuccessful = true;
+              APIs.userArry = data;
+              APIs.user_id = data['user_id'].toString();
+              APIs.getSelfInfo();
+              _handlePostLoginNavigation();
+            } else {
+              _isLoginSuccessful = true;
+              APIs.userArry = data;
+              APIs.user_id = data['user_id'].toString();
+              APIs.getSelfInfo();
+              _handlePostLoginNavigation();
+            }
           }
         } else {
           _isLoginSuccessful = false;
@@ -176,6 +207,7 @@ class _SplashState extends State<Splash> {
             final prefs = await SharedPreferences.getInstance();
             print("prefs =================>$prefs");
             prefs.setString("userDetails", jsonEncode(res['userDataArray']));
+            prefs.setString("token", res['token'].toString());
             FirebaseProvider.firebaseCreateUser(true);
             APIs.userArry = res['userDataArray'];
             APIs.user_id = res['userDataArray']['user_id'].toString();
@@ -183,7 +215,7 @@ class _SplashState extends State<Splash> {
 
             print("kfjjg${AppConstant.playerID}");
             await updateUser(res['userDataArray'],
-                res['userDataArray']['user_id'], AppConstant.playerID);
+                res['userDataArray']['user_id'], playeID);
 
             if (await userExists(res['userDataArray']['user_id']) && mounted) {
               print("mounted $mounted");

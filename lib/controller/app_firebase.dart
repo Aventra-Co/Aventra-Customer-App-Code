@@ -247,6 +247,10 @@ class FirebaseProvider {
         (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'));
     var body = {
       'app_id': '60e0937d-d285-4bdd-b86e-23b960793f2e',
+      'ios_badgeType': 'Increase',
+      'ios_badgeCount': 1,
+      'android_badgeType': 'Increase',
+      'android_badgeCount': 1,
       // 'include_player_ids': [AppConstant.playerID],
       'contents': {'en': '$otherUserName sent you a new message.'},
       if (hasRemoteImage) 'large_icon': imageUrl,

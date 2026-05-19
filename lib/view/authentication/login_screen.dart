@@ -63,6 +63,7 @@ class _LoginState extends State<Login> {
   GoogleSignInAuthentication? authentication;
   Map<String, String>? authHeaders;
   GoogleSignInAccount? _currentUser;
+  bool _isSocialLoginInitiated = false;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: <String>[
       'profile',
@@ -84,6 +85,9 @@ class _LoginState extends State<Login> {
       });
       print('google signIn email $_currentUser');
       if (_currentUser != null) {
+        if (!_isSocialLoginInitiated) {
+          return;
+        }
         print('google signIn email ${account?.email}');
         print('google signIn id ${account?.id}');
         print('google signIn displayName ${account?.displayName}');
@@ -187,6 +191,7 @@ class _LoginState extends State<Login> {
             final prefs = await SharedPreferences.getInstance();
             print("prefs =================>${res['userDataArray']}");
             prefs.setString("userDetails", jsonEncode(res['userDataArray']));
+            prefs.setString("token", res['token'].toString());
             prefs.setString("password", password);
             FirebaseProvider.firebaseCreateUser(true);
             APIs.userArry = res['userDataArray'];
@@ -968,6 +973,7 @@ class _LoginState extends State<Login> {
                                           setState(() {
                                             isApiCalling = true;
                                           });
+                                          _isSocialLoginInitiated = true;
                                           _googleSignIn.disconnect();
                                           _handleSignIn();
                                         },
@@ -1002,6 +1008,7 @@ class _LoginState extends State<Login> {
                                             setState(() {
                                               isApiCalling = true;
                                             });
+                                            _isSocialLoginInitiated = true;
                                             signinWithApple();
                                           },
                                           child: Container(
@@ -1113,9 +1120,7 @@ class _LoginState extends State<Login> {
     });
     Uri url = Uri.parse("${AppConfigProvider.apiUrl}social_login_user");
     print("Url $url");
-    setState(() {
-      isApiCalling = true;
-    });
+    bool didNavigate = false;
     try {
       var headers = {
         'token': AppConstant.token,
@@ -1146,10 +1151,12 @@ class _LoginState extends State<Login> {
             prefs.setString("userDetails", jsonEncode(res['userDataArray']));
             //  if (res['userDataArray']['profile_complete'] == 1) {
             AppConstant.token = res['token'];
+            await prefs.setString("token", res['token'].toString());
             AppConstant.selectFooterIndex = 0;
             APIs.user_id = res['userDataArray']['user_id'].toString();
             if (await userExists(res['userDataArray']['user_id']) && mounted) {
               print("mounted $mounted");
+              didNavigate = true;
               Future.delayed(
                   const Duration(seconds: 2),
                   () => {
@@ -1166,6 +1173,7 @@ class _LoginState extends State<Login> {
                       });
             } else {
               createUser(res['userDataArray']['user_id'], res['userDataArray']);
+              didNavigate = true;
               Future.delayed(
                   const Duration(seconds: 2),
                   () => {
@@ -1222,31 +1230,29 @@ class _LoginState extends State<Login> {
           signUpUserApiCall(
               data['name'], data['email'], deviceType, data['id']);
 
-          if (res['active_status'] == 0) {
-            Future.delayed(const Duration(milliseconds: 300), () async {
-              // ignore: use_build_context_synchronously
-              SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
-            });
-
-            // ignore: use_build_context_synchronously
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const Login()),
-            );
-            setState(() {
-              isApiCalling = false;
-            });
+          if (mounted) {
+            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
           }
         }
       } else {
+        if (mounted) {
+          setState(() {
+            isApiCalling = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
         setState(() {
           isApiCalling = false;
         });
       }
-    } catch (e) {
-      setState(() {
-        isApiCalling = false;
-      });
+    } finally {
+      if (!didNavigate && mounted) {
+        setState(() {
+          isApiCalling = false;
+        });
+      }
     }
   }
 

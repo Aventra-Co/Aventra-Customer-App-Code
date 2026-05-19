@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
@@ -6,6 +7,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../controller/app_config_provider.dart';
+import '../controller/app_constant.dart';
 import '../model/chat_user.dart';
 import '../model/message.dart';
 
@@ -101,6 +105,10 @@ class APIs {
 
       var body = {
         'app_id': "3103e952-a0df-4841-a79a-6f221c8be76a",
+        'ios_badgeType': 'Increase',
+        'ios_badgeCount': 1,
+        'android_badgeType': 'Increase',
+        'android_badgeCount': 1,
 
         'include_player_ids': [
           // AppConstant.playerID
@@ -282,6 +290,195 @@ class APIs {
         .doc(user_id)
         .collection('my_users')
         .snapshots();
+  }
+
+  static Stream<int> getUnreadMessagesCount() {
+    final String uid = user_id.toString().trim();
+    if (uid.isEmpty || uid == "12345678") {
+      return Stream<int>.value(0);
+    }
+
+    final int? uidInt = int.tryParse(uid);
+
+    int countUnreadMessages(QuerySnapshot<Map<String, dynamic>> snap) {
+      int count = 0;
+      for (final doc in snap.docs) {
+        final data = doc.data();
+        final fromId = data['fromId']?.toString();
+
+        final readValue = data['read'];
+        final String readString = readValue == null ? "" : readValue.toString();
+        final bool isUnread = readString.trim().isEmpty;
+
+        if (!isUnread) continue;
+
+        if (fromId == uid) continue;
+        if (uidInt != null && fromId == uidInt.toString()) continue;
+
+        count++;
+      }
+      return count;
+    }
+
+    late StreamController<int> controller;
+    StreamSubscription? subString;
+    StreamSubscription? subInt;
+
+    int latestString = 0;
+    int latestInt = 0;
+
+    void emit() {
+      if (!controller.isClosed) {
+        controller.add(latestString + latestInt);
+      }
+    }
+
+    controller = StreamController<int>.broadcast(
+      onListen: () {
+        subString = firestore
+            .collectionGroup('messages')
+            .where('toId', isEqualTo: uid)
+            .snapshots()
+            .listen(
+          (snap) {
+            latestString = countUnreadMessages(snap);
+            emit();
+          },
+          onError: (_) {
+            emit();
+          },
+        );
+
+        if (uidInt != null) {
+          subInt = firestore
+              .collectionGroup('messages')
+              .where('toId', isEqualTo: uidInt)
+              .snapshots()
+              .listen(
+            (snap) {
+              latestInt = countUnreadMessages(snap);
+              emit();
+            },
+            onError: (_) {
+              emit();
+            },
+          );
+        } else {
+          latestInt = 0;
+          emit();
+        }
+      },
+      onCancel: () async {
+        await subString?.cancel();
+        await subInt?.cancel();
+        await controller.close();
+      },
+    );
+
+    return controller.stream;
+  }
+
+  static Stream<int> getPendingBookingsCount() {
+    late final StreamController<int> controller;
+    Timer? timer;
+    bool inFlight = false;
+    int last = 0;
+
+    Future<int> fetch() async {
+      if (inFlight) return last;
+      inFlight = true;
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final String rawUser = (prefs.getString("userDetails") ?? "").trim();
+        if (rawUser.isEmpty) return 0;
+
+        final dynamic decoded = jsonDecode(rawUser);
+        final dynamic userIdRaw =
+            decoded is Map ? decoded["user_id"] : null;
+        final int userId = userIdRaw is int
+            ? userIdRaw
+            : int.tryParse(userIdRaw?.toString() ?? "") ?? 0;
+        if (userId == 0) return 0;
+
+        String token = AppConstant.token.toString().trim();
+        if (token.isEmpty) {
+          token = (prefs.getString("token") ?? "").toString().trim();
+        }
+        if (token.isEmpty) return 0;
+
+        final headers = {'Authorization': 'Bearer $token'};
+
+        final Uri tripsUrl = Uri.parse(
+            "${AppConfigProvider.apiUrl}fetch_my_booking?user_id=$userId&trip_type_id=");
+        final Uri propsUrl = Uri.parse(
+            "${AppConfigProvider.apiUrl}get_user_property_booking?user_id=$userId&property_type_id=");
+
+        final results = await Future.wait([
+          http.get(tripsUrl, headers: headers),
+          http.get(propsUrl, headers: headers),
+        ]);
+
+        int pending = 0;
+
+        final tripsRes = results[0];
+        if (tripsRes.statusCode == 200) {
+          final dynamic body = jsonDecode(tripsRes.body);
+          if (body is Map && body["success"] == true) {
+            final dynamic arr = body["trip_arr"];
+            if (arr is List) {
+              for (final item in arr) {
+                if (item is Map) {
+                  final dynamic s = item["status"];
+                  final int status = s is int ? s : int.tryParse(s?.toString() ?? "") ?? -1;
+                  if (status == 0) pending++;
+                }
+              }
+            }
+          }
+        }
+
+        final propsRes = results[1];
+        if (propsRes.statusCode == 200) {
+          final dynamic body = jsonDecode(propsRes.body);
+          if (body is Map && body["success"] == true) {
+            final dynamic arr = body["data"];
+            if (arr is List) {
+              for (final item in arr) {
+                if (item is Map) {
+                  final dynamic s = item["booking_status"];
+                  final int status = s is int ? s : int.tryParse(s?.toString() ?? "") ?? -1;
+                  if (status == 0) pending++;
+                }
+              }
+            }
+          }
+        }
+
+        last = pending;
+        return last;
+      } catch (_) {
+        return last;
+      } finally {
+        inFlight = false;
+      }
+    }
+
+    controller = StreamController<int>.broadcast(
+      onListen: () async {
+        final v = await fetch();
+        if (!controller.isClosed) controller.add(v);
+        timer = Timer.periodic(const Duration(seconds: 30), (_) async {
+          final vv = await fetch();
+          if (!controller.isClosed) controller.add(vv);
+        });
+      },
+      onCancel: () async {
+        timer?.cancel();
+        await controller.close();
+      },
+    );
+
+    return controller.stream;
   }
 
   // for getting all users from firestore database

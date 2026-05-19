@@ -21,6 +21,7 @@ import '../../controller/app_language.dart';
 import '../../controller/app_loader.dart';
 import '../../controller/app_shimmers.dart';
 import '../../controller/app_snack_bar_toast_message.dart';
+import '../../controller/one_signal_service.dart';
 import '../authentication/login_screen.dart';
 import '../authentication/notification_screen.dart';
 import '../other_screen/privateBookingFlow/private_trip_details.dart';
@@ -224,7 +225,11 @@ class _ExploreState extends State<Explore> {
               _propertyBanners.add(_propertyBanners[0]);
             }
           }
-          notificationCount = res['notificationCount'];
+          final dynamic rawCount = res['notificationCount'];
+          notificationCount = rawCount is int
+              ? rawCount
+              : int.tryParse(rawCount?.toString() ?? "") ?? 0;
+          OneSignalService.setNotificationBadgeCount(notificationCount);
           setState(() => isLoading = false);
         } else {
           if (res['active_status'] == 0) {
@@ -1037,6 +1042,7 @@ class _ExploreState extends State<Explore> {
                 GestureDetector(
                   onTap: () {
                     setState(() => notificationCount = 0);
+                    OneSignalService.setNotificationBadgeCount(0);
                     Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -1049,27 +1055,30 @@ class _ExploreState extends State<Explore> {
                         height: MediaQuery.of(context).size.width * 10 / 100,
                         child: Image.asset(AppImage.deactiveNotificationIcon),
                       ),
-                      if (notificationCount != 0)
-                        Positioned(
-                          right: 0,
-                          child: Container(
-                            alignment: Alignment.center,
-                            width: screenWidth * 5 / 100,
-                            height: screenWidth * 5 / 100,
-                            decoration: BoxDecoration(
-                                color: AppColor.redcolor,
-                                borderRadius: BorderRadius.circular(100)),
-                            child: Text(
-                                notificationCount > 9
-                                    ? "9+"
-                                    : "$notificationCount",
-                                style: const TextStyle(
-                                    fontFamily: AppFont.fontFamily,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColor.secondaryColor)),
-                          ),
-                        ),
+                      ValueListenableBuilder<int>(
+                        valueListenable: OneSignalService.notificationBadgeCount,
+                        builder: (context, count, _) {
+                          if (count == 0) return const SizedBox.shrink();
+                          return Positioned(
+                            right: 0,
+                            child: Container(
+                              alignment: Alignment.center,
+                              width: screenWidth * 5 / 100,
+                              height: screenWidth * 5 / 100,
+                              decoration: BoxDecoration(
+                                  color: AppColor.redcolor,
+                                  borderRadius: BorderRadius.circular(100)),
+                              child: Text(
+                                  count > 9 ? "9+" : "$count",
+                                  style: const TextStyle(
+                                      fontFamily: AppFont.fontFamily,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColor.secondaryColor)),
+                            ),
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),
