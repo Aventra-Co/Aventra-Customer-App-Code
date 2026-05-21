@@ -17,6 +17,7 @@ import 'controller/routes.dart';
 import 'view/other_screen/splash_screen.dart';
 import 'package:provider/provider.dart';
 
+
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> initFirebaseAuth() async {
