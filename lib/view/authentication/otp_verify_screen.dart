@@ -144,7 +144,7 @@ class _OTPState extends State<OTP> {
   }
 
 //---------------------RESEND OTP API CALLING--------------------------------------
-  Future<void> resendOTPRequest(BuildContext context) async {
+  Future<void> resendOTPRequest(BuildContext context, {bool byEmail = false}) async {
     Uri url = Uri.parse("${AppConfigProvider.apiUrl}otp_resend");
 
     print("Url $url");
@@ -157,6 +157,9 @@ class _OTPState extends State<OTP> {
       http.MultipartRequest formData = http.MultipartRequest('POST', url);
 
       formData.fields['user_id'] = widget.userId.toString();
+      if (byEmail) {
+        formData.fields['channel'] = 'email';
+      }
 
       log("${formData.fields}");
 
@@ -172,7 +175,8 @@ class _OTPState extends State<OTP> {
             isApiCalling = false;
           });
           SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
-        } else {
+        }
+        else {
           SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
           setState(() {
             isApiCalling = false;
@@ -182,7 +186,8 @@ class _OTPState extends State<OTP> {
                 MaterialPageRoute(builder: (context) => const Login()));
           }
         }
-      } else {
+      }
+      else {
         setState(() {
           isApiCalling = false;
         });
@@ -258,7 +263,7 @@ class _OTPState extends State<OTP> {
                               AppLanguage.otpVerficationText[language],
                               textAlign: TextAlign.center,
                               style: const TextStyle(
-                                  color: AppColor.violetColor,
+                                  color: AppColor.themeColor,
                                   fontSize: 30,
                                   fontFamily: AppFont.fontFamily,
                                   fontWeight: FontWeight.w800),
@@ -339,14 +344,50 @@ class _OTPState extends State<OTP> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(
-                                AppLanguage.didnotReciveOtpText[language],
-                                style: const TextStyle(
-                                    fontFamily: AppFont.fontFamily,
-                                    color: AppColor.blueTextColor,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500),
+                              Flexible(
+                                child: RichText(
+                                  textAlign: TextAlign.center,
+                                  text: TextSpan(
+                                    style: const TextStyle(
+                                      fontFamily: AppFont.fontFamily,
+                                      color: AppColor.blueTextColor,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    children: [
+                                      TextSpan(
+                                        text: AppLanguage
+                                            .didNotReceiveSmsOtpPrefix[
+                                                language],
+                                      ),
+                                      WidgetSpan(
+                                        alignment: PlaceholderAlignment.middle,
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            resendOTPRequest(context,
+                                                byEmail: true);
+                                          },
+                                          child: Text(
+                                            AppLanguage
+                                                .tryOtpByEmailText[language],
+                                            style: const TextStyle(
+                                              fontFamily: AppFont.fontFamily,
+                                              color: AppColor.themeColor,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                              decoration:
+                                                  TextDecoration.underline,
+                                              decorationColor:
+                                                  AppColor.themeColor,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
+                              const SizedBox(width: 8),
                               resendText == false
                                   ? GestureDetector(
                                       onTap: () {

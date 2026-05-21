@@ -47,6 +47,16 @@ class AppLanguage {
     "لم يصلك رمز التحقق؟"
   ];
 
+  static const didNotReceiveSmsOtpPrefix = [
+    "Didn't receive the SMS OTP? ",
+    "لم يصلك رمز التحقق عبر الرسائل؟ "
+  ];
+
+  static const tryOtpByEmailText = [
+    "Try OTP by email",
+    "جرّب الرمز عبر البريد"
+  ];
+
   static const resendText = ["Resend", "إعادة الإرسال"];
 
   static const resetText = ["Reset", "إعادة تعيين"];

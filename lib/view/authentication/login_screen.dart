@@ -19,6 +19,7 @@ import '../../controller/app_constant.dart';
 import '../../controller/app_font.dart';
 import '../../controller/app_image.dart';
 import '../../controller/app_language.dart';
+import '../../controller/one_signal_service.dart';
 import '../../helper/apis.dart';
 import '../../model/chat_user.dart';
 import 'forgot_password_screen.dart';
@@ -62,6 +63,7 @@ class _LoginState extends State<Login> {
   GoogleSignInAuthentication? authentication;
   Map<String, String>? authHeaders;
   GoogleSignInAccount? _currentUser;
+  bool _isSocialLoginInitiated = false;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: <String>[
       'profile',
@@ -83,6 +85,9 @@ class _LoginState extends State<Login> {
       });
       print('google signIn email $_currentUser');
       if (_currentUser != null) {
+        if (!_isSocialLoginInitiated) {
+          return;
+        }
         print('google signIn email ${account?.email}');
         print('google signIn id ${account?.id}');
         print('google signIn displayName ${account?.displayName}');
@@ -162,7 +167,7 @@ class _LoginState extends State<Login> {
     });
 
     try {
-      String playeID = AppConstant.playerID.toString();
+      final String playeID = await OneSignalService.getPlayerId();
       print("playeID line number 101 $playeID");
       http.MultipartRequest formData = http.MultipartRequest('POST', url);
       formData.fields['email'] = email.toString();
@@ -182,26 +187,27 @@ class _LoginState extends State<Login> {
             AppConstant.token = res['token'];
             print("AppConstant.token ${AppConstant.token}");
 
-            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
+            // SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
             final prefs = await SharedPreferences.getInstance();
             print("prefs =================>${res['userDataArray']}");
             prefs.setString("userDetails", jsonEncode(res['userDataArray']));
+            prefs.setString("token", res['token'].toString());
             prefs.setString("password", password);
             FirebaseProvider.firebaseCreateUser(true);
             APIs.userArry = res['userDataArray'];
             APIs.user_id = res['userDataArray']['user_id'].toString();
             updateUser(res['userDataArray'], res['userDataArray']['user_id'],
-                AppConstant.playerID);
+                playeID);
 
             if (await userExists(res['userDataArray']['user_id']) && mounted) {
               print("mounted $mounted");
               updateUser(res['userDataArray'], res['userDataArray']['user_id'],
-                  AppConstant.playerID);
+                  playeID);
               AppConstant.selectFooterIndex = 0;
             } else {
               createUser(res['userDataArray']['user_id'], res['userDataArray']);
               updateUser(res['userDataArray'], res['userDataArray']['user_id'],
-                  AppConstant.playerID);
+                  playeID);
               AppConstant.selectFooterIndex = 0;
             }
 
@@ -279,7 +285,7 @@ class _LoginState extends State<Login> {
     print("playerId287$playerId");
     try {
       await firestore.collection('users').doc(userId.toString()).update({
-        'playerId': AppConstant.playerID.toString(),
+        'playerId': playerId.toString(),
         'name': usserArrey['name'] != null ? usserArrey['name'].toString() : "",
         'email':
             usserArrey['email'] != null ? usserArrey['email'].toString() : "",
@@ -311,7 +317,7 @@ class _LoginState extends State<Login> {
     log("fName322 $fName and lName $lName");
 
     try {
-      String playeID = AppConstant.playerID.toString();
+      final String playeID = await OneSignalService.getPlayerId();
       print("playeID line number 101 $playeID");
       http.MultipartRequest formData = http.MultipartRequest('POST', url);
       formData.fields['f_name'] = fName.toString();
@@ -961,13 +967,15 @@ class _LoginState extends State<Login> {
                                     children: [
                                       GestureDetector(
                                         onTap: () {
+                                          if (isApiCalling) return;
                                           isGuest = false;
                                           deviceType = "google";
-                                          _googleSignIn.disconnect();
-                                          Future.delayed(
-                                              Duration(milliseconds: 400), () {
-                                            return _handleSignIn();
+                                          setState(() {
+                                            isApiCalling = true;
                                           });
+                                          _isSocialLoginInitiated = true;
+                                          _googleSignIn.disconnect();
+                                          _handleSignIn();
                                         },
                                         child: Container(
                                           width: MediaQuery.of(context)
@@ -994,8 +1002,13 @@ class _LoginState extends State<Login> {
                                       if (AppConstant.deviceType == "ios")
                                         GestureDetector(
                                           onTap: () {
+                                            if (isApiCalling) return;
                                             isGuest = false;
                                             deviceType = "apple";
+                                            setState(() {
+                                              isApiCalling = true;
+                                            });
+                                            _isSocialLoginInitiated = true;
                                             signinWithApple();
                                           },
                                           child: Container(
@@ -1100,16 +1113,14 @@ class _LoginState extends State<Login> {
   // =================checkUser===========//
   chackUserId(data, type) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String playeID = AppConstant.playerID.toString();
+    final String playeID = await OneSignalService.getPlayerId();
     log("playerId753 $playeID");
     setState(() {
       isApiCalling = true;
     });
     Uri url = Uri.parse("${AppConfigProvider.apiUrl}social_login_user");
     print("Url $url");
-    setState(() {
-      isApiCalling = true;
-    });
+    bool didNavigate = false;
     try {
       var headers = {
         'token': AppConstant.token,
@@ -1140,10 +1151,12 @@ class _LoginState extends State<Login> {
             prefs.setString("userDetails", jsonEncode(res['userDataArray']));
             //  if (res['userDataArray']['profile_complete'] == 1) {
             AppConstant.token = res['token'];
+            await prefs.setString("token", res['token'].toString());
             AppConstant.selectFooterIndex = 0;
             APIs.user_id = res['userDataArray']['user_id'].toString();
             if (await userExists(res['userDataArray']['user_id']) && mounted) {
               print("mounted $mounted");
+              didNavigate = true;
               Future.delayed(
                   const Duration(seconds: 2),
                   () => {
@@ -1160,6 +1173,7 @@ class _LoginState extends State<Login> {
                       });
             } else {
               createUser(res['userDataArray']['user_id'], res['userDataArray']);
+              didNavigate = true;
               Future.delayed(
                   const Duration(seconds: 2),
                   () => {
@@ -1216,71 +1230,75 @@ class _LoginState extends State<Login> {
           signUpUserApiCall(
               data['name'], data['email'], deviceType, data['id']);
 
-          if (res['active_status'] == 0) {
-            Future.delayed(const Duration(milliseconds: 300), () async {
-              // ignore: use_build_context_synchronously
-              SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
-            });
-
-            // ignore: use_build_context_synchronously
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const Login()),
-            );
-            setState(() {
-              isApiCalling = false;
-            });
+          if (mounted) {
+            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
           }
         }
       } else {
+        if (mounted) {
+          setState(() {
+            isApiCalling = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
         setState(() {
           isApiCalling = false;
         });
       }
-    } catch (e) {
-      setState(() {
-        isApiCalling = false;
-      });
+    } finally {
+      if (!didNavigate && mounted) {
+        setState(() {
+          isApiCalling = false;
+        });
+      }
     }
   }
 
   Future<void> _handleSignIn() async {
     try {
-      await _googleSignIn.signIn();
+      final GoogleSignInAccount? account = await _googleSignIn.signIn();
+      if (account == null && mounted) {
+        setState(() {
+          isApiCalling = false;
+        });
+      }
     } catch (error) {
       print("error44$error");
+      if (mounted) {
+        setState(() {
+          isApiCalling = false;
+        });
+      }
     }
   }
 
   signinWithApple() async {
-    final credential = await SignInWithApple.getAppleIDCredential(
-      scopes: [
-        AppleIDAuthorizationScopes.email,
-        AppleIDAuthorizationScopes.fullName,
-      ],
-    );
-
-    final userId = credential.userIdentifier;
-    final name = credential.givenName;
-    final email = credential.email;
-
-    print("Apple ID Credential: $credential");
-
-    // Step 1: Check if Apple ID exists in backend
-    Uri url =
-        Uri.parse("${AppConfigProvider.apiUrl}validate_apple?apple_id=$userId");
-    print("Calling Apple Data API: $url");
-
-    setState(() {
-      isApiCalling = true;
-    });
-
-    String token = AppConstant.token;
-    Map<String, String> headers = {
-      'Authorization': 'Bearer $token',
-    };
-
     try {
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+
+      final userId = credential.userIdentifier;
+      final name = credential.givenName;
+      final email = credential.email;
+
+      print("Apple ID Credential: $credential");
+
+      // Step 1: Check if Apple ID exists in backend
+      Uri url =
+          Uri.parse("${AppConfigProvider.apiUrl}validate_apple?apple_id=$userId");
+      print("Calling Apple Data API: $url");
+
+      String token = AppConstant.token;
+      Map<String, String> headers = {
+        'Authorization': 'Bearer $token',
+      };
+
       final response = await http.get(url, headers: headers);
       print("API Response: ${response.statusCode}");
 
@@ -1302,7 +1320,7 @@ class _LoginState extends State<Login> {
           SharedPreferences prefs = await SharedPreferences.getInstance();
           await prefs.setString('appledata', jsonEncode(data));
 
-          chackUserId(data, "apple");
+          await chackUserId(data, "apple");
         } else {
           if (name != null && email != null) {
             var data = {
@@ -1315,22 +1333,33 @@ class _LoginState extends State<Login> {
             SharedPreferences prefs = await SharedPreferences.getInstance();
             await prefs.setString('appledata', jsonEncode(data));
 
-            chackUserId(data, "apple");
+            await chackUserId(data, "apple");
           } else {
             SnackBarToastMessage.showSnackBar(context,
                 "We couldn't retrieve your Apple account details. Please try again.");
+            if (mounted) {
+              setState(() {
+                isApiCalling = false;
+              });
+            }
           }
         }
       } else {
         SnackBarToastMessage.showSnackBar(context, "Server error occurred.");
+        if (mounted) {
+          setState(() {
+            isApiCalling = false;
+          });
+        }
       }
     } catch (e) {
       print("Apple login error: $e");
       SnackBarToastMessage.showSnackBar(context, "Login failed.");
-    } finally {
-      setState(() {
-        isApiCalling = false;
-      });
+      if (mounted) {
+        setState(() {
+          isApiCalling = false;
+        });
+      }
     }
   }
 

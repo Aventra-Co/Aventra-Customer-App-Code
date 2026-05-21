@@ -1,4 +1,10 @@
+import 'dart:async';
+import 'dart:ui';
+import 'package:boatapp/firebase_options.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'controller/app_color.dart';
@@ -13,37 +19,55 @@ import 'package:provider/provider.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await initOneSignal(AppConstant.oneSignalAppId);
-  await OneSignalService.initOneSignal();
-
-  runApp(const MyApp());
-
-  await Firebase.initializeApp(
-      options: FirebaseOptions(
-          apiKey: AppConstant.apiKey,
-          appId: AppConstant.appId,
-          messagingSenderId: AppConstant.messagingSenderId,
-          projectId: AppConstant.projectId));
-}
-
-Future<void> initOneSignal(oneSignalAppId) async {
-  if (AppConstant.deviceType == "android") {
-  } else {}
-  await OneSignal.shared.setAppId(AppConstant.oneSignalAppId);
-
-  OneSignal.shared
-      .promptUserForPushNotificationPermission()
-      .then((accepted) {});
-
-  final status = await OneSignal.shared.getDeviceState();
-  if (status != null) {
-    var tokenId = status.userId;
-    if (tokenId != null) {
-      AppConstant.playerID = tokenId;
+Future<void> initFirebaseAuth() async {
+  try {
+    if (FirebaseAuth.instance.currentUser == null) {
+      await FirebaseAuth.instance.signInAnonymously();
+      debugPrint('✅ Firebase Auth: signed in anonymously');
+    }
+    else {
+      debugPrint('✅ Firebase Auth: already signed in');
     }
   }
+  catch (e) {
+    debugPrint('❌ Firebase Auth failed: $e');
+  }
+}
+
+Future<void> main() async {
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
+
+    FlutterError.onError =
+        FirebaseCrashlytics.instance.recordFlutterFatalError;
+
+    PlatformDispatcher.instance.onError = (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
+
+    await FirebaseCrashlytics.instance
+        .setCrashlyticsCollectionEnabled(!kDebugMode);
+    runApp(const MyApp());
+    unawaited(initFirebaseAuth());
+    unawaited(OneSignalService.initOneSignal());
+  }, (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+  });
+}
+
+
+Future<void> initOneSignal() async {
+  OneSignal.initialize(AppConstant.oneSignalAppId);
+
+  await OneSignal.Notifications.requestPermission(true);
+
+  final OneSignalPushSubscription pushSubscription = OneSignal.User.pushSubscription;
+  final String? tokenId = pushSubscription.id;
+  if (tokenId != null) AppConstant.playerID = tokenId;
 }
 
 class MyApp extends StatelessWidget {
@@ -51,6 +75,32 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData appTheme = ThemeData(
+      useMaterial3: false,
+      brightness: Brightness.light,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: AppColor.themeColor,
+        brightness: Brightness.light,
+      ),
+      fontFamily: AppFont.fontFamily,
+      dialogTheme: const DialogThemeData(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+      ),
+      datePickerTheme: const DatePickerThemeData(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+      ),
+      timePickerTheme: const TimePickerThemeData(
+        backgroundColor: Colors.white,
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: AppColor.themeColor,
+        ),
+      ),
+    );
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
@@ -68,10 +118,8 @@ class MyApp extends StatelessWidget {
         navigatorObservers: [routeObserver],
         title: 'Aventra',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: AppColor.themeColor),
-          fontFamily: AppFont.fontFamily,
-        ),
+        theme: appTheme,
+        darkTheme: appTheme,
         navigatorKey: navigatorKey,
         routes: routes,
         home: AppInitializer(),
@@ -86,8 +134,8 @@ class AppInitializer extends StatefulWidget {
   _AppInitializerState createState() => _AppInitializerState();
 }
 
-class _AppInitializerState extends State<AppInitializer>
-    with WidgetsBindingObserver {
+class _AppInitializerState extends State<AppInitializer> with WidgetsBindingObserver {
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);

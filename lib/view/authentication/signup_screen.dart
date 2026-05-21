@@ -19,6 +19,7 @@ import '../../controller/app_image.dart';
 import '../../controller/app_language.dart';
 import '../../controller/app_loader.dart';
 import '../../controller/app_snack_bar_toast_message.dart';
+import '../../controller/one_signal_service.dart';
 import '../../controller/custom_input.dart';
 import '../../controller/custom_password.dart';
 import '../../helper/apis.dart';
@@ -452,7 +453,7 @@ class _SignupState extends State<Signup> {
     });
 
     try {
-      String playeID = AppConstant.playerID.toString();
+      final String playeID = await OneSignalService.getPlayerId();
       print("playeID line number 101 $playeID");
       http.MultipartRequest formData = http.MultipartRequest('POST', url);
 
@@ -925,30 +926,27 @@ class _SignupState extends State<Signup> {
                                   initialDate: initialDate,
                                   firstDate: minDate,
                                   lastDate: maxDate,
-                                  builder:
-                                      (BuildContext context, Widget? child) {
+                                  builder: (BuildContext context, Widget? child) {
                                     return Theme(
-                                      data: ThemeData.light().copyWith(
-                                        primaryColor: AppColor.themeColor,
-                                        colorScheme: const ColorScheme.light(
-                                          primary: AppColor.themeColor,
-                                          onPrimary: AppColor.secondaryColor,
+                                      data: Theme.of(context).copyWith(
+                                        colorScheme: Theme.of(context).colorScheme.copyWith(
+                                              primary: AppColor.themeColor,
+                                              onPrimary: Colors.white,
+                                              surface: Colors.white,
+                                              onSurface: Colors.black,
+                                            ),
+                                        dialogTheme: const DialogThemeData(
+                                          backgroundColor: Colors.white,
+                                          surfaceTintColor: Colors.white,
                                         ),
-                                        buttonTheme: const ButtonThemeData(
-                                          textTheme: ButtonTextTheme.primary,
+                                        datePickerTheme: const DatePickerThemeData(
+                                          backgroundColor: Colors.white,
+                                          surfaceTintColor: Colors.white,
                                         ),
                                         textButtonTheme: TextButtonThemeData(
                                           style: TextButton.styleFrom(
-                                              foregroundColor:
-                                                  AppColor.themeColor),
-                                        ),
-                                        backgroundColor: AppColor.themeColor,
-                                        dialogBackgroundColor:
-                                            AppColor.themeColor,
-                                        highlightColor: AppColor.themeColor,
-                                        textTheme: const TextTheme(
-                                          bodyText2: TextStyle(
-                                              color: AppColor.themeColor),
+                                            foregroundColor: AppColor.themeColor,
+                                          ),
                                         ),
                                       ),
                                       child: child!,

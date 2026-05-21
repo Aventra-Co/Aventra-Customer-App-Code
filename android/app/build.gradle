@@ -1,5 +1,9 @@
 plugins {
     id "com.android.application"
+    // START: FlutterFire Configuration
+    id 'com.google.gms.google-services'
+    id 'com.google.firebase.crashlytics'
+    // END: FlutterFire Configuration
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
 }
@@ -15,15 +19,52 @@ if(localPropertiesFile.exists()) {
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode') ?: '1'
 def flutterVersionName = localProperties.getProperty('flutter.versionName') ?: '1.0'
 
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+def releaseStoreFilePath = keystoreProperties['storeFile']?.toString()
+def releaseStoreFile = releaseStoreFilePath != null && releaseStoreFilePath.trim()
+        ? rootProject.file(releaseStoreFilePath)
+        : null
+
+def hasReleaseSigning = keystorePropertiesFile.exists() &&
+        releaseStoreFile != null &&
+        releaseStoreFile.exists() &&
+        keystoreProperties['storePassword'] != null &&
+        keystoreProperties['storePassword'].toString().trim() &&
+        keystoreProperties['keyAlias'] != null &&
+        keystoreProperties['keyAlias'].toString().trim() &&
+        keystoreProperties['keyPassword'] != null &&
+        keystoreProperties['keyPassword'].toString().trim()
+
+if (keystorePropertiesFile.exists() && !hasReleaseSigning) {
+    def resolvedPath = releaseStoreFile == null ? "(missing storeFile)" : releaseStoreFile.absolutePath
+    throw new GradleException("Invalid key.properties for release signing. Keystore not found or properties missing. Resolved storeFile: ${resolvedPath}")
+}
+
 android {
     namespace "com.app.boatappcustomer"
-    compileSdk 35
-    ndkVersion "26.1.10909125"
+    compileSdk 36
+    ndkVersion "28.2.13676358"
+
+    signingConfigs {
+        release {
+            if (hasReleaseSigning) {
+                storeFile releaseStoreFile
+                storePassword keystoreProperties['storePassword'].toString().trim()
+                keyAlias keystoreProperties['keyAlias'].toString().trim()
+                keyPassword keystoreProperties['keyPassword'].toString().trim()
+            }
+        }
+    }
 
     defaultConfig {
         applicationId "com.app.boatappcustomer"
         minSdkVersion 24
-        targetSdkVersion 35
+        targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
@@ -45,7 +86,7 @@ android {
 
     buildTypes {
         release {
-            signingConfig signingConfigs.debug
+            signingConfig hasReleaseSigning ? signingConfigs.release : signingConfigs.debug
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -67,7 +108,6 @@ flutter {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.0"
     implementation 'com.google.android.exoplayer:exoplayer:2.19.1'
-    implementation 'com.onesignal:OneSignal:4.8.6'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.3'
     implementation platform('com.google.firebase:firebase-bom:29.0.3')
     implementation 'com.google.firebase:firebase-analytics'

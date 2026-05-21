@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.9.0'
+    ext.kotlin_version = '2.1.0'
 
     repositories {
         google()
@@ -10,7 +10,8 @@ buildscript {
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.android.tools.build:gradle:8.3.2'
-        classpath 'com.google.gms:google-services:4.4.0'
+        classpath 'com.google.gms:google-services:4.4.2'
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.2'
     }
 }
 
@@ -59,6 +60,9 @@ subprojects {
                         case 'firebase_storage':
                             namespace 'io.flutter.plugins.firebase.storage'
                             break
+                        case 'firebase_crashlytics':
+                            namespace 'io.flutter.plugins.firebase.crashlytics'
+                            break
                         case 'onesignal_flutter':
                             namespace 'com.onesignal.flutter'
                             break
@@ -94,7 +98,7 @@ subprojects {
                             namespace "io.${cleanedName}"
                     }
                 }
-                compileSdk 35
+                compileSdk 36
                 compileOptions {
                     sourceCompatibility JavaVersion.VERSION_17
                     targetCompatibility JavaVersion.VERSION_17

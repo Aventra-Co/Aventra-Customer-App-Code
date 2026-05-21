@@ -82,14 +82,10 @@ class _PublicAddOnsState extends State<PublicAddOns> {
       selectedTimesShow = widget.allTimeSlots.isNotEmpty
           ? widget.allTimeSlots.split(", ").map((e) => e).toList()
           : [];
-          log("calculation ((${tripDetails['minimum_hours']} * ${selectedTimesShow.length}) * ${double.parse(tripDetails['price_per_hour'])}) * (${widget.sendTicketsCount})");
-      grandTotal =
-          (((tripDetails['minimum_hours'] * selectedTimesShow.length) *
-                  double.parse(tripDetails['price_per_hour'])) * double.parse(widget.sendTicketsCount))
-              .toStringAsFixed(1);
+      log("calculation ((${tripDetails['minimum_hours']} * ${selectedTimesShow.length}) * ${double.parse(tripDetails['price_per_hour'].toString())}) * (${widget.sendTicketsCount})");
 
       resetQuantity();
-      // getGrandTotal();
+      getGrandTotal();
     }
     for (int i = 0; i < addOnsList.length; i++) {
       showSelectedAddons.add({
@@ -118,19 +114,23 @@ class _PublicAddOnsState extends State<PublicAddOns> {
   }
 
   void getGrandTotal() {
-    double total = 0;
+    double addonsTotal = 0;
     for (int i = 0; i < addOnsList.length; i++) {
       final subAddons = addOnsList[i]["subAddons"] as List<dynamic>;
       for (int j = 0; j < subAddons.length; j++) {
-        if (subAddons[j]['quantity'] > 0) {
-          total += subAddons[j]['total_price'];
+        final int qty = (subAddons[j]['quantity'] as num).toInt();
+        if (qty > 0) {
+          final double unitPrice =
+              double.parse(subAddons[j]['price'].toString());
+          addonsTotal += unitPrice * qty;
         }
       }
     }
-    grandTotal = ((((tripDetails['minimum_hours'] * selectedTimesShow.length) *
-                  double.parse(tripDetails['price_per_hour'])) * double.parse(widget.sendTicketsCount)) +
-            total)
-        .toStringAsFixed(1);
+    final double baseTrip = ((tripDetails['minimum_hours'] *
+                selectedTimesShow.length) *
+            double.parse(tripDetails['price_per_hour'].toString())) *
+        double.parse(widget.sendTicketsCount.toString());
+    grandTotal = (baseTrip + addonsTotal).toStringAsFixed(1);
     setState(() {});
   }
 
@@ -185,32 +185,101 @@ class _PublicAddOnsState extends State<PublicAddOns> {
         'subAddon_name': name,
       };
 
-      if (existingIndex != -1) {
-        // Update existing sub-addon
-        subAddons[existingIndex] = newSubAddon;
+      if (quantity <= 0) {
+        subAddons.removeWhere((sub) => sub['subAddOnId'] == subAddOnId);
       } else {
-        // Add new sub-addon
-        subAddons.add(newSubAddon);
+        if (existingIndex != -1) {
+          subAddons[existingIndex] = newSubAddon;
+        } else {
+          subAddons.add(newSubAddon);
+        }
       }
+
+      subAddons.removeWhere((sub) {
+        final qty = (sub['quantity'] as num?)?.toInt() ?? 0;
+        return qty <= 0;
+      });
 
       // Update the subAddons in the main addon object
       addon['subAddons'] = subAddons;
     } else {
       // Add new addon with this sub-addon
-      showSelectedAddons.add({
-        'addon_id': addonId,
-        'subAddons': [
-          {
-            'subAddOnId': subAddOnId,
-            'image': image,
-            'quantity': quantity,
-            'price': price,
-            'subAddon_name': name,
-          }
-        ],
-      });
+      if (quantity > 0) {
+        final match = addOnsList.firstWhere(
+          (e) => e['addon_id'] == addonId,
+          orElse: () => null,
+        );
+        showSelectedAddons.add({
+          'addon_id': addonId,
+          'addon_name': match == null ? "" : match['addon_name'][language],
+          'subAddons': [
+            {
+              'subAddOnId': subAddOnId,
+              'image': image,
+              'quantity': quantity,
+              'price': price,
+              'subAddon_name': name,
+            }
+          ],
+        });
+      }
     }
     log("showSelectedAddons$showSelectedAddons");
+  }
+
+  int toInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString()) ?? 0;
+  }
+
+  double toDouble(dynamic value) {
+    if (value is double) return value;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString()) ?? 0;
+  }
+
+  void applySelectedAddonsFromDetails(List<dynamic> updatedSelectedAddons) {
+    resetQuantity();
+    showSelectedAddons = updatedSelectedAddons;
+    selectedAddons = [];
+
+    for (final addon in updatedSelectedAddons) {
+      final int addonId = toInt(addon['addon_id']);
+      final List<dynamic> subAddons = (addon['subAddons'] as List<dynamic>?) ?? [];
+
+      for (final sub in subAddons) {
+        final int qty = toInt(sub['quantity']);
+        if (qty <= 0) continue;
+
+        final int subId = toInt(sub['subAddOnId']);
+        final double price = toDouble(sub['price']);
+
+        selectedAddons.add({
+          'addon_id': addonId,
+          'sub_addon_id': subId,
+          'quantity': qty,
+          'price': price,
+        });
+
+        final int mainAddonIndex =
+            addOnsList.indexWhere((e) => toInt(e['addon_id']) == addonId);
+        if (mainAddonIndex != -1) {
+          final List<dynamic> rawSub =
+              (addOnsList[mainAddonIndex]['subAddons'] as List<dynamic>?) ?? [];
+          final int subIndex = rawSub
+              .indexWhere((e) => toInt(e['addon_subcategory_id']) == subId);
+          if (subIndex != -1) {
+            rawSub[subIndex]['quantity'] = qty;
+            rawSub[subIndex]['total_price'] = toDouble(rawSub[subIndex]['price']) * qty;
+          }
+        }
+      }
+    }
+
+    selectedAddons.removeWhere((item) => toInt(item['quantity']) <= 0);
+    getGrandTotal();
+    setState(() {});
   }
 
   @override
@@ -853,16 +922,48 @@ class _PublicAddOnsState extends State<PublicAddOns> {
                                     text: mainIndex == addOnsList.length - 1
                                         ? AppLanguage.checkoutText[language]
                                         : AppLanguage.proceedText[language],
-                                    onPress: () {
+                                    onPress: () async {
                                       if (mainIndex != addOnsList.length - 1) {
                                         setState(() {
                                           mainIndex++;
                                         });
                                       } else {
-                                        resetQuantity();
-                                        grandTotal = '0';
-                                        setState(() {});
-                                        Navigator.push(
+                                        final List<dynamic>
+                                            cleanedShowSelectedAddons =
+                                            showSelectedAddons
+                                                .map((addon) {
+                                                  final List<dynamic>
+                                                      rawSubAddons =
+                                                      (addon['subAddons']
+                                                              as List<dynamic>?) ??
+                                                          [];
+                                                  final List<dynamic>
+                                                      validSubAddons =
+                                                      rawSubAddons.where((sub) {
+                                                    final qty = (sub['quantity']
+                                                                as num?)
+                                                            ?.toInt() ??
+                                                        0;
+                                                    return qty > 0;
+                                                  }).toList();
+
+                                                  final Map<String, dynamic>
+                                                      newAddon =
+                                                      Map<String, dynamic>.from(
+                                                          addon as Map);
+                                                  newAddon['subAddons'] =
+                                                      validSubAddons;
+                                                  return newAddon;
+                                                })
+                                                .where((addon) {
+                                                  final subAddons =
+                                                      (addon['subAddons']
+                                                              as List<dynamic>?) ??
+                                                          [];
+                                                  return subAddons.isNotEmpty;
+                                                })
+                                                .toList();
+                                        final result = await Navigator.push(
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) =>
@@ -877,7 +978,7 @@ class _PublicAddOnsState extends State<PublicAddOns> {
                                               time: widget.time,
                                               sendAddons: selectedAddons,
                                               selectedAddons:
-                                                  showSelectedAddons,
+                                                  cleanedShowSelectedAddons,
                                               sendTicketsCount:
                                                   widget.sendTicketsCount,
                                               sendSlotIds: widget.sendSlotIds,
@@ -885,6 +986,14 @@ class _PublicAddOnsState extends State<PublicAddOns> {
                                             ),
                                           ),
                                         );
+                                        if (!mounted) return;
+                                        if (result is Map &&
+                                            result['selectedAddons'] != null) {
+                                          final List<dynamic> updated =
+                                              List<dynamic>.from(
+                                                  result['selectedAddons'] as List);
+                                          applySelectedAddonsFromDetails(updated);
+                                        }
                                       }
                                     },
                                   ),

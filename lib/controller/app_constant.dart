@@ -26,66 +26,78 @@ class AppConstant {
   static String weatherIcon = '☀️';
   static String token = "";
   static String weatherKey = "iw1HuqjddUHzaFmb";
-  static String playerID = "12345";
+  static String playerID = "";
   static String oneSignalAppId = "e55e569a-73a2-409d-bfa3-b790d8ec642d";
-  static final RegExp emailValidatorRegExp =
-      RegExp(r"^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
+  static final RegExp emailValidatorRegExp = RegExp(r"^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
   static String appId = "1:83903925512:web:05db133012c6cbcc7bb0bd";
   static String apiKey = "AIzaSyB8FxTSDhhEmL8rFwW5qdDYECEyHX_ul_0";
   // static String apiKey = "AIzaSyAlmy6hvQysu1m7UhhevgFpuhzXkHHdhJ0";
   static String messagingSenderId = "83903925512";
   static String projectId = "my-boat-a9c54";
-      static dynamic onlyDigitFormatter = [
+  static dynamic onlyDigitFormatter = [
     FilteringTextInputFormatter.allow(RegExp(r'[0-9]')) // only digits allowed
   ];
   static dynamic alphaNumericFormatter = [
-    FilteringTextInputFormatter.allow(
-        RegExp(r'[a-zA-Z0-9]')) // alphanumeric allowed
+    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')) // alphanumeric allowed
   ];
 
   static var deviceType = Platform.isAndroid ? 'android' : 'ios';
 
   static const TextStyle textFilledStyle = TextStyle(
-      color: AppColor.textColor,
-      fontFamily: AppFont.fontFamily,
-      fontWeight: FontWeight.w500,
-      fontSize: 14);
+    color: AppColor.textColor,
+    fontFamily: AppFont.fontFamily,
+    fontWeight: FontWeight.w500,
+    fontSize: 14,
+  );
 
   static const TextStyle textHeadingStyle = TextStyle(
-      fontFamily: AppFont.fontFamily,
-      fontWeight: FontWeight.w400,
-      fontSize: 23,
-      color: AppColor.textColor);
+    fontFamily: AppFont.fontFamily,
+    fontWeight: FontWeight.w400,
+    fontSize: 23,
+    color: AppColor.textColor,
+  );
 
   static const TextStyle textFilledHeading = TextStyle(
-      color: AppColor.primaryColor,
-      fontSize: 14,
-      fontWeight: FontWeight.w500,
-      fontFamily: AppFont.fontFamily);
+    color: AppColor.primaryColor,
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    fontFamily: AppFont.fontFamily,
+  );
 
   static const TextStyle textFilledProfileHeading = TextStyle(
-      color: AppColor.primaryColor,
-      fontSize: 16,
-      fontWeight: FontWeight.w500,
-      fontFamily: AppFont.fontFamily);
+    color: AppColor.primaryColor,
+    fontSize: 16,
+    fontWeight: FontWeight.w500,
+    fontFamily: AppFont.fontFamily,
+  );
 }
 
 class ContentClass {
   final String header;
   final String contenttype;
 
-  ContentClass({required this.header, required this.contenttype});
+  ContentClass({
+    required this.header,
+    required this.contenttype,
+  });
 }
 
 class ResetPasswordIdClass {
   final String userId;
-  ResetPasswordIdClass({required this.userId});
+
+  ResetPasswordIdClass({
+    required this.userId,
+  });
 }
 
 class ForgotOtpResendEmailClass {
   final String userId;
   final String email;
-  ForgotOtpResendEmailClass({required this.email, required this.userId});
+
+  ForgotOtpResendEmailClass({
+    required this.email,
+    required this.userId,
+  });
 }
 
 class NoInternetBanner extends StatelessWidget {
@@ -94,8 +106,7 @@ class NoInternetBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var connectionProvider = Provider.of<ConnectionProvider>(context);
-    if (connectionProvider.status.name == "WiFi" ||
-        connectionProvider.status.name == "Mobile") {
+    if (connectionProvider.status.name == "WiFi" || connectionProvider.status.name == "Mobile") {
       return const SizedBox(); // No internet issue, return empty container
     }
 
@@ -112,8 +123,7 @@ class NoInternetBanner extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.only(left: 11),
             child: Text(
-              AppLanguage
-                  .noInternetText[language], // Access directly without language
+              AppLanguage.noInternetText[language], // Access directly without language
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w400,

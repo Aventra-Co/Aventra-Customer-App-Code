@@ -28,249 +28,378 @@ class AdminChat extends StatefulWidget {
   // final String acceptAt;
   final String chatMetStatus;
 
-  const AdminChat(
-      {Key? key,
-      required this.otherUserId,
-      // required this.otherUserImage,
-      required this.otherUserName,
-      // required this.otherUserNameIdentify,
-      required this.deviceToken,
-      // required this.acceptAt,
-      required this.chatMetStatus})
-      : super(key: key);
+  const AdminChat({
+    super.key,
+    required this.otherUserId,
+    // required this.otherUserImage,
+    required this.otherUserName,
+    // required this.otherUserNameIdentify,
+    required this.deviceToken,
+    // required this.acceptAt,
+    required this.chatMetStatus,
+  });
 
   @override
   State<AdminChat> createState() => _ChatState();
 }
 
 class _ChatState extends State<AdminChat> {
-  var items = [
-    1, 2
-    // 'Report and Unmatch',
-    // 'Unmatch Only'
-  ];
-  int dropdownvalue = 1;
-  bool isApiCalling = false;
-  bool isMeetApiCall = false;
-  TextEditingController textInputChatController = TextEditingController();
-  ScrollController _scrollController = ScrollController();
+  static const int _messagesPageSize = 30;
+  bool _isApiCalling = false;
+  final TextEditingController _textInputChatController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  StreamSubscription<DatabaseEvent>? _latestMessagesSub;
+  DatabaseReference? _messagesRef;
+  final Map<String, Map<String, dynamic>> _messagesByKey = {};
+  bool _isLoadingInitialMessages = true;
+  bool _isLoadingMoreMessages = false;
+  bool _hasMoreMessages = true;
+  String? _oldestKey;
   // late DatabaseReference dbRef;
-  List<dynamic> listmessage = <dynamic>[];
-  List<dynamic> otherUserInbox = <dynamic>[];
-  List<dynamic> otherUserInboxAll = <dynamic>[];
-  int userId = 0;
-  String userName = "";
-  String userImage = "NA";
-  bool isTextInputEmpty = false;
-  bool height = false;
-  List<dynamic> messageAll = <dynamic>[];
-  int openTextField = 0;
-  String userCreatedChatId = "";
-  String deleteUserChatId = "";
-  String otherUserCreatedChatId = "";
-  String daysAgo = "0 days ago";
-  Timer? timer;
-  List<dynamic> userIds = [];
-  List<dynamic> metUserIdsList = [];
-  bool isMessageEmpty = false;
-  bool isVisibleFirstTime = false;
-  FocusNode chatFocusNode = FocusNode();
-  String mobileNumber = "";
+  List<Map<String, dynamic>> _listMessage = <Map<String, dynamic>>[];
+  int _userId = 0;
+  bool _isTextInputEmpty = false;
+  bool _height = false;
+  List<dynamic> _messageAll = <dynamic>[];
+  int _openTextField = 0;
+  String _userCreatedChatId = "";
+  String _deleteUserChatId = "";
+  String _otherUserCreatedChatId = "";
+  bool _isMessageEmpty = false;
+  final FocusNode _chatFocusNode = FocusNode();
+  String _mobileNumber = "";
+
+  @override
+  void initState() {
+    // getGetMetUserApi(widget.otherUserId);
+    super.initState();
+    _scrollController.addListener(_onScroll);
+    _getUserDetails().then((_) {
+      if (_userCreatedChatId.isNotEmpty) {
+        _initMessagePagination();
+      }
+    });
+    getNumberApiCall();
+    FirebaseProvider.firebaseCreateUser(true, 'yes');
+  }
 
   //------------------------GET NUMBER API CALL--------------------------------//
   Future<void> getNumberApiCall() async {
     Uri url = Uri.parse("${AppConfigProvider.apiUrl}get_admin_number");
     String token = AppConstant.token;
 
-    if (token.isEmpty) {
-      // return;
-    }
+    // if (token.isEmpty) return;
+
 
     Map<String, String> headers = {
-      'Authorization': 'Bearer $token', // Use 'Bearer' if required
+      'Authorization': 'Bearer $token',
     };
 
     try {
-      final response = await http.get(url, headers: headers);
+      final http.Response response = await http.get(url, headers: headers);
 
       if (response.statusCode == 200) {
-        dynamic res = jsonDecode(response.body);
+        var res = jsonDecode(response.body);
 
         if (res['success'] == true) {
-          mobileNumber = res['admin_number'].toString();
-        } else {
+          _mobileNumber = res['admin_number'].toString();
+        }
+        else {
           // ignore: use_build_context_synchronously
           if (res['active_status'] == 0) {
             SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const Login()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const Login()));
           }
         }
-      } else {}
-    } catch (e) {}
+      }
+    }
+    catch (e) {
+      debugPrint(e.toString());
+    }
   }
 
-//===============DIAL PAD FUNCTION===============//
-  openDialPad(String phoneNumber) async {
+  //===============DIAL PAD FUNCTION===============//
+  Future<void> openDialPad(String phoneNumber) async {
     final Uri url = Uri.parse('tel:+91$phoneNumber');
 
-    // Uri url = Uri(scheme: "tel", path: phoneNumber);
-
     if (await canLaunchUrl(url)) {
-      await launchUrl(
-        url,
-        mode: LaunchMode.externalApplication,
-      );
-    } else {}
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    }
   }
 
-  @override
-  void initState() {
-    // getGetMetUserApi(widget.otherUserId);
-    getUserDetails();
-    getNumberApiCall();
-    FirebaseProvider.firebaseCreateUser(true, 'yes');
-    super.initState();
+  void _onScroll() {
+    if (!_scrollController.hasClients || _isLoadingInitialMessages || _isLoadingMoreMessages || !_hasMoreMessages) return;
+    final ScrollPosition position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 200) {
+      _loadMoreMessages();
+    }
   }
 
-  Future<void> getUserDetails() async {
-    final prefs = await SharedPreferences.getInstance();
+  Future<void> _initMessagePagination() async {
+    _messagesRef = FirebaseDatabase.instance.ref('message/$_userCreatedChatId');
+    await _loadInitialMessages();
+    _listenForLatestMessages();
+  }
+
+  void _listenForLatestMessages() {
+    final DatabaseReference? ref = _messagesRef;
+    if (ref == null) return;
+    _latestMessagesSub?.cancel();
+    _latestMessagesSub = ref.orderByKey().limitToLast(_messagesPageSize).onValue.listen((event) {
+      final List<Map<String, dynamic>> entries = _snapshotToEntries(event.snapshot);
+      _upsertEntries(entries);
+    });
+  }
+
+  Future<void> _loadInitialMessages() async {
+    final DatabaseReference? ref = _messagesRef;
+    if (ref == null) return;
+    if (mounted) {
+      setState(() {
+        _isLoadingInitialMessages = true;
+        _isLoadingMoreMessages = false;
+        _hasMoreMessages = true;
+        _oldestKey = null;
+        _messagesByKey.clear();
+        _listMessage = [];
+      });
+    }
+
+    try {
+      final DataSnapshot snapshot = await ref.orderByKey().limitToLast(_messagesPageSize).get();
+      final List<Map<String, dynamic>> entries = _snapshotToEntries(snapshot);
+      if (entries.isEmpty) {
+        if (mounted) {
+          setState(() => _hasMoreMessages = false);
+        }
+        return;
+      }
+
+      _hasMoreMessages = entries.length == _messagesPageSize;
+      _upsertEntries(entries);
+      _ensureScrollableOrDone();
+    }
+    catch (_) {
+      if (mounted) {
+        setState(() => _hasMoreMessages = false);
+      }
+    }
+    finally {
+      if (mounted) {
+        setState(() => _isLoadingInitialMessages = false);
+      }
+    }
+  }
+
+  Future<void> _loadMoreMessages() async {
+    if (_isLoadingMoreMessages || !_hasMoreMessages) return;
+    final DatabaseReference? ref = _messagesRef;
+    if (ref == null) return;
+    final String? oldestKey = _oldestKey;
+    if (oldestKey == null) {
+      if (mounted) {
+        setState(() => _hasMoreMessages = false);
+      }
+      return;
+    }
+    if (mounted) {
+      setState(() => _isLoadingMoreMessages = true);
+    }
+
+    try {
+      final DataSnapshot snapshot = await ref.orderByKey().endAt(oldestKey).limitToLast(_messagesPageSize + 1).get();
+      final List<Map<String, dynamic>> entries = _snapshotToEntries(snapshot);
+      if (entries.isEmpty) {
+        if (mounted) {
+          setState(() => _hasMoreMessages = false);
+        }
+        return;
+      }
+
+      final bool added = _upsertEntries(entries);
+      if (!added) {
+        if (mounted) {
+          setState(() => _hasMoreMessages = false);
+        }
+        return;
+      }
+
+      _hasMoreMessages = entries.length == _messagesPageSize + 1;
+      _ensureScrollableOrDone();
+    }
+    catch (_) {
+      if (mounted) {
+        setState(() => _hasMoreMessages = false);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingMoreMessages = false);
+      }
+    }
+  }
+
+  void _ensureScrollableOrDone() {
+    if (!mounted || _isLoadingInitialMessages || _isLoadingMoreMessages || !_hasMoreMessages) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      if (_scrollController.position.maxScrollExtent < 50) {
+        _loadMoreMessages();
+      }
+    });
+  }
+
+  List<Map<String, dynamic>> _snapshotToEntries(DataSnapshot snapshot) {
+    final Object? value = snapshot.value;
+    if (value == null || value is! Map) return [];
+
+    final List<Map<String, dynamic>> entries = [];
+    value.forEach((key, data) {
+      if (data is Map) {
+        entries.add(_normalizeEntry(key.toString(), Map<String, dynamic>.from(data)));
+      }
+    });
+    return entries;
+  }
+
+  Map<String, dynamic> _normalizeEntry(String key, Map<String, dynamic> data) {
+    final String ts = (data['timestamp'] ?? '').toString();
+    return {
+      'key': key,
+      'senderId': data['senderId'],
+      'last_seen': data['last_seen'],
+      'messageType': data['messageType'],
+      'msg_time': data['msg_time'],
+      'message': data['message'],
+      'timestamp': data['timestamp'],
+      'MsgTimeShamp': ts,
+    };
+  }
+
+  bool _upsertEntries(List<Map<String, dynamic>> entries) {
+    bool changed = false;
+
+    for (final Map<String, dynamic> entry in entries) {
+      final String key = (entry['key'] ?? '').toString();
+      if (key.isEmpty) continue;
+
+      final Map<String, dynamic>? previous = _messagesByKey[key];
+      if (previous == null ||
+          previous['message'] != entry['message'] ||
+          previous['last_seen'] != entry['last_seen'] ||
+          previous['messageType'] != entry['messageType'] ||
+          previous['timestamp'] != entry['timestamp']) {
+        _messagesByKey[key] = entry;
+        changed = true;
+      }
+    }
+
+    if (!changed || !mounted) return false;
+
+    final List<Map<String, dynamic>> merged = _messagesByKey.values.toList()
+      ..sort((a, b) {
+        final String one = (a['key'] ?? '').toString();
+        final String two = (b['key'] ?? '').toString();
+        return two.compareTo(one);
+      });
+
+    final String? oldest = merged.isNotEmpty ? (merged.last['key'] ?? '').toString() : null;
+
+    setState(() {
+      _listMessage = merged;
+      _oldestKey = (oldest == null || oldest.isEmpty) ? null : oldest;
+    });
+
+    return true;
+  }
+
+  Future<void> _getUserDetails() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
     dynamic userDetails = prefs.getString('userDetails');
 
     //--------------Firebase Get Other User Inbox ---------------
     if (userDetails != null) {
-      setState(() {
-        isApiCalling = false;
-      });
+      setState(() => _isApiCalling = false);
       dynamic userDetail = jsonDecode(userDetails);
       // print("userDetail $userDetail['avatar']");
-      userId = userDetail['user_id'];
+      _userId = userDetail['user_id'];
 
-      FirebaseProvider.setOtherUserMessageCountZero(
-          userId.toString(), widget.otherUserId.toString());
-
-      userName = "john".toString();
-
-      userImage = "";
+      FirebaseProvider.setOtherUserMessageCountZero(_userId.toString(), widget.otherUserId.toString());
 
       String otherUserId = widget.otherUserId.toString();
       // print('otherUserId $otherUserId');
 
       // print("u_$otherUserId");
 
-      deleteUserChatId = "u_$otherUserId";
-      // print("deleteUserChatId : $deleteUserChatId");
+      _deleteUserChatId = "u_$otherUserId";
+      // print("deleteUserChatId : $_deleteUserChatId");
 
-      String userChatId = 'u_${userId}__u_$otherUserId';
+      String userChatId = 'u_${_userId}__u_$otherUserId';
       // print("userChatId : $userChatId");
 
-      userCreatedChatId = userChatId;
+      _userCreatedChatId = userChatId;
 
-      otherUserCreatedChatId = 'u_${otherUserId}__u_$userId';
+      _otherUserCreatedChatId = 'u_${otherUserId}__u_$_userId';
     }
 
-    await FirebaseDatabase.instance
-        .ref('message/$userCreatedChatId')
-        .get()
-        .then((snap) {
+    await FirebaseDatabase.instance.ref('message/$_userCreatedChatId').get().then((snap) {
       if (snap.value == null) {
-        isMessageEmpty = true;
+        _isMessageEmpty = true;
       }
-      isApiCalling = false;
+      _isApiCalling = false;
       setState(() {});
     }).catchError((error) {});
 
     setState(() {});
   }
 
-  getTimeAgo(timestamp) {
-    // Convert Unix timestamp to DateTime object
-    DateTime datetime = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
-
-// Format datetime to a string
-    String formattedDateTime =
-        DateFormat('yyyy-MM-dd HH:mm:ss').format(datetime);
-
-    String formattedTime =
-        DateFormat('h:mm a').format(formattedDateTime as DateTime);
-    return formattedTime.toString();
+  void _scrollToBottom() {
+    _scrollController.animateTo(
+      0.0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
   }
 
-  backPress() {
-    if (height == false) {
-      setState(() {
-        height = false;
-      });
-    }
-    if (height == true) {
-      setState(() {
-        height = true;
-      });
-    }
-  }
+  bool _shouldHideKeyboard() => true;
 
-  String getChatTime(DateTime chatTime) {
-    DateTime now = DateTime.now();
-    final int chatDateDifference = now.difference(chatTime).inDays;
-
-    if (chatDateDifference == 0) {
-      // Chat occurred today
-      return 'Today';
-    } else if (chatDateDifference == 1) {
-      // Chat occurred yesterday
-      return 'Yesterday';
-    } else {
-      // Chat occurred on another day
-      return DateFormat('MMM dd, yyyy').format(chatTime).toString();
-    }
-  }
-
-  lastMessageTime(String messageTime) {
-    String formattedTime = "";
-    final DateFormat formatter = DateFormat('hh:mm a MMMM d, y');
-    formattedTime = formatter.format(DateTime.parse(messageTime));
-    return formattedTime.toString();
-  }
-
-  getTime(timestamp) {
-    DateTime datetime = DateTime.fromMillisecondsSinceEpoch(timestamp);
-    String formattedDateTime =
-        DateFormat('yyyy-MM-dd HH:mm:ss').format(datetime);
+  @override
+  void dispose() {
+    _latestMessagesSub?.cancel();
+    _scrollController.dispose();
+    _textInputChatController.dispose();
+    _chatFocusNode.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return ProgressHUD(
-        inAsyncCall: isApiCalling,
-        opacity: 0.5,
-        child: _buildUIScreen(context));
+      inAsyncCall: _isApiCalling,
+      opacity: 0.5,
+      child: _buildUIScreen(context),
+    );
   }
 
   Widget _buildUIScreen(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-        statusBarColor: AppColor.transparentColor,
-        statusBarIconBrightness: Brightness.dark));
-    final keyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
+      statusBarColor: AppColor.transparentColor,
+      statusBarIconBrightness: Brightness.dark,
+    ));
+    final bool keyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
 
     if (keyboardVisible == false) {
-      setState(() {
-        height = false;
-      });
+      setState(() => _height = false);
     }
     if (keyboardVisible == true) {
-      setState(() {
-        height = true;
-      });
+      setState(() => _height = true);
     }
-    final firebaseRef =
-        FirebaseDatabase.instance.ref().child('message/$userCreatedChatId');
 
     return WillPopScope(
       onWillPop: () async {
         // Capture a print value when the back button is pressed
 
         // Determine whether to hide the keyboard or not
-        if (shouldHideKeyboard()) {
+        if (_shouldHideKeyboard()) {
           FocusScope.of(context).unfocus();
         }
 
@@ -285,13 +414,9 @@ class _ChatState extends State<AdminChat> {
               children: [
                 Column(
                   children: [
-                    // SizedBox(
-                    //   height: MediaQuery.of(context).size.height * 1 / 100,
-                    // ),
+                    // SizedBox(height: MediaQuery.of(context).size.height * 1 / 100),
                     Directionality(
-                      textDirection: language == 1
-                          ? ui.TextDirection.rtl
-                          : ui.TextDirection.ltr,
+                      textDirection: language == 1 ? ui.TextDirection.rtl : ui.TextDirection.ltr,
                       child: SizedBox(
                         height: MediaQuery.of(context).size.height * 7 / 100,
                         width: MediaQuery.of(context).size.width * 90 / 100,
@@ -299,18 +424,12 @@ class _ChatState extends State<AdminChat> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             GestureDetector(
-                              onTap: () {
-                                Navigator.pop(context);
-                              },
+                              onTap: () => Navigator.pop(context),
                               child: Transform.rotate(
                                 angle: language == 1 ? 3.1416 : 0,
-                                child: Container(
-                                  height: MediaQuery.of(context).size.width *
-                                      5 /
-                                      100,
-                                  width: MediaQuery.of(context).size.width *
-                                      5 /
-                                      100,
+                                child: SizedBox(
+                                  height: MediaQuery.of(context).size.width * 5 / 100,
+                                  width: MediaQuery.of(context).size.width * 5 / 100,
                                   child: Image.asset(
                                     AppImage.navigateBackIcon,
                                     fit: BoxFit.cover,
@@ -319,31 +438,26 @@ class _ChatState extends State<AdminChat> {
                               ),
                             ),
                             SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.width * 4 / 100,
-                              width:
-                                  MediaQuery.of(context).size.width * 4 / 100,
+                              height: MediaQuery.of(context).size.width * 4 / 100,
+                              width: MediaQuery.of(context).size.width * 4 / 100,
                             ),
-                            Container(
-                              width:
-                                  MediaQuery.of(context).size.width * 73 / 100,
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width * 73 / 100,
                               child: Text(
-                                  AppLanguage.helpAndSupportText[language],
-                                  style: const TextStyle(
-                                      color: AppColor.primaryColor,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w600,
-                                      fontFamily: AppFont.fontFamily)),
+                                AppLanguage.helpAndSupportText[language],
+                                style: const TextStyle(
+                                  color: AppColor.primaryColor,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: AppFont.fontFamily,
+                                ),
+                              ),
                             ),
                             GestureDetector(
-                              onTap: () {
-                                openDialPad(mobileNumber);
-                              },
+                              onTap: () => openDialPad(_mobileNumber),
                               child: SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.width * 5 / 100,
-                                width:
-                                    MediaQuery.of(context).size.width * 5 / 100,
+                                height: MediaQuery.of(context).size.width * 5 / 100,
+                                width: MediaQuery.of(context).size.width * 5 / 100,
                                 child: Image.asset(AppImage.phoneIcon),
                               ),
                             ),
@@ -351,206 +465,109 @@ class _ChatState extends State<AdminChat> {
                         ),
                       ),
                     ),
-
                     Container(
                       padding: const EdgeInsets.only(bottom: 11),
-                      height: height == false
-                          ? MediaQuery.of(context).size.height * 78 / 100
-                          : MediaQuery.of(context).size.height * 42 / 100,
+                      height: _height == false ? MediaQuery.of(context).size.height * 78 / 100 : MediaQuery.of(context).size.height * 42 / 100,
                       width: MediaQuery.of(context).size.width * 100 / 100,
                       color: Colors.white,
-                      child: StreamBuilder(
-                        stream: firebaseRef.onValue,
-                        builder: (context, snap) {
-                          if (snap.hasData &&
-                              !snap.hasError &&
-                              snap.data!.snapshot.value != null) {
-                            Map data = snap.data!.snapshot.value as Map;
-                            List item = [];
+                      child: Builder(builder: (context) {
+                        if (_isLoadingInitialMessages) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
 
-                            data.forEach((index, data) =>
-                                item.add({"key": index, ...data}));
+                        if (_listMessage.isEmpty) {
+                          return const Text('');
+                        }
 
-                            for (var i = 0; i < item.length; i++) {
-                              if (item[i]['senderId'] == 1) {
-                                item[i]['MsgTimeShamp'] = item[i]['timestamp'];
+                        final bool showLoader = _isLoadingMoreMessages;
+                        final bool showNoMore = !_hasMoreMessages && _listMessage.isNotEmpty;
+                        final int itemCount = _listMessage.length + (showLoader ? 1 : 0) + (showNoMore ? 1 : 0);
+
+                        return ListView.builder(
+                          controller: _scrollController,
+                          physics: const ClampingScrollPhysics(),
+                          reverse: true,
+                          shrinkWrap: true,
+                          scrollDirection: Axis.vertical,
+                          itemCount: itemCount,
+                          itemBuilder: (BuildContext context, index) {
+                            if (index >= _listMessage.length) {
+                              final int extraIndex = index - _listMessage.length;
+                              if (showLoader && extraIndex == 0) {
+                                return const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                                  child: Center(
+                                    child: CircularProgressIndicator(color: AppColor.primaryColor, strokeWidth: 2),
+                                  ),
+                                );
                               }
-                              if (item[i]['senderId'] != 1) {
-                                item[i]['MsgTimeShamp'] = item[i]['timestamp'];
-                              }
+
+                              return SizedBox();
                             }
 
-                            if (widget.chatMetStatus == "no") {
-                              if (item.length == 10) {
-                                if (isVisibleFirstTime == false) {
-                                  WidgetsBinding.instance
-                                      .addPostFrameCallback((_) {
-                                    setState(() {
-                                      isVisibleFirstTime = true;
-                                    });
-                                  });
-                                }
-                              }
-                            }
-
-                            item.sort(((a, b) {
-                              String one = a["MsgTimeShamp"]?.toString() ?? '0';
-                              String two = b["MsgTimeShamp"]?.toString() ?? '0';
-                              return two.compareTo(one);
-                            }));
-
-                            // int count = 0;
-                            List item1 = [];
-                            // String value = "NA";
-                            for (var i = 0; i < item.length; i++) {
-                              var chatJson = {
-                                'key': item[i]['key'],
-                                'senderId': item[i]['senderId'],
-                                'last_seen': item[i]['last_seen'],
-                                'messageType': item[i]['messageType'],
-                                'msg_time': item[i]['msg_time'],
-                                'message': item[i]['message'],
-                                'timestamp': item[i]['timestamp'],
-                                'MsgTimeShamp': item[i]['MsgTimeShamp'] ?? 0,
-                              };
-                              item1.add(chatJson);
-                            }
-                            item = [];
-                            item = item1;
-
-                            listmessage = item1;
-
-                            return ListView.builder(
-                                controller: _scrollController,
-                                reverse: true,
-                                shrinkWrap: true,
-                                scrollDirection: Axis.vertical,
-                                itemCount: item.length,
-                                itemBuilder: (BuildContext context, index) {
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 18),
-                                    child: Column(
+                            final Map<String, dynamic> item = _listMessage[index];
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 18),
+                              child: Column(
+                                children: [
+                                  InkWell(
+                                    onLongPress: () {},
+                                    child: Container(
+                                      alignment: (item['senderId'].toString() != _userId.toString()) ? Alignment.topLeft : Alignment.topRight,
+                                      child: Container(
+                                        constraints: BoxConstraints(
+                                          maxWidth: MediaQuery.of(context).size.width * 0.80,
+                                        ),
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                                        margin: const EdgeInsets.symmetric(vertical: 2),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.only(
+                                            topLeft: const Radius.circular(15),
+                                            topRight: const Radius.circular(15),
+                                            bottomRight: Radius.circular((item['senderId'].toString() != _userId.toString()) ? 15 : 0),
+                                            bottomLeft: Radius.circular((item['senderId'].toString() != _userId.toString()) ? 0 : 15),
+                                          ),
+                                          color: (item['senderId'].toString() != _userId.toString()) ? AppColor.themeColor : AppColor.themeColor,
+                                        ),
+                                        child: Text(
+                                          item['message'].toString(),
+                                          style: TextStyle(
+                                            color: (item['senderId'].toString() != _userId.toString()) ? Colors.white : Colors.white,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Container(
+                                    alignment: (item['senderId'].toString() != _userId.toString()) ? Alignment.topLeft : Alignment.topRight,
+                                    child: Row(
+                                      mainAxisAlignment: (item['senderId'].toString() != _userId.toString()) ? MainAxisAlignment.start : MainAxisAlignment.end,
                                       children: [
-                                        InkWell(
-                                          onLongPress: () {},
-                                          child: Container(
-                                            alignment: (item[index]['senderId']
-                                                        .toString() !=
-                                                    userId.toString())
-                                                ? Alignment.topLeft
-                                                : Alignment.topRight,
-                                            child: Container(
-                                              constraints: BoxConstraints(
-                                                maxWidth: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    0.80,
-                                              ),
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 16,
-                                                      vertical: 15),
-                                              margin:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 2),
-                                              decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.only(
-                                                  topLeft:
-                                                      const Radius.circular(15),
-                                                  topRight:
-                                                      const Radius.circular(15),
-                                                  bottomRight: Radius.circular(
-                                                      (item[index]['senderId']
-                                                                  .toString() !=
-                                                              userId.toString())
-                                                          ? 15
-                                                          : 0),
-                                                  bottomLeft: Radius.circular(
-                                                      (item[index]['senderId']
-                                                                  .toString() !=
-                                                              userId.toString())
-                                                          ? 0
-                                                          : 15),
-                                                ),
-                                                color: (item[index]['senderId']
-                                                            .toString() !=
-                                                        userId.toString())
-                                                    ? AppColor.themeColor
-                                                    : AppColor.themeColor,
-                                              ),
-                                              child: Text(
-                                                item[index]['message']
-                                                    .toString(),
-                                                style: TextStyle(
-                                                    color: (item[index]
-                                                                    ['senderId']
-                                                                .toString() !=
-                                                            userId.toString())
-                                                        ? Colors.white
-                                                        : Colors.white,
-                                                    fontSize: 14,
-                                                    fontWeight:
-                                                        FontWeight.w600),
-                                              ),
-                                            ),
+                                        Text(
+                                          DateFormat('dd MMM yyyy, hh:mm a').format(DateTime.parse(item['MsgTimeShamp'].toString())),
+                                          style: const TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 12,
                                           ),
                                         ),
-                                        const SizedBox(height: 6),
-                                        Container(
-                                          alignment: (item[index]['senderId']
-                                                      .toString() !=
-                                                  userId.toString())
-                                              ? Alignment.topLeft
-                                              : Alignment.topRight,
-                                          child: Row(
-                                            mainAxisAlignment: (item[index]
-                                                            ['senderId']
-                                                        .toString() !=
-                                                    userId.toString())
-                                                ? MainAxisAlignment.start
-                                                : MainAxisAlignment.end,
-                                            children: [
-                                              Text(
-                                                DateFormat(
-                                                        'dd MMM yyyy, hh:mm a')
-                                                    .format(
-                                                  DateTime.parse(item[index]
-                                                          ['MsgTimeShamp']
-                                                      .toString()),
-                                                ),
-                                                style: const TextStyle(
-                                                  color: Colors.black,
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        SizedBox(
-                                            height: MediaQuery.of(context)
-                                                    .size
-                                                    .height *
-                                                2 /
-                                                100),
                                       ],
                                     ),
-                                  );
-                                });
-                          } else {
-                            return const Text('');
-                          }
-                        },
-                      ),
+                                  ),
+                                  SizedBox(height: MediaQuery.of(context).size.height * 2 / 100),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      }),
                     ),
-
-                    // )
                   ],
                 ),
                 Directionality(
-                  textDirection: language == 1
-                      ? ui.TextDirection.rtl
-                      : ui.TextDirection.ltr,
+                  textDirection: language == 1 ? ui.TextDirection.rtl : ui.TextDirection.ltr,
                   child: Align(
                     alignment: Alignment.bottomCenter,
                     child: Container(
@@ -559,68 +576,58 @@ class _ChatState extends State<AdminChat> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         boxShadow: [
-                          chatFocusNode.hasFocus
-                              ? BoxShadow(
-                                  color: Colors.grey.withOpacity(0.1),
-                                  spreadRadius: 5,
-                                  blurRadius: 5,
-                                  offset: const Offset(0, 3),
-                                )
-                              : BoxShadow(
-                                  color: Colors.grey.withOpacity(0.1),
-                                  spreadRadius: 5,
-                                  blurRadius: 5,
-                                  offset: const Offset(
-                                      0, 3), // changes position of shadow
-                                ),
+                          _chatFocusNode.hasFocus ? BoxShadow(
+                            color: Colors.grey.withValues(alpha: 0.1),
+                            spreadRadius: 5,
+                            blurRadius: 5,
+                            offset: const Offset(0, 3),
+                          ) : BoxShadow(
+                            color: Colors.grey.withValues(alpha: 0.1),
+                            spreadRadius: 5,
+                            blurRadius: 5,
+                            offset: const Offset(0, 3), // changes position of shadow
+                          ),
                         ],
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(0),
                         child: TextFormField(
                           enabled: true,
-                          controller: textInputChatController,
+                          controller: _textInputChatController,
                           textCapitalization: TextCapitalization.sentences,
                           cursorColor: Colors.grey,
                           keyboardType: TextInputType.text,
-                          focusNode: chatFocusNode,
+                          focusNode: _chatFocusNode,
                           decoration: InputDecoration(
                             counterText: '',
                             suffixIcon: InkWell(
                               onTap: () {
-                                if (textInputChatController.text.isNotEmpty) {
+                                if (_textInputChatController.text.isNotEmpty) {
                                   FirebaseProvider.sendMessage(
-                                    userId.toString(),
+                                    _userId.toString(),
                                     widget.otherUserId.toString(),
                                     widget.otherUserName,
-                                    textInputChatController.text,
+                                    _textInputChatController.text,
                                     widget.deviceToken,
                                   );
 
-                                  messageAll = [];
-                                  if (height == false) {
-                                    setState(() {
-                                      height = false;
-                                    });
+                                  _messageAll = [];
+                                  if (_height == false) {
+                                    setState(() => _height = false);
                                   }
-                                  if (height == true) {
-                                    setState(() {
-                                      height = true;
-                                    });
+                                  if (_height == true) {
+                                    setState(() => _height = true);
                                   }
-
-                                  getUserDetails();
+                                  WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
                                 }
-                                textInputChatController.clear();
+                                _textInputChatController.clear();
                               },
                               child: Padding(
                                 padding: const EdgeInsets.all(9.0),
                                 child: Transform.rotate(
                                   angle: language == 1 ? 3.1416 : 0,
                                   child: Image.asset(
-                                    isTextInputEmpty
-                                        ? AppImage.sendIcon
-                                        : AppImage.sendIcon,
+                                    _isTextInputEmpty ? AppImage.sendIcon : AppImage.sendIcon,
                                     width: 5,
                                     height: 5,
                                     fit: BoxFit.contain,
@@ -629,54 +636,50 @@ class _ChatState extends State<AdminChat> {
                               ),
                             ),
                             border: const OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: Colors.grey, width: 0.6),
+                              borderSide: BorderSide(color: Colors.grey, width: 0.6),
                             ),
                             enabledBorder: const OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: Colors.grey, width: 0.6),
+                              borderSide: BorderSide(color: Colors.grey, width: 0.6),
                             ),
                             focusedBorder: const OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: Colors.grey, width: 0.6),
+                              borderSide: BorderSide(color: Colors.grey, width: 0.6),
                             ),
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 20.0, vertical: 18.0),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 18.0),
                             fillColor: Colors.white,
                             filled: true,
                             errorStyle: const TextStyle(color: Colors.red),
                             hintText: AppLanguage.enterMsgText[language],
                             hintStyle: const TextStyle(
-                                color: Color(0xff999999),
-                                fontSize: 14.0,
-                                fontWeight: FontWeight.w400),
+                              color: Color(0xff999999),
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.w400,
+                            ),
                           ),
                           onTap: () {
-                            if (listmessage.isNotEmpty) {
-                              scrollToBottom();
+                            if (_listMessage.isNotEmpty) {
+                              _scrollToBottom();
                             }
 
                             setState(() {
-                              openTextField = 1;
-                              height = true;
+                              _openTextField = 1;
+                              _height = true;
                             });
                           },
                           onEditingComplete: () {
                             FocusManager.instance.primaryFocus?.unfocus();
                             setState(() {
-                              openTextField = 0;
-                              height = false;
+                              _openTextField = 0;
+                              _height = false;
                             });
                           },
                           onChanged: (input) {
                             if (input.isNotEmpty) {
-                              isTextInputEmpty = true;
-                            } else {
-                              isTextInputEmpty = false;
+                              _isTextInputEmpty = true;
                             }
-                            setState(() {
-                              height = true;
-                            });
+                            else {
+                              _isTextInputEmpty = false;
+                            }
+                            setState(() => _height = true);
                           },
                         ),
                       ),
@@ -689,95 +692,5 @@ class _ChatState extends State<AdminChat> {
         ),
       ),
     );
-  }
-
-  sendFirstMessage(otherUserId, message) async {
-    final prefs = await SharedPreferences.getInstance();
-    var jwtToken = prefs.getString('user_jwt_token').toString();
-
-    String userJWTToken = "Bearer $jwtToken";
-
-    final url = Uri.parse("${AppConfigProvider.apiUrl}chats");
-
-    Map<String, String> headers = ({
-      'Authorization': userJWTToken.toString(),
-      "Content-Type": "application/json"
-    });
-
-    final response = await http.post(url,
-        body: jsonEncode({
-          "data": {
-            "message": textInputChatController.text,
-            "to_user": otherUserId
-          }
-        }),
-        headers: headers);
-
-    try {
-      if (response.statusCode == 200) {
-        setState(() {
-          isMessageEmpty = false;
-        });
-      } else {}
-    } catch (err) {}
-  }
-
-  sendFirstMessageVerify(otherUserId, message) async {
-    final prefs = await SharedPreferences.getInstance();
-    var jwtToken = prefs.getString('user_jwt_token').toString();
-
-    String userJWTToken = "Bearer $jwtToken";
-
-    final url = Uri.parse("${AppConfigProvider.apiUrl}chats");
-
-    Map<String, String> headers = ({
-      'Authorization': userJWTToken.toString(),
-      "Content-Type": "application/json"
-    });
-
-    final response = await http.post(url,
-        body: jsonEncode({
-          "data": {
-            "message": textInputChatController.text,
-            "to_user": otherUserId
-          }
-        }),
-        headers: headers);
-    try {
-      if (response.statusCode == 200) {
-      } else {}
-    } catch (err) {}
-  }
-
-  sendMessage() {
-    Map<String, dynamic> user = {
-      'chat_room_id': 'no',
-      'email': 'info@mailinator.com',
-      // 'image': 'image1.jgp',
-      'notification_stauts': 1,
-      'online_status': 'false',
-      'player_id': 'no',
-      'user_id': 2,
-      'user_type': 0,
-      'login_type': 'app',
-    };
-    FirebaseDatabase.instance.ref('users/' 'u_1').update(user).then((value) {
-      var onlineStatusRef =
-          FirebaseDatabase.instance.ref('users/' 'u_1' '/onlineStatus/');
-      onlineStatusRef.onDisconnect().set('false');
-    });
-    // dbRef.push().set(user);
-  }
-
-  void scrollToBottom() {
-    _scrollController.animateTo(
-      0.0,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-    );
-  }
-
-  bool shouldHideKeyboard() {
-    return true;
   }
 }

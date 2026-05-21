@@ -448,26 +448,19 @@ class _FavouritesState extends State<Favourites> {
                       child: isLoading
                           ? favGridShimmerEffect(context)
                           : (properties.isEmpty)
-                              ? Column(
-                                  children: [
-                                    SizedBox(
-                                        height:
-                                            MediaQuery.of(context).size.height *
-                                                30 /
-                                                100),
-                                    SizedBox(
-                                      width: screenWidth * 70 / 100,
-                                      child: Text(
-                                        AppLanguage.favNoDataMsg[language],
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                            fontFamily: AppFont.fontFamily,
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600,
-                                            color: AppColor.primaryColor),
-                                      ),
+                              ? Center(
+                                  child: SizedBox(
+                                    width: screenWidth * 70 / 100,
+                                    child: Text(
+                                      AppLanguage.favNoDataMsg[language],
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                          fontFamily: AppFont.fontFamily,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColor.primaryColor),
                                     ),
-                                  ],
+                                  ),
                                 )
                               : (gridOrListView == 1
                                   ? _propertyGridCard()
@@ -517,7 +510,10 @@ class _FavouritesState extends State<Favourites> {
 
                   if (selectedTab != 1) ...[
                     isLoading
-                        ? favGridShimmerEffect(context)
+                        ? Expanded(
+                            flex: 1,
+                            child: favGridShimmerEffect(context),
+                          )
                         : Expanded(
                             flex: 1,
                             child: SingleChildScrollView(

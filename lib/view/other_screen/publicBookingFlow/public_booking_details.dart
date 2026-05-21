@@ -124,6 +124,7 @@ class _PublicBookingDetailsState extends State<PublicBookingDetails> {
       longitudex = double.parse(tripDetails['longitude']);
       initialPosition = LatLng(latitudex, longitudex);
       selectedAddons = widget.selectedAddons;
+      pruneSelectedAddons();
       selectedSlotId = widget.selectedSlotId;
       selectedTime = widget.time;
       discount = tripDetails['discount'];
@@ -305,20 +306,74 @@ class _PublicBookingDetailsState extends State<PublicBookingDetails> {
     setState(() {});
   }
 
+  void pruneSelectedAddons() {
+    for (int i = selectedAddons.length - 1; i >= 0; i--) {
+      final rawSubAddons =
+          (selectedAddons[i]['subAddons'] as List<dynamic>?) ?? [];
+      rawSubAddons.removeWhere((sub) {
+        final qty = (sub['quantity'] as num?)?.toInt() ?? 0;
+        return qty <= 0;
+      });
+      selectedAddons[i]['subAddons'] = rawSubAddons;
+      if (rawSubAddons.isEmpty) {
+        selectedAddons.removeAt(i);
+      }
+    }
+  }
+
+  List<dynamic> cleanedSelectedAddonsForPop() {
+    return selectedAddons
+        .map((addon) {
+          final Map<String, dynamic> newAddon =
+              Map<String, dynamic>.from(addon as Map);
+          final List<dynamic> rawSubAddons =
+              (newAddon['subAddons'] as List<dynamic>?) ?? [];
+          final List<dynamic> validSubAddons = rawSubAddons.where((sub) {
+            final qty = (sub['quantity'] as num?)?.toInt() ?? 0;
+            return qty > 0;
+          }).toList();
+          newAddon['subAddons'] = validSubAddons;
+          return newAddon;
+        })
+        .where((addon) {
+          final List<dynamic> subAddons =
+              (addon['subAddons'] as List<dynamic>?) ?? [];
+          return subAddons.isNotEmpty;
+        })
+        .toList();
+  }
+
+  void popWithSelection() {
+    pruneSelectedAddons();
+    Navigator.pop(context, {'selectedAddons': cleanedSelectedAddonsForPop()});
+  }
+
+  Future<bool> onWillPop() async {
+    popWithSelection();
+    return false;
+  }
+
   finalAddonsCal() {
     finalAddons.clear();
     finalAddonsPrice = 0;
     for (var entry in selectedAddons) {
       double total = 0;
-      if (entry['subAddons'].isNotEmpty) {
-        for (var subEntry in entry['subAddons']) {
-          total += subEntry['quantity'] * subEntry["price"];
+      final List<dynamic> subAddons =
+          (entry['subAddons'] as List<dynamic>?) ?? [];
+      if (subAddons.isNotEmpty) {
+        for (var subEntry in subAddons) {
+          final int qty = (subEntry['quantity'] as num?)?.toInt() ?? 0;
+          if (qty > 0) {
+            total += qty * (subEntry["price"] as num).toDouble();
+          }
         }
-        finalAddons.add({
-          "addOnName": entry['addon_name'],
-          "amount": total,
-        });
-        finalAddonsPrice += total;
+        if (total > 0) {
+          finalAddons.add({
+            "addOnName": entry['addon_name'],
+            "amount": total,
+          });
+          finalAddonsPrice += total;
+        }
       }
     }
     if (discount > 0) {
@@ -381,14 +436,17 @@ class _PublicBookingDetailsState extends State<PublicBookingDetails> {
     for (var entry in selectedAddons) {
       if (entry['subAddons'].isNotEmpty) {
         for (var subEntry in entry['subAddons']) {
-          result.add(
-            {
-              "addon_id": entry['addon_id'],
-              "sub_addon_id": subEntry['subAddOnId'],
-              "quantity": subEntry['quantity'],
-              "price": subEntry['price']
-            },
-          );
+          final int qty = (subEntry['quantity'] as num?)?.toInt() ?? 0;
+          if (qty > 0) {
+            result.add(
+              {
+                "addon_id": entry['addon_id'],
+                "sub_addon_id": subEntry['subAddOnId'],
+                "quantity": qty,
+                "price": subEntry['price']
+              },
+            );
+          }
         }
       }
     }
@@ -600,28 +658,30 @@ class _PublicBookingDetailsState extends State<PublicBookingDetails> {
         statusBarIconBrightness: Brightness.dark));
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Scaffold(
-        body: SafeArea(
-          child: Directionality(
-            textDirection:
-                language == 1 ? ui.TextDirection.rtl : ui.TextDirection.ltr,
-            child: Container(
-              color: AppColor.secondaryColor,
-              width: MediaQuery.of(context).size.width * 100 / 100,
-              height: MediaQuery.of(context).size.height * 100 / 100,
-              child: Column(
-                children: [
-                  const NoInternetBanner(),
-                  AppHeader(
-                      text: AppLanguage.bookingDetailsText[language],
-                      onPress: () {
-                        Navigator.pop(context);
-                      }),
-                  Expanded(
-                    flex: 1,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
+      child: WillPopScope(
+        onWillPop: onWillPop,
+        child: Scaffold(
+          body: SafeArea(
+            child: Directionality(
+              textDirection:
+                  language == 1 ? ui.TextDirection.rtl : ui.TextDirection.ltr,
+              child: Container(
+                color: AppColor.secondaryColor,
+                width: MediaQuery.of(context).size.width * 100 / 100,
+                height: MediaQuery.of(context).size.height * 100 / 100,
+                child: Column(
+                  children: [
+                    const NoInternetBanner(),
+                    AppHeader(
+                        text: AppLanguage.bookingDetailsText[language],
+                        onPress: () {
+                          popWithSelection();
+                        }),
+                    Expanded(
+                      flex: 1,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
                           //! boat details
                           Container(
                             color: AppColor.creamColor.withOpacity(0.4),
@@ -1782,11 +1842,12 @@ class _PublicBookingDetailsState extends State<PublicBookingDetails> {
                           SizedBox(
                               height:
                                   MediaQuery.of(context).size.height * 2 / 100),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  )
-                ],
+                    )
+                  ],
+                ),
               ),
             ),
           ),

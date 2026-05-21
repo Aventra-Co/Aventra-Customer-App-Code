@@ -13,13 +13,13 @@ class Message {
   late final String read;
   late final String fromId;
   late final String sent;
-  late final Type type;
+  late final TypeEnum type;
 
   Message.fromJson(Map<String, dynamic> json) {
     toId = json['toId'].toString();
     msg = json['msg'].toString();
     read = json['read'].toString();
-    type = json['type'].toString() == Type.image.name ? Type.image : Type.text;
+    type = json['type'].toString() == TypeEnum.image.name ? TypeEnum.image : TypeEnum.text;
     fromId = json['fromId'].toString();
     sent = json['sent'].toString();
   }
@@ -36,7 +36,7 @@ class Message {
   }
 }
 
-enum Type { text, image }
+enum TypeEnum { text, image }
 
 
 // ai message
