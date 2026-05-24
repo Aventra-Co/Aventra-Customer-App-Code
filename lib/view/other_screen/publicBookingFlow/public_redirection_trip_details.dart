@@ -1906,70 +1906,57 @@ class _PublicRedirectionTripDetailsState
 
   // cancel policy bottom sheet
   void _cancelPolicyBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: AppColor.secondaryColor.withOpacity(0.1),
-        builder: (context) {
-          return StatefulBuilder(builder: (context, setState) {
-            return GestureDetector(
-              onTap: () {
-                Navigator.pop(context);
-              },
-              child: Directionality(
-                textDirection:
-                    language == 1 ? ui.TextDirection.rtl : ui.TextDirection.ltr,
-                child: Container(
-                  width: MediaQuery.of(context).size.width * 100 / 100,
-                  height: MediaQuery.of(context).size.height * 100 / 100,
-                  color: AppColor.secondaryColor.withOpacity(0.1),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: MediaQuery.of(context).size.width * 80 / 100,
-                        //    height: MediaQuery.of(context).size.height * 36 / 100,
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 20, horizontal: 15),
-                        decoration: BoxDecoration(
-                            color: AppColor.secondaryColor,
-                            borderRadius: BorderRadius.circular(20)),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              AppLanguage.cancellationPolicyText[language],
-                              style: const TextStyle(
-                                  color: AppColor.themeColor,
-                                  fontFamily: AppFont.fontFamily,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 16),
-                            ),
-                            SizedBox(
-                                height: MediaQuery.of(context).size.height *
-                                    1 /
-                                    100),
-                            Text(
-                              AppLanguage.cancelDetailsText[language],
-                              style: const TextStyle(
-                                  color: AppColor.primaryColor,
-                                  fontFamily: AppFont.fontFamily,
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: 16),
-                            ),
-                            SizedBox(
-                                height: MediaQuery.of(context).size.height *
-                                    3 /
-                                    100),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+    final size = MediaQuery.of(context).size;
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return Directionality(
+          textDirection:
+              language == 1 ? ui.TextDirection.rtl : ui.TextDirection.ltr,
+          child: Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: EdgeInsets.symmetric(horizontal: size.width * 0.05),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
               ),
-            );
-          });
-        });
+              padding: EdgeInsets.all(size.width * 0.04),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppLanguage.cancellationPolicyText[language],
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: AppFont.fontFamily,
+                      color: AppColor.themeColor,
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.015),
+                  Text(
+                    AppLanguage.cancellationPolicyDetails(
+                      language,
+                      AppLanguage.parseFreeCancellationDays(tripDetails),
+                    ),
+                    style: const TextStyle(
+                      fontSize: 13.8,
+                      fontWeight: FontWeight.w400,
+                      fontFamily: AppFont.fontFamily,
+                      color: Colors.black87,
+                      height: 1.5,
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.02),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 }

@@ -46,6 +46,9 @@
         <meta-data
                   android:name="com.google.android.geo.API_KEY"
                   android:value="AIzaSyDcSU4Nf_aUoxxAann6-x4gemQWbdxWj0Q"/>
+        <meta-data
+                  android:name="com.onesignal.messaging.default_notification_icon"
+                  android:resource="@drawable/ic_notificationlogo" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

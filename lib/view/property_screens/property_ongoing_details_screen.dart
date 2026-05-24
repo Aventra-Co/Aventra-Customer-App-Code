@@ -701,41 +701,48 @@ class _PropertyOngoingDetailScreenState
       context: context,
       barrierDismissible: true,
       builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: EdgeInsets.symmetric(horizontal: size.width * 0.05),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            padding: EdgeInsets.all(size.width * 0.04),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  AppLanguage.cancellationPolicyText[language],
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: AppFont.fontFamily,
-                    color: AppColor.themeColor,
+        return Directionality(
+          textDirection:
+              language == 1 ? ui.TextDirection.rtl : ui.TextDirection.ltr,
+          child: Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: EdgeInsets.symmetric(horizontal: size.width * 0.05),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              padding: EdgeInsets.all(size.width * 0.04),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppLanguage.cancellationPolicyText[language],
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: AppFont.fontFamily,
+                      color: AppColor.themeColor,
+                    ),
                   ),
-                ),
-                SizedBox(height: size.height * 0.015),
-                Text(
-                  AppLanguage.cancelDetailsText[language],
-                  style: const TextStyle(
-                    fontSize: 13.8,
-                    fontWeight: FontWeight.w400,
-                    fontFamily: AppFont.fontFamily,
-                    color: Colors.black87,
-                    height: 1.5,
+                  SizedBox(height: size.height * 0.015),
+                  Text(
+                    AppLanguage.cancellationPolicyDetails(
+                      language,
+                      AppLanguage.parseFreeCancellationDays(bookingDetails),
+                    ),
+                    style: const TextStyle(
+                      fontSize: 13.8,
+                      fontWeight: FontWeight.w400,
+                      fontFamily: AppFont.fontFamily,
+                      color: Colors.black87,
+                      height: 1.5,
+                    ),
                   ),
-                ),
-                SizedBox(height: size.height * 0.02),
-              ],
+                  SizedBox(height: size.height * 0.02),
+                ],
+              ),
             ),
           ),
         );
