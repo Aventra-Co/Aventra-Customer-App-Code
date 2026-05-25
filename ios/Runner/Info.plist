@@ -9,10 +9,10 @@
     <string>Aventra</string>
 
     <key>CFBundleShortVersionString</key>
-    <string>3.0.5</string>
+    <string>3.0.6</string>
 
     <key>CFBundleVersion</key>
-    <string>8</string>
+    <string>9</string>
 
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>

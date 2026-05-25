@@ -386,10 +386,51 @@ class AppLanguage {
     "سعة اليخت: "
   ]; // Note: duplicate, consider removing or merging
   static const facilitiesText = ["Facilities: ", "المرافق: "];
-  static const cancelDetailsText = [
-    "Cancellations made more than 5 days before the booking start date will receive a full refund. For cancellations within 2 to 5 days, a 50% refund is provided. No refunds are issued for cancellations within 2 days of the booking start date.",
-    "يتم استرداد كامل المبلغ عند الإلغاء قبل أكثر من 5 أيام من تاريخ بدء الحجز. للإلغاءات بين يومين إلى 5 أيام، يتم استرداد 50٪ فقط. لا يتم إصدار أي رد أموال للإلغاءات خلال يومين من تاريخ بدء الحجز."
+  static const cancellationPolicyTermsLine = [
+    "- Please refer to the Terms and Conditions available in the Settings section.",
+    "- يرجى الرجوع إلى الشروط والأحكام المتوفرة في قسم الإعدادات."
   ];
+  static const cancellationPolicyFreeCancellationTemplate = [
+    "- This booking is eligible for free cancellation up to ({days}) days before the booking date.",
+    "- يمكن إلغاء هذا الحجز مجاناً قبل موعد الحجز بـ ({days}) يوم."
+  ];
+  static const cancellationPolicyNonCancellableLine = [
+    "- This booking is non-cancellable after confirmation, unless otherwise agreed by both parties or as stated in the Terms and Conditions.",
+    "- لا يمكن إلغاء هذا الحجز بعد تأكيده، إلا في حال اتفاق الطرفين أو وفقاً لما تنص عليه الشروط والأحكام."
+  ];
+
+  static int? parseFreeCancellationDays(dynamic details) {
+    if (details is! Map) return null;
+    final keys = <String>[
+      'free_to_cancel',
+      'free_cancel_days',
+    ];
+    for (final key in keys) {
+      final value = details[key];
+      if (value == null || value == "NA") continue;
+      if (value is num) return value.toInt();
+      if (value is String) {
+        final parsed = int.tryParse(value.trim());
+        if (parsed != null) return parsed;
+      }
+    }
+    return null;
+  }
+
+  static String cancellationPolicyDetails(
+      int language, int? freeCancellationDays) {
+    final days = freeCancellationDays;
+    final buffer = StringBuffer();
+    buffer.writeln(cancellationPolicyTermsLine[language]);
+    if (days != null && days == 0) {
+      buffer.writeln(cancellationPolicyNonCancellableLine[language]);
+    } else {
+      final daysText = days?.toString() ?? '';
+      buffer.writeln(cancellationPolicyFreeCancellationTemplate[language]
+          .replaceAll('{days}', daysText));
+    }
+    return buffer.toString().trim();
+  }
 
   //===================booking details================
   static const bookingDetailsText = ["Booking Details", "تفاصيل الحجز"];
