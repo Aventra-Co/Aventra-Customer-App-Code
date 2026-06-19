@@ -81,6 +81,9 @@ class _PublicBookingDetailsState extends State<PublicBookingDetails> {
   String selectedSlotId = "";
   double greatGrandTotal = 0;
   double totalHoursPrice = 0;
+  // Owner insurance added on top of the trip price before payment (default 0).
+  double get insuranceAmount =>
+      double.tryParse(tripDetails['insurance']?.toString() ?? '') ?? 0;
   int userId = 0;
   dynamic userDetails;
   dynamic tripDetails = {};
@@ -394,7 +397,8 @@ class _PublicBookingDetailsState extends State<PublicBookingDetails> {
       log("totalHoursPrice$totalHoursPrice");
     }
     greatGrandTotal = finalAddonsPrice +
-        (totalHoursPrice * double.parse(widget.sendTicketsCount));
+        (totalHoursPrice * double.parse(widget.sendTicketsCount)) +
+        insuranceAmount;
     // greatGrandTotal = greatGrandTotal.roundToDouble();
     setState(() {});
     log("greatGrandTotal$greatGrandTotal");
@@ -424,7 +428,8 @@ class _PublicBookingDetailsState extends State<PublicBookingDetails> {
     }
     setState(() {
       greatGrandTotal = finalAddonsPrice +
-          (totalHoursPrice * double.parse(widget.sendTicketsCount));
+          (totalHoursPrice * double.parse(widget.sendTicketsCount)) +
+          insuranceAmount;
       log("greatGrandTotalWithoutRoundOf$greatGrandTotal");
       greatGrandTotal = greatGrandTotal.roundToDouble();
       log("greatGrandTotal$greatGrandTotal");
@@ -1602,6 +1607,35 @@ class _PublicBookingDetailsState extends State<PublicBookingDetails> {
                                     ),
                                   ],
                                 ),
+                                if (insuranceAmount > 0) ...[
+                                  SizedBox(
+                                      height:
+                                          MediaQuery.of(context).size.height *
+                                              1 /
+                                              100),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        AppLanguage.insuranceText[language],
+                                        style: const TextStyle(
+                                            color: AppColor.textColor,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w500,
+                                            fontFamily: AppFont.fontFamily),
+                                      ),
+                                      Text(
+                                        "${insuranceAmount.toStringAsFixed(2)} KWD",
+                                        style: const TextStyle(
+                                            color: AppColor.primaryColor,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w600,
+                                            fontFamily: AppFont.fontFamily),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                                 SizedBox(
                                     height: MediaQuery.of(context).size.height *
                                         1 /

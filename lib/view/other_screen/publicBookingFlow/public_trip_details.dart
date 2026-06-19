@@ -775,7 +775,21 @@ class _PublicTripDetailsScreenState extends State<PublicTripDetailsScreen> {
                                           fontSize: 14,
                                           fontWeight: FontWeight.w500,
                                           fontFamily: AppFont.fontFamily),
-                                    )
+                                    ),
+                                    if ((double.tryParse(
+                                                tripDetails['insurance']
+                                                        ?.toString() ??
+                                                    '') ??
+                                            0) >
+                                        0)
+                                      Text(
+                                        "+ ${tripDetails['insurance']} KWD ${AppLanguage.insuranceText[language]}",
+                                        style: const TextStyle(
+                                            color: AppColor.textColor,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                            fontFamily: AppFont.fontFamily),
+                                      ),
                                   ],
                                 ),
                               ],

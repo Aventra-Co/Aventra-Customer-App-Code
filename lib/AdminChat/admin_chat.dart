@@ -120,7 +120,7 @@ class _ChatState extends State<AdminChat> {
 
   //===============DIAL PAD FUNCTION===============//
   Future<void> openDialPad(String phoneNumber) async {
-    final Uri url = Uri.parse('tel:+91$phoneNumber');
+    final Uri url = Uri.parse('tel:+965$phoneNumber');
 
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);

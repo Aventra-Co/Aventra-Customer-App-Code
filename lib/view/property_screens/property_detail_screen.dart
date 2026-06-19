@@ -1213,6 +1213,22 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                       ],
                                     ),
                                   ),
+                                  if ((double.tryParse(adDetails['insurance']
+                                                  ?.toString() ??
+                                              '') ??
+                                          0) >
+                                      0) ...[
+                                    SizedBox(height: size.height * 0.01),
+                                    Text(
+                                      "+ ${adDetails['insurance']} KWD ${AppLanguage.insuranceText[language]}",
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        fontFamily: AppFont.fontFamily,
+                                        color: AppColor.textColor,
+                                      ),
+                                    ),
+                                  ],
                                   SizedBox(height: size.height * 0.03),
 
                                   // Guests

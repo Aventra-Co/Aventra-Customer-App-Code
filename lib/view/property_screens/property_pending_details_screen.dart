@@ -642,6 +642,17 @@ class _PropertyPendingDetailsScreenState
                                           "",
                                       '${bookingDetails['total_amount'] ?? "0"} KWD',
                                       ''),
+                                  if ((double.tryParse(
+                                              bookingDetails['insurance_amount']
+                                                      ?.toString() ??
+                                                  '') ??
+                                          0) >
+                                      0)
+                                    _billingRow(
+                                        size,
+                                        "${AppLanguage.insuranceText[language]}${bookingDetails['insurance_refunded'] == 1 ? " (${AppLanguage.insuranceRefundedText[language]})" : ""}",
+                                        '${bookingDetails['insurance_amount']} KWD',
+                                        ''),
                                   Divider(height: size.height * 2 / 100),
                                   _billingRow(
                                       size,

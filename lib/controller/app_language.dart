@@ -271,6 +271,8 @@ class AppLanguage {
   //----------------order--------------------
   static const myorderText = ["My Order", "طلباتي"];
   static const grandTotalText = ["Grand Total", "الإجمالي الكلي"];
+  static const insuranceText = ["Insurance", "التأمين"];
+  static const insuranceRefundedText = ["Refunded", "تم الاسترداد"];
   static const deliveryChargesText = ["Delivery Charges", "رسوم التوصيل"];
   static const orderText = ["Order", "طلب"];
   static const itemTotalText = ["Item total", "إجمالي العناصر"];

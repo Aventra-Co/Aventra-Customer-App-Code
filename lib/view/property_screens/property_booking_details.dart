@@ -83,6 +83,9 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
     return _toDouble(adDetails['discount_percentage']);
   }
 
+  // Owner insurance added on top of the property price before payment (default 0).
+  double get insuranceAmount => _toDouble(adDetails['insurance']);
+
   double _applyDiscounts(double baseTotal) {
     double total = baseTotal;
     final propertyDiscount = _discountPercent();
@@ -94,6 +97,11 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
     }
     if (total < 0) return 0;
     return total;
+  }
+
+  // Final amount the customer pays: discounted property price + flat insurance.
+  double _payableTotal() {
+    return _applyDiscounts(widget.grandTotal) + insuranceAmount;
   }
 
   @override
@@ -193,8 +201,8 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
       http.MultipartRequest formData = http.MultipartRequest('POST', url);
 
       // final totalDates = widget.totalNights;
-      final baseTotal = widget.grandTotal;
-      final grandTotal = _applyDiscounts(baseTotal);
+      // discounted property price + flat owner insurance (matches the amount paid)
+      final grandTotal = _payableTotal();
 
       formData.fields['user_id'] = userId.toString();
       formData.fields['property_ad_id'] = widget.propertyAdId.toString();
@@ -320,7 +328,7 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
       var body = jsonEncode({
         'customerName': fullName,
         'customerEmail': email,
-        'amount': _applyDiscounts(widget.grandTotal).toString(),
+        'amount': _payableTotal().toString(),
         'paymethod': selectedMethod.toString(),
       });
 
@@ -335,8 +343,8 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
       print("Response Body: ${response.body}");
 
       var res = jsonDecode(response.body);
-      final baseTotal = widget.grandTotal;
-      final grandTotal = _applyDiscounts(baseTotal);
+      // discounted property price + flat owner insurance (matches the amount paid)
+      final grandTotal = _payableTotal();
 
       if (response.statusCode == 200) {
         log("Entringgg 2020202 ${res['success']}");
@@ -396,8 +404,8 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
     final double sw = MediaQuery.of(context).size.width;
     final double sh = MediaQuery.of(context).size.height;
     final selectedDateText = _checkInDateText();
-    final baseTotal = widget.grandTotal;
-    final grandTotal = _applyDiscounts(baseTotal);
+    final discountedPrice = _applyDiscounts(widget.grandTotal);
+    final grandTotal = _payableTotal();
     return Directionality(
       textDirection:
           language == 1 ? ui.TextDirection.rtl : ui.TextDirection.ltr,
@@ -734,7 +742,7 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
                                   fontFamily: AppFont.fontFamily),
                             ),
                             Text(
-                              '${grandTotal.toStringAsFixed(2)} KWD',
+                              '${discountedPrice.toStringAsFixed(2)} KWD',
                               style: const TextStyle(
                                   color: AppColor.primaryColor,
                                   fontSize: 16,
@@ -780,6 +788,28 @@ class _PropertyBookingDetailsState extends State<PropertyBookingDetails> {
                           height: MediaQuery.of(context).size.height * 1 / 100),
                       SizedBox(
                           height: MediaQuery.of(context).size.height * 1 / 100),
+                      if (insuranceAmount > 0)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              AppLanguage.insuranceText[language],
+                              style: const TextStyle(
+                                  color: AppColor.textColor,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  fontFamily: AppFont.fontFamily),
+                            ),
+                            Text(
+                              '${insuranceAmount.toStringAsFixed(2)} KWD',
+                              style: const TextStyle(
+                                  color: AppColor.primaryColor,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: AppFont.fontFamily),
+                            ),
+                          ],
+                        ),
                       Divider(
                         color: AppColor.textColor,
                         height: MediaQuery.of(context).size.height * 0.01 / 100,

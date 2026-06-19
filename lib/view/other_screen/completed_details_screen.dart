@@ -1538,6 +1538,66 @@ class _CompletedDetailsScreen extends State<CompletedDetailsScreen> {
                                   //         2 /
                                   //         100),
 
+                                  if ((double.tryParse(
+                                              tripDetails['insurance_amount']
+                                                      ?.toString() ??
+                                                  '') ??
+                                          0) >
+                                      0)
+                                    SizedBox(
+                                      width: MediaQuery.of(context).size.width *
+                                          85 /
+                                          100,
+                                      child: Row(
+                                        children: [
+                                          SizedBox(
+                                            width: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                42 /
+                                                100,
+                                            child: Text(
+                                              "${AppLanguage.insuranceText[language]}${tripDetails['insurance_refunded'] == 1 ? " (${AppLanguage.insuranceRefundedText[language]})" : ""}",
+                                              style: const TextStyle(
+                                                  fontFamily: AppFont.fontFamily,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: AppColor.textColor),
+                                            ),
+                                          ),
+                                          Container(
+                                            width: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                42 /
+                                                100,
+                                            alignment: language == 1
+                                                ? Alignment.centerLeft
+                                                : Alignment.centerRight,
+                                            child: Text(
+                                              "${tripDetails['insurance_amount']} KWD",
+                                              style: const TextStyle(
+                                                  fontFamily: AppFont.fontFamily,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: AppColor.primaryColor),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  if ((double.tryParse(
+                                              tripDetails['insurance_amount']
+                                                      ?.toString() ??
+                                                  '') ??
+                                          0) >
+                                      0)
+                                    SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                2 /
+                                                100),
+
                                   Container(
                                     width: MediaQuery.of(context).size.width *
                                         85 /
