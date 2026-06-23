@@ -48,6 +48,8 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
   String markedDatesString = "";
   late final Set<DateTime> markedDates;
   List<String> availableDates = <String>[];
+  // Earliest selectable date (today + min_lead_days). Null = no limit.
+  DateTime? minBookableDay;
   List<int> selectedSlotIds = <int>[];
   String selectedDate = "";
   String showSelectedDate = "";
@@ -130,6 +132,15 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
           // markedDatesString = tripDetails['dates'];
           // availableDates = markedDatesString.split(",");
           availableDates = List<String>.from(item['date_arr'] ?? []);
+          if (item['min_bookable_date'] != null &&
+              item['min_bookable_date'].toString().isNotEmpty) {
+            try {
+              minBookableDay =
+                  DateTime.parse(item['min_bookable_date'].toString());
+            } catch (_) {
+              minBookableDay = null;
+            }
+          }
           log("availbledates$availableDates");
           if (availableDates
               .contains(DateFormat('yyyy-MM-dd').format(DateTime.now()))) {
@@ -1312,6 +1323,15 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
                               focusedDay: today,
                               firstDay: DateTime.now(),
                               lastDay: DateTime.utc(2100, 12, 31),
+                              // block dates before today + min_lead_days
+                              enabledDayPredicate: (day) {
+                                if (minBookableDay != null &&
+                                    DateTime(day.year, day.month, day.day)
+                                        .isBefore(minBookableDay!)) {
+                                  return false;
+                                }
+                                return true;
+                              },
                               headerStyle: const HeaderStyle(
                                 formatButtonVisible: false,
                                 titleCentered: true,

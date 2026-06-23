@@ -45,6 +45,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   // Unavailable dates (non-selectable)
   Set<DateTime> _unavailableDates = {};
 
+  // Earliest selectable check-in date (today + min_lead_days). Null = no limit.
+  DateTime? _minBookableDate;
+
   int adultCount = 0;
   int childCount = 0;
 
@@ -94,6 +97,10 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     final lastAllowed = today.add(const Duration(days: 365));
     final normalisedDay = _normalise(day);
     if (normalisedDay.isBefore(today) || normalisedDay.isAfter(lastAllowed)) {
+      return false;
+    }
+    // minimum booking lead time: block dates before today + min_lead_days
+    if (_minBookableDate != null && normalisedDay.isBefore(_minBookableDate!)) {
       return false;
     }
     if (_isUnavailable(day)) {
@@ -385,6 +392,10 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           if (adDetails is Map && adDetails['unavailable_dates'] != null) {
             _unavailableDates =
                 _buildUnavailableDates(adDetails['unavailable_dates']);
+          }
+          if (adDetails is Map && adDetails['min_bookable_date'] != null) {
+            _minBookableDate =
+                _parseUnavailableDate(adDetails['min_bookable_date'].toString());
           }
           if (adDetails['property_images'] != "NA") {
             propertyImages.addAll(adDetails['property_images']);
