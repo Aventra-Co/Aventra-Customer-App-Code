@@ -129,7 +129,8 @@ class _ExploreState extends State<Explore> {
     if (userDetails != null) {
       dynamic data = json.decode(userDetails);
       userId = data['user_id'];
-      profileImage = data["image"] ?? "NA";
+      final image = data["image"]?.toString() ?? "";
+      profileImage = image.isEmpty ? "NA" : image;
     }
     setState(() => isApiCalling = false);
     homeApi(userId, tabType: _tabTypeParam);
@@ -503,6 +504,29 @@ class _ExploreState extends State<Explore> {
     }
   }
 
+  String resolveTripName(dynamic item, {dynamic boatFallback}) {
+    dynamic en = item['trip_name_english'];
+    dynamic ar = item['trip_name_arabic'];
+    String pick(dynamic v) {
+      if (v == null || v == 'NA') return '';
+      if (v is List) {
+        return (v.length > language ? v[language] : v[0])?.toString().trim() ??
+            '';
+      }
+      return v.toString().trim();
+    }
+
+    final enStr = pick(en);
+    final arStr = pick(ar);
+    if (language == 1 && arStr.isNotEmpty) return arStr;
+    if (enStr.isNotEmpty) return enStr;
+    if (arStr.isNotEmpty) return arStr;
+    if (boatFallback is List) {
+      return boatFallback[language]?.toString() ?? '';
+    }
+    return boatFallback?.toString() ?? '';
+  }
+
   String getWeatherDescription(int weatherCode) {
     switch (weatherCode) {
       case 0:
@@ -835,10 +859,13 @@ class _ExploreState extends State<Explore> {
                   child: Column(
                     children: [
                       const NoInternetBanner(),
-                      isLoading
-                          ? exploreShimmerEffect(context)
-                          : Expanded(
-                              child: SingleChildScrollView(
+                      Expanded(
+                        child: isLoading
+                            ? SingleChildScrollView(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                child: exploreShimmerEffect(context),
+                              )
+                            : SingleChildScrollView(
                                 physics: const AlwaysScrollableScrollPhysics(),
                                 child: Column(
                                   children: [
@@ -907,9 +934,7 @@ class _ExploreState extends State<Explore> {
 
                                     // ══════════════ PROPERTY SECTION ══════════
                                     // 1) Property type tabs (pill row)
-                                    isLoading
-                                        ? exploreShimmerEffect(context)
-                                        : Column(
+                                    Column(
                                             children: [
                                               if (_showProperty)
                                                 _buildPropertyTypeTabs(
@@ -982,7 +1007,7 @@ class _ExploreState extends State<Explore> {
                                   ],
                                 ),
                               ),
-                            ),
+                      ),
                     ],
                   ),
                 ),
@@ -1022,12 +1047,19 @@ class _ExploreState extends State<Explore> {
                 SizedBox(
                   width: MediaQuery.of(context).size.width * 12 / 100,
                   height: MediaQuery.of(context).size.width * 12 / 100,
-                  child: (profileImage != 'NA' && !isGuest)
+                  child: (profileImage.isNotEmpty &&
+                          profileImage != 'NA' &&
+                          !isGuest)
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(100),
                           child: Image.network(
                               "${AppConfigProvider.imageURL}$profileImage",
                               fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Image.asset(
+                                    AppImage.profilePlaceholderImage,
+                                    fit: BoxFit.cover);
+                              },
                               loadingBuilder: (context, child, progress) {
                             if (progress == null) return child;
                             return Shimmer.fromColors(
@@ -1468,67 +1500,85 @@ class _ExploreState extends State<Explore> {
   // SEA: ACTIVITY TABS
   // ────────────────────────────────────────────────────────────────────────
   Widget _buildActivityTabs(BuildContext context, double screenWidth) {
-    return SizedBox(
-      width: MediaQuery.of(context).size.width,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Wrap(
-          children: List.generate(activitiesList.length, (index) {
-            return Padding(
-              padding: language == 0
-                  ? EdgeInsets.only(
-                      left: index == 0 ? (screenWidth > 600 ? 20 : 18) : 10,
-                      right: index == activitiesList.length - 1 ? 10 : 0)
-                  : EdgeInsets.only(
-                      right: index == 0 ? (screenWidth > 600 ? 20 : 18) : 10,
-                      left: index == activitiesList.length - 1 ? 10 : 0),
-              child: GestureDetector(
-                onTap: () {
-                  if (selectActivity == activitiesList[index]['trip_type_id']) {
-                    setState(() => selectActivity = 0);
-                  } else {
-                    setState(() =>
-                        selectActivity = activitiesList[index]['trip_type_id']);
-                    getDestinationAccordingActivity(
-                        userId, context, screenWidth);
-                  }
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                      color: selectActivity ==
-                              activitiesList[index]['trip_type_id']
-                          ? AppColor.themeColor
-                          : AppColor.boxshadowColor,
-                      borderRadius: BorderRadius.circular(50)),
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 6, horizontal: 15),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width * 5 / 100,
-                        height: MediaQuery.of(context).size.width * 5 / 100,
-                        child: Image.network(
-                            "${AppConfigProvider.imageURL}${activitiesList[index]['vector_image']}"),
-                      ),
-                      SizedBox(
-                          width: MediaQuery.of(context).size.width * 1 / 100),
-                      Text(activitiesList[index]['name_english'][language],
-                          style: TextStyle(
-                              color: selectActivity ==
-                                      activitiesList[index]['trip_type_id']
-                                  ? AppColor.secondaryColor
-                                  : AppColor.primaryColor,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              fontFamily: AppFont.fontFamily)),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }),
+    return Column(
+      children: [
+        SizedBox(
+          width: screenWidth > 600
+              ? MediaQuery.of(context).size.width * 95 / 100
+              : MediaQuery.of(context).size.width * 90 / 100,
+          child: Text(AppLanguage.activitiesText[language],
+              style: const TextStyle(
+                  color: AppColor.primaryColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: AppFont.fontFamily)),
         ),
-      ),
+        SizedBox(height: MediaQuery.of(context).size.height * 1.5 / 100),
+        SizedBox(
+          width: MediaQuery.of(context).size.width,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Wrap(
+              children: List.generate(activitiesList.length, (index) {
+                return Padding(
+                  padding: language == 0
+                      ? EdgeInsets.only(
+                          left: index == 0 ? (screenWidth > 600 ? 20 : 18) : 10,
+                          right: index == activitiesList.length - 1 ? 10 : 0)
+                      : EdgeInsets.only(
+                          right: index == 0 ? (screenWidth > 600 ? 20 : 18) : 10,
+                          left: index == activitiesList.length - 1 ? 10 : 0),
+                  child: GestureDetector(
+                    onTap: () {
+                      if (selectActivity ==
+                          activitiesList[index]['trip_type_id']) {
+                        setState(() => selectActivity = 0);
+                      } else {
+                        setState(() => selectActivity =
+                            activitiesList[index]['trip_type_id']);
+                        getDestinationAccordingActivity(
+                            userId, context, screenWidth);
+                      }
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                          color: selectActivity ==
+                                  activitiesList[index]['trip_type_id']
+                              ? AppColor.themeColor
+                              : AppColor.boxshadowColor,
+                          borderRadius: BorderRadius.circular(50)),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 6, horizontal: 15),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width * 5 / 100,
+                            height: MediaQuery.of(context).size.width * 5 / 100,
+                            child: Image.network(
+                                "${AppConfigProvider.imageURL}${activitiesList[index]['vector_image']}"),
+                          ),
+                          SizedBox(
+                              width:
+                                  MediaQuery.of(context).size.width * 1 / 100),
+                          Text(activitiesList[index]['name_english'][language],
+                              style: TextStyle(
+                                  color: selectActivity ==
+                                          activitiesList[index]['trip_type_id']
+                                      ? AppColor.secondaryColor
+                                      : AppColor.primaryColor,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  fontFamily: AppFont.fontFamily)),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -2528,7 +2578,9 @@ class _ExploreState extends State<Explore> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                boatAd['boat_name_english'][language] ?? "",
+                                resolveTripName(boatAd,
+                                    boatFallback:
+                                        boatAd['boat_name_english']),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(

@@ -418,7 +418,7 @@ class _BeachesState extends State<Beaches> {
       }
 
       return {
-        "name": item['boat_name'],
+        "name": resolveTripName(item, boatFallback: item['boat_name']),
         "position": LatLng(latitude, longitude),
         "trip_id": item['trip_id'],
       };
@@ -445,6 +445,29 @@ class _BeachesState extends State<Beaches> {
       }
     }
     return -1;
+  }
+
+  String resolveTripName(dynamic item, {dynamic boatFallback}) {
+    dynamic en = item['trip_name_english'];
+    dynamic ar = item['trip_name_arabic'];
+    String pick(dynamic v) {
+      if (v == null || v == 'NA') return '';
+      if (v is List) {
+        return (v.length > language ? v[language] : v[0])?.toString().trim() ??
+            '';
+      }
+      return v.toString().trim();
+    }
+
+    final enStr = pick(en);
+    final arStr = pick(ar);
+    if (language == 1 && arStr.isNotEmpty) return arStr;
+    if (enStr.isNotEmpty) return enStr;
+    if (arStr.isNotEmpty) return arStr;
+    if (boatFallback is List) {
+      return boatFallback[language]?.toString() ?? '';
+    }
+    return boatFallback?.toString() ?? '';
   }
 
   Widget _tripCard(Map<String, dynamic> trip, int index, screenWidth) {
@@ -527,7 +550,7 @@ class _BeachesState extends State<Beaches> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      trip['boat_name'] ?? "",
+                      resolveTripName(trip, boatFallback: trip['boat_name']),
                       style: const TextStyle(
                           color: AppColor.secondaryColor,
                           fontSize: 18,
@@ -769,10 +792,16 @@ class _BeachesState extends State<Beaches> {
   //---------------------SEARCH FUNCTION Trips--------------------///
   searchResultCountry(String query) {
     var results1 = searchOceanExploreList
-        .where((value) => value['boat_name']
-            .toString()
-            .toLowerCase()
-            .contains(query.toLowerCase()))
+        .where((value) {
+          final en =
+              value['trip_name_english']?.toString().toLowerCase() ?? '';
+          final ar =
+              value['trip_name_arabic']?.toString().toLowerCase() ?? '';
+          final boatName =
+              value['boat_name']?.toString().toLowerCase() ?? '';
+          final q = query.toLowerCase();
+          return en.contains(q) || ar.contains(q) || boatName.contains(q);
+        })
         .toList();
 
     oceanExploreList = [];
@@ -1836,9 +1865,14 @@ class _BeachesState extends State<Beaches> {
                                                                 .start,
                                                         children: [
                                                           Text(
-                                                            oceanExploreList[
-                                                                    index]
-                                                                ['boat_name'],
+                                                            resolveTripName(
+                                                                oceanExploreList[
+                                                                    index],
+                                                                boatFallback:
+                                                                    oceanExploreList[
+                                                                            index]
+                                                                        [
+                                                                        'boat_name']),
                                                             style: const TextStyle(
                                                                 color: AppColor
                                                                     .secondaryColor,
@@ -2495,9 +2529,14 @@ class _BeachesState extends State<Beaches> {
                                                               .start,
                                                       children: [
                                                         Text(
-                                                          oceanExploreList[
-                                                                  index]
-                                                              ['boat_name'],
+                                                          resolveTripName(
+                                                              oceanExploreList[
+                                                                  index],
+                                                              boatFallback:
+                                                                  oceanExploreList[
+                                                                          index]
+                                                                      [
+                                                                      'boat_name']),
                                                           style: const TextStyle(
                                                               color: AppColor
                                                                   .secondaryColor,

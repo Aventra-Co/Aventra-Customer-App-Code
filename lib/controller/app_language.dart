@@ -454,6 +454,7 @@ class AppLanguage {
     "Popular Destination",
     "الوجهات الشهيرة"
   ];
+  static const activitiesText = ["Activities", "الفعاليات"];
   static const viewMoreText = ["View More", "عرض المزيد"];
   static const categoriesText = ["Categories", "الفئات"];
   static const selectDestinationText = ["Select Destination", "اختر الوجهة"];

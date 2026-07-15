@@ -46,16 +46,39 @@ class _ViewAllBoatScreenState extends State<ViewAllBoatScreen> {
   List<dynamic> get _filteredProperties {
     if (_searchQuery.isEmpty) return boatsList;
     return boatsList
-        .where((p) =>
-            p['boat_name'][language]
-                .toString()
-                .toLowerCase()
-                .contains(_searchQuery.toLowerCase()) ||
-            p['city_name'][language]
-                .toString()
-                .toLowerCase()
-                .contains(_searchQuery.toLowerCase()))
+        .where((p) {
+          final q = _searchQuery.toLowerCase();
+          final tripName = resolveTripName(p).toLowerCase();
+          final boatName = p['boat_name'][language]?.toString() ?? '';
+          final cityName = p['city_name'][language]?.toString() ?? '';
+          return tripName.contains(q) ||
+              boatName.toLowerCase().contains(q) ||
+              cityName.toLowerCase().contains(q);
+        })
         .toList();
+  }
+
+  String resolveTripName(dynamic item, {dynamic boatFallback}) {
+    dynamic en = item['trip_name_english'];
+    dynamic ar = item['trip_name_arabic'];
+    String pick(dynamic v) {
+      if (v == null || v == 'NA') return '';
+      if (v is List) {
+        return (v.length > language ? v[language] : v[0])?.toString().trim() ??
+            '';
+      }
+      return v.toString().trim();
+    }
+
+    final enStr = pick(en);
+    final arStr = pick(ar);
+    if (language == 1 && arStr.isNotEmpty) return arStr;
+    if (enStr.isNotEmpty) return enStr;
+    if (arStr.isNotEmpty) return arStr;
+    if (boatFallback is List) {
+      return boatFallback[language]?.toString() ?? '';
+    }
+    return boatFallback?.toString() ?? '';
   }
   // ─────────────────────────────────────────────────────────────────────
 
@@ -524,7 +547,8 @@ class _ViewAllBoatScreenState extends State<ViewAllBoatScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    boatAd['boat_name'][language] ?? "",
+                    resolveTripName(boatAd,
+                        boatFallback: boatAd['boat_name']),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(

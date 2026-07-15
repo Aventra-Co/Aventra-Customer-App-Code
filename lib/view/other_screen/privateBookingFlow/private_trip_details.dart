@@ -69,6 +69,29 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
   dynamic userDetails;
   dynamic tripDetails = {};
 
+  String resolveTripName(dynamic item, {dynamic boatFallback}) {
+    dynamic en = item['trip_name_english'];
+    dynamic ar = item['trip_name_arabic'];
+    String pick(dynamic v) {
+      if (v == null || v == 'NA') return '';
+      if (v is List) {
+        return (v.length > language ? v[language] : v[0])?.toString().trim() ??
+            '';
+      }
+      return v.toString().trim();
+    }
+
+    final enStr = pick(en);
+    final arStr = pick(ar);
+    if (language == 1 && arStr.isNotEmpty) return arStr;
+    if (enStr.isNotEmpty) return enStr;
+    if (arStr.isNotEmpty) return arStr;
+    if (boatFallback is List) {
+      return boatFallback[language]?.toString() ?? '';
+    }
+    return boatFallback?.toString() ?? '';
+  }
+
 //!--------------------GET USER DETAILS-----------------------//
   Future<dynamic> getUserDetails() async {
     final prefs = await SharedPreferences.getInstance();
@@ -760,8 +783,9 @@ class _PrivateTripDetailsScreenState extends State<PrivateTripDetailsScreen> {
                                         80 /
                                         100,
                                     child: Text(
-                                      tripDetails["boat_name_english"]
-                                          .toString(),
+                                      resolveTripName(tripDetails,
+                                          boatFallback: tripDetails[
+                                              "boat_name_english"]),
                                       style: const TextStyle(
                                           color: AppColor.primaryColor,
                                           fontSize: 24,

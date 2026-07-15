@@ -2293,44 +2293,14 @@ class PrivateBookingDetailsState extends State<PrivateBookingDetails> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Payment Methods
+                  // Payment Methods — KNET only
                   _buildPaymentOption(
-                    setState: setModalState, // Pass the setState function
-                    method: 1,
-                    title: 'Credit Card',
-                    subtitle: 'Pay with your credit card',
-                    icon: Icons.credit_card,
-                    color: Colors.blue,
-                  ),
-                  const SizedBox(height: 16),
-
-                  _buildPaymentOption(
-                    setState: setModalState, // Pass the setState function
+                    setState: setModalState,
                     method: 2,
                     title: 'KNET',
                     subtitle: 'Kuwait National Electronic Transfer',
                     icon: Icons.account_balance,
                     color: Colors.green,
-                  ),
-                  const SizedBox(height: 16),
-
-                  _buildPaymentOption(
-                    setState: setModalState, // Pass the setState function
-                    method: 3,
-                    title: 'American Express',
-                    subtitle: 'Pay with Amex card',
-                    icon: Icons.payment,
-                    color: Colors.orange,
-                  ),
-                  const SizedBox(height: 16),
-
-                  _buildPaymentOption(
-                    setState: setModalState, // Pass the setState function
-                    method: 4,
-                    title: 'Bookeey',
-                    subtitle: 'Pay with Bookeey wallet',
-                    icon: Icons.wallet,
-                    color: Colors.purple,
                   ),
 
                   const SizedBox(height: 32),
