@@ -70,26 +70,36 @@ class _PublicRedirectionTripDetailsState
   dynamic tripDetails = {};
 
   String resolveTripName(dynamic item, {dynamic boatFallback}) {
-    dynamic en = item['trip_name_english'];
-    dynamic ar = item['trip_name_arabic'];
     String pick(dynamic v) {
       if (v == null || v == 'NA') return '';
       if (v is List) {
-        return (v.length > language ? v[language] : v[0])?.toString().trim() ??
-            '';
+        if (v.isEmpty) return '';
+        final index = language < v.length ? language : 0;
+        return v[index]?.toString().trim() ?? '';
       }
-      return v.toString().trim();
+      final text = v.toString().trim();
+      return text == 'null' ? '' : text;
     }
 
-    final enStr = pick(en);
-    final arStr = pick(ar);
-    if (language == 1 && arStr.isNotEmpty) return arStr;
-    if (enStr.isNotEmpty) return enStr;
-    if (arStr.isNotEmpty) return arStr;
-    if (boatFallback is List) {
-      return boatFallback[language]?.toString() ?? '';
+    final enStr = pick(item['title_name_en']);
+    final arStr = pick(item['title_name_ar']);
+    if (enStr.isEmpty && arStr.isEmpty) {
+      final legacyEn = pick(item['trip_name_english']);
+      final legacyAr = pick(item['trip_name_arabic']);
+      if (language == 1 && legacyAr.isNotEmpty) return legacyAr;
+      if (legacyEn.isNotEmpty) return legacyEn;
+      if (legacyAr.isNotEmpty) return legacyAr;
+    } else {
+      if (language == 1 && arStr.isNotEmpty) return arStr;
+      if (enStr.isNotEmpty) return enStr;
+      if (arStr.isNotEmpty) return arStr;
     }
-    return boatFallback?.toString() ?? '';
+
+    if (boatFallback != null) {
+      final fallback = pick(boatFallback);
+      if (fallback.isNotEmpty) return fallback;
+    }
+    return pick(item['boat_name_english'] ?? item['boat_name']);
   }
 
 //--------------------GET USER DETAILS-----------------------//

@@ -28,6 +28,7 @@ import '../other_screen/privateBookingFlow/private_trip_details.dart';
 import '../other_screen/publicBookingFlow/public_trip_details.dart';
 import '../other_screen/beaches.dart';
 import 'dart:ui' as ui;
+import '../../widgets/trip_ad_card.dart';
 import 'package:http/http.dart' as http;
 import '../other_screen/weather_screen.dart';
 
@@ -505,26 +506,36 @@ class _ExploreState extends State<Explore> {
   }
 
   String resolveTripName(dynamic item, {dynamic boatFallback}) {
-    dynamic en = item['trip_name_english'];
-    dynamic ar = item['trip_name_arabic'];
     String pick(dynamic v) {
       if (v == null || v == 'NA') return '';
       if (v is List) {
-        return (v.length > language ? v[language] : v[0])?.toString().trim() ??
-            '';
+        if (v.isEmpty) return '';
+        final index = language < v.length ? language : 0;
+        return v[index]?.toString().trim() ?? '';
       }
-      return v.toString().trim();
+      final text = v.toString().trim();
+      return text == 'null' ? '' : text;
     }
 
-    final enStr = pick(en);
-    final arStr = pick(ar);
-    if (language == 1 && arStr.isNotEmpty) return arStr;
-    if (enStr.isNotEmpty) return enStr;
-    if (arStr.isNotEmpty) return arStr;
-    if (boatFallback is List) {
-      return boatFallback[language]?.toString() ?? '';
+    final enStr = pick(item['title_name_en']);
+    final arStr = pick(item['title_name_ar']);
+    if (enStr.isEmpty && arStr.isEmpty) {
+      final legacyEn = pick(item['trip_name_english']);
+      final legacyAr = pick(item['trip_name_arabic']);
+      if (language == 1 && legacyAr.isNotEmpty) return legacyAr;
+      if (legacyEn.isNotEmpty) return legacyEn;
+      if (legacyAr.isNotEmpty) return legacyAr;
+    } else {
+      if (language == 1 && arStr.isNotEmpty) return arStr;
+      if (enStr.isNotEmpty) return enStr;
+      if (arStr.isNotEmpty) return arStr;
     }
-    return boatFallback?.toString() ?? '';
+
+    if (boatFallback != null) {
+      final fallback = pick(boatFallback);
+      if (fallback.isNotEmpty) return fallback;
+    }
+    return pick(item['boat_name_english'] ?? item['boat_name']);
   }
 
   String getWeatherDescription(int weatherCode) {
@@ -2418,7 +2429,6 @@ class _ExploreState extends State<Explore> {
 
   Widget _buildPopularBoatsSection(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    double screenWidth = MediaQuery.of(context).size.width;
 
     return Column(
       children: [
@@ -2455,7 +2465,7 @@ class _ExploreState extends State<Explore> {
         ),
         SizedBox(height: MediaQuery.of(context).size.height * 1.5 / 100),
         SizedBox(
-          height: size.height * 0.28,
+          height: size.height * 0.34,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: EdgeInsetsDirectional.only(
@@ -2472,11 +2482,16 @@ class _ExploreState extends State<Explore> {
                       ? 0
                       : size.width * 0.03,
                 ),
-                child: GestureDetector(
+                child: TripAdCard(
+                  trip: boatAd,
+                  layout: TripAdCardLayout.portrait,
+                  width: size.width * 0.48,
+                  height: size.height * 0.34,
+                  showFavorite: true,
+                  showShare: true,
+                  showImageCount: false,
                   onTap: () {
-                    log("popularBoatsList[index]['advertisement_type'] ==== ${boatAd['advertisement_type']}");
                     if (boatAd['advertisement_type'] == 0) {
-                      log("Private me ghusa");
                       Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -2484,7 +2499,6 @@ class _ExploreState extends State<Explore> {
                                     tripId: boatAd['trip_id'].toString(),
                                   )));
                     } else {
-                      log("Public me ghusa");
                       Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -2493,241 +2507,14 @@ class _ExploreState extends State<Explore> {
                                   )));
                     }
                   },
-                  child: Container(
-                    width: size.width * 0.45,
-                    decoration: BoxDecoration(
-                        image: DecorationImage(
-                            image: boatAd['trip_image'] != null
-                                ? NetworkImage(
-                                    "${AppConfigProvider.imageURL}${boatAd['trip_image']}")
-                                : const AssetImage(AppImage.dummyIcon)
-                                    as ImageProvider,
-                            fit: BoxFit.cover),
-                        borderRadius: BorderRadius.circular(18)),
-                    child: Stack(
-                      children: [
-                        // Gradient overlay
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.transparent,
-                                  Colors.black.withOpacity(0.7)
-                                ]),
-                          ),
-                        ),
-                        // Price badge top-left
-                        Positioned(
-                          top: 0,
-                          left: 0,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 5),
-                            decoration: const BoxDecoration(
-                              color: AppColor.themeColor,
-                              borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(16),
-                                  bottomRight: Radius.circular(16)),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Text(AppLanguage.startingFromText[language],
-                                //     style: const TextStyle(
-                                //         fontSize: 10,
-                                //         fontWeight: FontWeight.w500,
-                                //         fontFamily: AppFont.fontFamily,
-                                //         color: Colors.white)),
-                                Text("${boatAd['price_per_hour'] ?? 0} KWD",
-                                    style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                        fontFamily: AppFont.fontFamily,
-                                        color: Colors.white)),
-                              ],
-                            ),
-                          ),
-                        ),
-                        // Remain badge top-right
-                        Positioned(
-                          top: 6,
-                          right: 8,
-                          child: GestureDetector(
-                            onTap: () {
-                              deeplinking(
-                                  context,
-                                  boatAd['trip_id'],
-                                  popularBoatsList[index]
-                                      ['advertisement_type']);
-                            },
-                            child: Image.asset(
-                              AppImage.shareIcon,
-                              width: size.width * 0.06,
-                              height: size.width * 0.06,
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 8,
-                          left: 8,
-                          right: 8,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                resolveTripName(boatAd,
-                                    boatFallback:
-                                        boatAd['boat_name_english']),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  fontFamily: AppFont.fontFamily,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                "${AppLanguage.cityText[language]} \u2022 ${boatAd['city_name'][language] ?? ""}",
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w400,
-                                  fontFamily: AppFont.fontFamily,
-                                  color: Colors.white.withOpacity(0.9),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                "${AppLanguage.tripTypeText[language]} \u2022 ${boatAd['advertisement_type'] == 0 ? AppLanguage.privateText[language] : AppLanguage.publicText[language]}",
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w400,
-                                  fontFamily: AppFont.fontFamily,
-                                  color: Colors.white.withOpacity(0.9),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  if (boatAd['total_rating'] != "0.00")
-                                    Container(
-                                      width: screenWidth > 600
-                                          ? MediaQuery.of(context).size.width *
-                                              10 /
-                                              100
-                                          : MediaQuery.of(context).size.width *
-                                              11 /
-                                              100,
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 4, horizontal: 2),
-                                      decoration: BoxDecoration(
-                                          color: AppColor.secondaryColor
-                                              .withOpacity(0.3),
-                                          borderRadius:
-                                              BorderRadius.circular(25)),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          SizedBox(
-                                            width: screenWidth > 600
-                                                ? MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    2 /
-                                                    100
-                                                : MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    3 /
-                                                    100,
-                                            height: screenWidth > 600
-                                                ? MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    2 /
-                                                    100
-                                                : MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    3 /
-                                                    100,
-                                            child: Image.asset(
-                                                AppImage.ratingIcon),
-                                          ),
-                                          SizedBox(
-                                              width: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  1 /
-                                                  100),
-                                          Text(
-                                            boatAd['total_rating'].toString(),
-                                            style: const TextStyle(
-                                                color: AppColor.secondaryColor,
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w600,
-                                                fontFamily: AppFont.fontFamily),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  SizedBox(
-                                      width: MediaQuery.of(context).size.width *
-                                          1 /
-                                          100),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 4, horizontal: 5),
-                                    decoration: BoxDecoration(
-                                      color: AppColor.secondaryColor
-                                          .withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(25),
-                                    ),
-                                    child: Text(
-                                      "${"${(boatAd['max_people'] ?? 0)}"} ${AppLanguage.memberstext[language]}",
-                                      style: const TextStyle(
-                                          color: AppColor.secondaryColor,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w600,
-                                          fontFamily: AppFont.fontFamily),
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  GestureDetector(
-                                    onTap: () {
-                                      addFavoriteApiCall(
-                                          index,
-                                          popularBoatsList[realIndex]
-                                              ['trip_id'],
-                                          0);
-                                    },
-                                    child: Image.asset(
-                                      (popularBoatsList[realIndex]
-                                                  ['favourite_status'] ==
-                                              1)
-                                          ? AppImage.removeFavouriteIcon
-                                          : AppImage.addFavouriteIcons,
-                                      width: size.width * 0.06,
-                                      height: size.width * 0.06,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  onFavorite: () {
+                    addFavoriteApiCall(
+                        index, popularBoatsList[realIndex]['trip_id'], 0);
+                  },
+                  onShare: () {
+                    deeplinking(context, boatAd['trip_id'],
+                        boatAd['advertisement_type']);
+                  },
                 ),
               );
             },
