@@ -163,6 +163,7 @@ class AppImage {
   static const imageFrameImage = "./assets/icons/ic_image_frame.png";
   static const noDataIcon = './assets/icons/image_nodatafound.png';
   static const boatMarkerIcon = './assets/icons/ic_boatMarker.png';
+  static const boatIcon = './assets/icons/ic_icon_boatIcon.png';
   static const checkIcon = './assets/icons/ic_check.png';
   static const imageFrame = './assets/icons/ic_image_frame.png';
   static const rightConfirmationIcon =

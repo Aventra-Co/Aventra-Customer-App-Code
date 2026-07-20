@@ -23,6 +23,7 @@ import 'public_booking_details.dart';
 import '../review.dart';
 import 'dart:ui' as ui;
 import 'package:http/http.dart' as http;
+import '../../../widgets/trip_ad_card.dart';
 
 class PublicTripDetailsScreen extends StatefulWidget {
   static String routeName = './PublicTripDetailsScreen';
@@ -947,7 +948,8 @@ class _PublicTripDetailsScreenState extends State<PublicTripDetailsScreen> {
                                         ),
                                       ),
                                       TextSpan(
-                                        text: tripDetails['pickup_point'],
+                                        text: TripAdCard.resolvePickupDisplay(
+                                            tripDetails),
                                         style: const TextStyle(
                                           color: AppColor.grayColor,
                                           fontSize: 16,
