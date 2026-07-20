@@ -90,9 +90,13 @@ class TripAdCard extends StatelessWidget {
     final boat = map['boat_name_english'] ?? map['boat_name'];
     if (boat == null || boat == 'NA') return '';
     if (boat is List) {
-      if (boat.isEmpty) return '';
-      final index = language < boat.length ? language : 0;
-      return boat[index]?.toString().trim() ?? '';
+      for (final index in [language, 0]) {
+        if (index < boat.length) {
+          final text = boat[index]?.toString().trim() ?? '';
+          if (text.isNotEmpty && text != 'null') return text;
+        }
+      }
+      return '';
     }
     final text = boat.toString().trim();
     return (text.isEmpty || text == 'null') ? '' : text;
@@ -102,12 +106,44 @@ class TripAdCard extends StatelessWidget {
     if (value == null || value == 'NA') return '';
     if (value is List) {
       if (value.isEmpty) return '';
-      final index = language < value.length ? language : 0;
-      return value[index]?.toString().trim() ?? '';
+      for (final index in [language, 0]) {
+        if (index < value.length) {
+          final text = value[index]?.toString().trim() ?? '';
+          if (text.isNotEmpty && text != 'null') return text;
+        }
+      }
+      return '';
     }
     if (value is Map) return '';
     final text = value.toString().trim();
     return text == 'null' ? '' : text;
+  }
+
+  /// Prefer city_name (list cards). Details API often omits it — then take the
+  /// city segment from pickup_point ("..., Al Khiran, Kuwait" → "Al Khiran").
+  static String resolvePickupDisplay(dynamic trip) {
+    if (trip is! Map) return '';
+    final city = resolveLocalized(trip['city_name']);
+    if (city.isNotEmpty) return city;
+
+    final pickup =
+        resolveLocalized(trip['pickup_point'] ?? trip['pickup'] ?? trip['address']);
+    if (pickup.isEmpty) return '';
+
+    final parts = pickup
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+    if (parts.length >= 2) {
+      const countries = {'kuwait', 'kw', 'الكويت', 'saudi arabia', 'uae', 'qatar'};
+      final last = parts.last.toLowerCase();
+      if (countries.contains(last) || last.contains('kuwait')) {
+        return parts[parts.length - 2];
+      }
+      if (parts.length >= 3) return parts[parts.length - 2];
+    }
+    return pickup;
   }
 
   static String _clean(dynamic value) {
@@ -115,40 +151,125 @@ class TripAdCard extends StatelessWidget {
     return value.toString().trim();
   }
 
+  /// Formats "16:00:00" / "04:00 PM" → display time (keeps AM/PM when present,
+  /// otherwise converts 24h to 12h to match Owner cards).
   static String _formatTime(dynamic value) {
     final raw = _clean(value);
     if (raw.isEmpty) return '';
-    // "16:00:00" → "16:00"
-    final parts = raw.split(':');
-    if (parts.length >= 2) return '${parts[0]}:${parts[1]}';
-    return raw;
+    final upper = raw.toUpperCase();
+    if (upper.contains('AM') || upper.contains('PM')) return raw;
+
+    final match = RegExp(r'^(\d{1,2}):(\d{2})(?::\d{2})?').firstMatch(raw);
+    if (match == null) return raw;
+    var hour = int.parse(match.group(1)!);
+    final minute = match.group(2)!;
+    final suffix = hour >= 12 ? 'PM' : 'AM';
+    final displayHour = hour % 12 == 0 ? 12 : hour % 12;
+    return '${displayHour.toString().padLeft(2, '0')}:$minute $suffix';
   }
 
-  /// Card headline = title_name_en / title_name_ar only (boat is separate row)
+  static String _addHoursToTime(dynamic value, dynamic hours) {
+    final raw = _clean(value);
+    final duration = double.tryParse(_clean(hours));
+    if (raw.isEmpty || duration == null) return '';
+
+    final match = RegExp(
+      r'^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?$',
+      caseSensitive: false,
+    ).firstMatch(raw);
+    if (match == null) return '';
+
+    var hour = int.parse(match.group(1)!);
+    final minute = int.parse(match.group(2)!);
+    final meridiem = match.group(3)?.toUpperCase();
+    if (meridiem != null) {
+      hour %= 12;
+      if (meridiem == 'PM') hour += 12;
+    }
+
+    final totalMinutes =
+        (hour * 60 + minute + (duration * 60).round()) % (24 * 60);
+    final resultHour = totalMinutes ~/ 60;
+    final resultMinute = totalMinutes % 60;
+    final suffix = resultHour >= 12 ? 'PM' : 'AM';
+    final displayHour = resultHour % 12 == 0 ? 12 : resultHour % 12;
+    return '${displayHour.toString().padLeft(2, '0')}:${resultMinute.toString().padLeft(2, '0')} $suffix';
+  }
+
+  static int? _hoursBetween(dynamic fromRaw, dynamic toRaw) {
+    final from = _clean(fromRaw);
+    final to = _clean(toRaw);
+    if (from.isEmpty || to.isEmpty) return null;
+
+    int? toMinutes(String raw) {
+      final match = RegExp(
+        r'^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?$',
+        caseSensitive: false,
+      ).firstMatch(raw);
+      if (match == null) return null;
+      var hour = int.parse(match.group(1)!);
+      final minute = int.parse(match.group(2)!);
+      final meridiem = match.group(3)?.toUpperCase();
+      if (meridiem != null) {
+        hour %= 12;
+        if (meridiem == 'PM') hour += 12;
+      }
+      return hour * 60 + minute;
+    }
+
+    final start = toMinutes(from);
+    final end = toMinutes(to);
+    if (start == null || end == null) return null;
+    var diff = end - start;
+    if (diff <= 0) diff += 24 * 60;
+    final hours = (diff / 60).round();
+    return hours > 0 ? hours : null;
+  }
+
   String get _tripTitle => _resolveTitleOnly(trip);
 
   String get _boatName => _resolveBoatOnly(trip);
 
-  /// Headline prefers trip title; boat only if title missing (and then hide boat row)
-  String get _headline => _tripTitle.isNotEmpty ? _tripTitle : _boatName;
+  /// Title line = trip title only (never boat).
+  String get _headline => _tripTitle;
 
-  bool get _showBoatRow =>
-      _boatName.isNotEmpty && _tripTitle.isNotEmpty && _boatName != _tripTitle;
+  /// Boat always sits under the title with its icon (when available).
+  bool get _showBoatRow => _boatName.isNotEmpty;
 
   String get _activityName {
     final activity = trip['activity'];
     if (activity is Map && activity.isNotEmpty) {
-      final en = resolveLocalized(activity['activity_english']);
-      final ar = resolveLocalized(activity['activity_arabic']);
+      final en = resolveLocalized(activity['activity_english'] ??
+          activity['name_english'] ??
+          activity['english']);
+      final ar = resolveLocalized(activity['activity_arabic'] ??
+          activity['name_arabic'] ??
+          activity['arabic']);
       if (language == 1 && ar.isNotEmpty) return ar;
       if (en.isNotEmpty) return en;
       if (ar.isNotEmpty) return ar;
     }
-    return '';
+    if (activity is List && activity.isNotEmpty) {
+      final first = activity.first;
+      if (first is Map) {
+        final en = resolveLocalized(first['activity_english'] ??
+            first['name_english'] ??
+            first['english']);
+        final ar = resolveLocalized(first['activity_arabic'] ??
+            first['name_arabic'] ??
+            first['arabic']);
+        if (language == 1 && ar.isNotEmpty) return ar;
+        if (en.isNotEmpty) return en;
+        if (ar.isNotEmpty) return ar;
+      }
+    }
+    return resolveLocalized(trip['trip_type_name']);
   }
 
+  /// Match Owner: city → destination (not long pickup address)
   String get _routeText {
-    final pickup = resolveLocalized(trip['pickup_point'] ?? trip['pickup']);
+    final pickup = resolveLocalized(
+        trip['city_name'] ?? trip['pickup_point'] ?? trip['pickup']);
     final destination = resolveLocalized(
         trip['destinaton'] ?? trip['destination'] ?? trip['destination_english']);
     if (pickup.isNotEmpty && destination.isNotEmpty) {
@@ -156,7 +277,7 @@ class TripAdCard extends StatelessWidget {
     }
     if (destination.isNotEmpty) return destination;
     if (pickup.isNotEmpty) return pickup;
-    return resolveLocalized(trip['city_name']);
+    return resolveLocalized(trip['pickup_point']);
   }
 
   String get _priceText {
@@ -165,22 +286,42 @@ class TripAdCard extends StatelessWidget {
   }
 
   /// API: trip_time 0 = open, 1 = fixed
-  /// trip_time_label is documentation text only
   bool get _isFixedTime => trip['trip_time']?.toString() == '1';
 
+  bool get _tripTimeIsDisplayString {
+    final raw = trip['trip_time'];
+    if (raw is! String) return false;
+    final s = raw.trim();
+    if (s.isEmpty || s == '0' || s == '1') return false;
+    final upper = s.toUpperCase();
+    return s.contains('-') || upper.contains('AM') || upper.contains('PM');
+  }
+
+  /// Match Owner:
+  /// - fixed → from – to (or from + minimum_hours)
+  /// - open → minimum_hours as "6h" (or duration from from/to)
   String get _timeText {
+    if (_tripTimeIsDisplayString) {
+      return trip['trip_time'].toString().trim().replaceAll(' - ', ' – ');
+    }
+
     final from = _formatTime(trip['from_time']);
     final to = _formatTime(trip['to_time']);
     final fixed = _formatTime(trip['fixed_time']);
+    final minimumHours = _clean(trip['minimum_hours']);
 
     if (_isFixedTime) {
-      if (fixed.isNotEmpty) return fixed;
       if (from.isNotEmpty && to.isNotEmpty) return '$from – $to';
-      if (from.isNotEmpty) return from;
+      final start = from.isNotEmpty ? from : fixed;
+      final calculatedEnd = _addHoursToTime(start, minimumHours);
+      if (start.isNotEmpty && calculatedEnd.isNotEmpty) {
+        return '$start – $calculatedEnd';
+      }
+      if (start.isNotEmpty) return start;
     } else {
-      // open: from_time – to_time
-      if (from.isNotEmpty && to.isNotEmpty) return '$from – $to';
-      if (from.isNotEmpty) return from;
+      if (minimumHours.isNotEmpty) return '${minimumHours}h';
+      final hours = _hoursBetween(trip['from_time'], trip['to_time']);
+      if (hours != null) return '${hours}h';
     }
     return '';
   }
@@ -314,8 +455,9 @@ class TripAdCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Title on top; if missing, use boat name so layout stays consistent
               Text(
-                _headline,
+                _headline.isNotEmpty ? _headline : _boatName,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
@@ -326,8 +468,11 @@ class TripAdCard extends StatelessWidget {
                   height: 1.2,
                 ),
               ),
-              const SizedBox(height: 6),
-              if (_showBoatRow) _boatRow(_boatName),
+              // Boat row with icon always under the title line
+              if (_showBoatRow) ...[
+                const SizedBox(height: 6),
+                _boatRow(_boatName),
+              ],
               if (_routeText.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(
@@ -400,34 +545,40 @@ class TripAdCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Spacer(),
-              Text(
-                _headline,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  fontFamily: AppFont.fontFamily,
-                  height: 1.2,
+              // Title on top; if missing, use boat name so layout stays consistent
+              if (_headline.isNotEmpty || _boatName.isNotEmpty) ...[
+                Text(
+                  _headline.isNotEmpty ? _headline : _boatName,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: AppFont.fontFamily,
+                    height: 1.2,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  if (_showBoatRow) Expanded(child: _boatRow(_boatName)),
-                  if (_activityName.isNotEmpty)
-                    Text(
-                      _activityName,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: AppFont.fontFamily,
+                if (_showBoatRow || _activityName.isNotEmpty)
+                  const SizedBox(height: 8),
+              ],
+              // Boat always under title with icon (even when title fell back to boat)
+              if (_showBoatRow || _activityName.isNotEmpty)
+                Row(
+                  children: [
+                    if (_showBoatRow) Expanded(child: _boatRow(_boatName)),
+                    if (_activityName.isNotEmpty)
+                      Text(
+                        _activityName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          fontFamily: AppFont.fontFamily,
+                        ),
                       ),
-                    ),
-                ],
-              ),
+                  ],
+                ),
               if (_routeText.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(
@@ -585,8 +736,11 @@ class TripAdCard extends StatelessWidget {
   Widget _boatRow(String name) {
     return Row(
       children: [
-        const Icon(Icons.directions_boat_outlined,
-            color: Colors.white, size: 14),
+        const Icon(
+          Icons.directions_boat_outlined,
+          color: Colors.white,
+          size: 14,
+        ),
         const SizedBox(width: 6),
         Flexible(
           child: Text(
