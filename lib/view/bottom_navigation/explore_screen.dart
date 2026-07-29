@@ -196,6 +196,16 @@ class _ExploreState extends State<Explore> {
       if (response.statusCode == 200) {
         dynamic res = jsonDecode(response.body);
         if (res['success'] == true) {
+          // ignore: avoid_print
+          print('========== AVENTRA HOME API ($tabType) ==========');
+          // ignore: avoid_print
+          print('url: $url');
+          // ignore: avoid_print
+          print('user_id: $userId');
+          _debugPrintHomeImages(res, tabType);
+          // ignore: avoid_print
+          print('=================================================');
+
           if (tabType == "sea") {
             var item = res['activity_arr'];
             activitiesList = (item != "NA") ? item : [];
@@ -245,6 +255,67 @@ class _ExploreState extends State<Explore> {
       }
     } catch (e) {
       setState(() => isLoading = false);
+    }
+  }
+
+  /// Temporary debug helper — prints image URLs from home_page_api for migration.
+  void _debugPrintHomeImages(dynamic res, String tabType) {
+    const base = AppConfigProvider.imageURL;
+    void dumpList(String key, List<String> imageKeys, [List<String> nameKeys = const []]) {
+      final raw = res[key];
+      if (raw == null || raw == 'NA' || raw is! List) {
+        // ignore: avoid_print
+        print('$key: empty');
+        return;
+      }
+      // ignore: avoid_print
+      print('--- $key (${raw.length}) ---');
+      for (final item in raw) {
+        if (item is! Map) continue;
+        String name = '';
+        for (final nk in nameKeys) {
+          final v = item[nk];
+          if (v is List && v.isNotEmpty) {
+            name = '${v[0]}';
+            break;
+          }
+          if (v != null && '$v'.isNotEmpty && '$v' != 'NA') {
+            name = '$v';
+            break;
+          }
+        }
+        String image = '';
+        for (final ik in imageKeys) {
+          final v = item[ik];
+          if (v != null && '$v'.isNotEmpty && '$v' != 'NA') {
+            image = '$v';
+            break;
+          }
+        }
+        final full = image.startsWith('http') ? image : '$base$image';
+        // ignore: avoid_print
+        print('name=$name | image=$full | id=${item['trip_type_id'] ?? item['destination_id'] ?? item['id'] ?? item['banner_id'] ?? ''}');
+      }
+    }
+
+    if (tabType == 'sea') {
+      dumpList('activity_arr', ['vector_image', 'image'],
+          ['name_english', 'name']);
+      dumpList('destination_arr_active', ['destination_image', 'image'],
+          ['destination_english', 'name']);
+      dumpList('destination_arr', ['destination_image', 'image'],
+          ['destination_english', 'name']);
+      dumpList('banner_arr', ['image'], ['title', 'name']);
+      dumpList('popular_boat_arr', ['trip_image', 'image'],
+          ['title_name_en', 'trip_name_english', 'boat_name_english']);
+    } else {
+      dumpList('property_type_arr_active', ['vector_image', 'image'],
+          ['name_english', 'name']);
+      dumpList('popular_city_arr', ['city_image', 'image'],
+          ['city_english', 'name']);
+      dumpList('banner_arr', ['image'], ['title', 'name']);
+      dumpList('property_advertisement_arr', ['image', 'cover_image'],
+          ['title', 'name']);
     }
   }
 

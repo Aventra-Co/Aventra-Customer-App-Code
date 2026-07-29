@@ -1,6 +1,8 @@
 # Uncomment this line to define a global platform for your project
 platform :ios, '15.0'
 
+source 'https://cdn.cocoapods.org/'
+
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
@@ -27,11 +29,20 @@ require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelpe
 
 flutter_ios_podfile_setup
 
+# Bypass flaky CocoaPods CDN for OneSignal — pin from the official iOS SDK repo.
+def onesignal_pod
+  pod 'OneSignalXCFramework',
+      :git => 'https://github.com/OneSignal/OneSignal-iOS-SDK.git',
+      :tag => '5.5.5'
+end
+
 target 'Runner' do
   use_frameworks!
   use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+  onesignal_pod
+
   target 'RunnerTests' do
     inherit! :search_paths
   end
@@ -40,6 +51,7 @@ end
 target 'OneSignalNotificationServiceExtension' do
   use_frameworks!
   use_modular_headers!
+  onesignal_pod
 end
 
 post_install do |installer|

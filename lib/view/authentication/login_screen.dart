@@ -1102,6 +1102,17 @@ class _LoginState extends State<Login> {
         "logintype": "google"
       };
 
+      // ignore: avoid_print
+      print('========== AVENTRA GOOGLE ACCOUNT ==========');
+      // ignore: avoid_print
+      print('social_id (Google id): ${_currentUser!.id}');
+      // ignore: avoid_print
+      print('social_email: ${_currentUser!.email}');
+      // ignore: avoid_print
+      print('displayName: ${_currentUser!.displayName}');
+      // ignore: avoid_print
+      print('============================================');
+
       chackUserId(data, "google");
     } else {
       print("rohit");
@@ -1143,6 +1154,31 @@ class _LoginState extends State<Login> {
       var res = jsonDecode(response.body);
 
       print("res780: $res");
+
+      // ignore: avoid_print
+      print('========== AVENTRA SOCIAL LOGIN RESPONSE ==========');
+      // ignore: avoid_print
+      print('request body: $body');
+      // ignore: avoid_print
+      print('statusCode: ${response.statusCode}');
+      // ignore: avoid_print
+      print('raw response: ${response.body}');
+      if (res is Map) {
+        // ignore: avoid_print
+        print('success: ${res['success']}');
+        // ignore: avoid_print
+        print('user_exist: ${res['user_exist']}');
+        // ignore: avoid_print
+        print('user_id: ${res['userDataArray'] is Map ? res['userDataArray']['user_id'] : null}');
+        // ignore: avoid_print
+        print('token: ${res['token']}');
+        // ignore: avoid_print
+        print('COPY THIS user_id FOR home_page_api:');
+        // ignore: avoid_print
+        print(res['userDataArray'] is Map ? res['userDataArray']['user_id'] : null);
+      }
+      // ignore: avoid_print
+      print('===================================================');
 
       if (response.statusCode == 200) {
         // return false;
