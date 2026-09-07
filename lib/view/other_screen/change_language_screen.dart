@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:developer';
 import '/controller/app_footer.dart';
 import '/view/authentication/login_screen.dart';
@@ -47,11 +46,12 @@ class ChangePasswordState extends State<ChangeLanguage> {
   Future<dynamic> getUserDetails() async {
     final prefs = await SharedPreferences.getInstance();
     languageId = prefs.getString("language_id");
-    log(languageId);
-    if (languageId != null) {
-      selectedLanguage = int.parse(languageId);
+    // `log` requires a non-null String — null language_id was crashing here.
+    log('language_id=${languageId ?? 'null'}');
+    final parsed = int.tryParse('${languageId ?? ''}');
+    if (parsed != null) {
+      selectedLanguage = parsed;
     }
-    print(languageId.runtimeType);
     setState(() {});
   }
 
@@ -137,8 +137,8 @@ class ChangePasswordState extends State<ChangeLanguage> {
                               // -----Local Storage ------------
                               final prefs =
                                   await SharedPreferences.getInstance();
-                              prefs.setString(
-                                  "language_id", jsonEncode(selectedLanguage));
+                              await prefs.setString(
+                                  "language_id", '$selectedLanguage');
                               // prefs.setString("language_name",
                               //     jsonEncode(languageList[index]['title']));
                               if (AppConstant.languageNav == 0) {

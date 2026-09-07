@@ -46,6 +46,30 @@ class _MyTripState extends State<MyTrip> {
   int selectedPropTypeId = 0;
   int selectedTab = 0;
 
+  /// API list fields may be null / "NA" / a List — never assign null into a List.
+  List<dynamic> _asDynamicList(dynamic item) {
+    if (item == null || item == 'NA') return <dynamic>[];
+    if (item is List) return List<dynamic>.from(item);
+    return <dynamic>[];
+  }
+
+  /// `res['msg']` may be null, a String, or a [en, ar] list.
+  String _apiMessage(dynamic res) {
+    final msg = res is Map ? res['msg'] : null;
+    if (msg is List && msg.isNotEmpty) {
+      final index = language.clamp(0, msg.length - 1);
+      return '${msg[index] ?? ''}';
+    }
+    if (msg is String) return msg;
+    return '';
+  }
+
+  void _showApiMessage(dynamic res) {
+    final message = _apiMessage(res);
+    if (message.isEmpty || !mounted) return;
+    SnackBarToastMessage.showSnackBar(context, message);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -82,7 +106,7 @@ class _MyTripState extends State<MyTrip> {
         ),
       );
     } else {
-      userDataArr = jsonDecode(data);
+      userDataArr = jsonDecode(data!);
       userId = userDataArr['user_id'] ?? 0;
       log("userId$userId");
     }
@@ -125,11 +149,11 @@ class _MyTripState extends State<MyTrip> {
 
         if (res['success'] == true) {
           var item = res['activity_arr'];
-          activitiesList = (item != "NA") ? item : [];
+          activitiesList = _asDynamicList(item);
           print("activity$activitiesList");
         } else {
           if (res['active_status'] == 0) {
-            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
+            _showApiMessage(res);
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const Login()),
@@ -184,7 +208,7 @@ class _MyTripState extends State<MyTrip> {
 
         if (res['success'] == true) {
           var item = res['trip_arr'];
-          bookings = (item != "NA") ? item : [];
+          bookings = _asDynamicList(item);
 
           setState(() {
             isLoading = false;
@@ -197,7 +221,7 @@ class _MyTripState extends State<MyTrip> {
           // ignore: use_build_context_synchronously
           if (res['active_status'] == 0) {
             localstorageclearbutton();
-            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
+            _showApiMessage(res);
           }
         }
       } else {
@@ -245,7 +269,7 @@ class _MyTripState extends State<MyTrip> {
 
         if (res['success'] == true) {
           var item = res['data'];
-          propertyBookings = (item != "NA") ? item : [];
+          propertyBookings = _asDynamicList(item);
 
           setState(() {
             isLoading = false;
@@ -258,7 +282,7 @@ class _MyTripState extends State<MyTrip> {
           // ignore: use_build_context_synchronously
           if (res['active_status'] == 0) {
             localstorageclearbutton();
-            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
+            _showApiMessage(res);
           }
         }
       } else {
@@ -308,7 +332,7 @@ class _MyTripState extends State<MyTrip> {
 
         if (res['success'] == true) {
           var item = res['data'];
-          propertyTypeList = (item != "NA") ? item : [];
+          propertyTypeList = _asDynamicList(item);
 
           setState(() {
             isLoading = false;
@@ -321,7 +345,7 @@ class _MyTripState extends State<MyTrip> {
           // ignore: use_build_context_synchronously
           if (res['active_status'] == 0) {
             localstorageclearbutton();
-            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
+            _showApiMessage(res);
           }
         }
       } else {

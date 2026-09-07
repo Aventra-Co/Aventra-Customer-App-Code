@@ -40,6 +40,28 @@ class _FavouritesState extends State<Favourites> {
   int selectedTab = 0;
   List<dynamic> properties = [];
 
+  List<dynamic> _asDynamicList(dynamic item) {
+    if (item == null || item == 'NA') return <dynamic>[];
+    if (item is List) return List<dynamic>.from(item);
+    return <dynamic>[];
+  }
+
+  String _apiMessage(dynamic res) {
+    final msg = res is Map ? res['msg'] : null;
+    if (msg is List && msg.isNotEmpty) {
+      final index = language.clamp(0, msg.length - 1);
+      return '${msg[index] ?? ''}';
+    }
+    if (msg is String) return msg;
+    return '';
+  }
+
+  void _showApiMessage(dynamic res) {
+    final message = _apiMessage(res);
+    if (message.isEmpty || !mounted) return;
+    SnackBarToastMessage.showSnackBar(context, message);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -64,7 +86,7 @@ class _FavouritesState extends State<Favourites> {
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => const Login()));
     } else {
-      userDataArr = jsonDecode(data);
+      userDataArr = jsonDecode(data!);
       userId = userDataArr['user_id'] ?? 0;
     }
     getFavoritesApiCall(userId);
@@ -100,9 +122,9 @@ class _FavouritesState extends State<Favourites> {
         if (res['success'] == true) {
           var item = res['favourite_arr'];
           if (selectedTab == 0) {
-            favoriteList = (item != "NA") ? item : [];
+            favoriteList = _asDynamicList(item);
           } else {
-            properties = (item != "NA") ? item : [];
+            properties = _asDynamicList(item);
           }
 
           setState(() {
@@ -110,13 +132,14 @@ class _FavouritesState extends State<Favourites> {
           });
         } else {
           favoriteList = [];
+          properties = [];
           setState(() {
             isLoading = false;
           });
           // ignore: use_build_context_synchronously
           if (res['active_status'] == 0) {
             localstorageclearbutton();
-            SnackBarToastMessage.showSnackBar(context, res['msg'][language]);
+            _showApiMessage(res);
           }
         }
       } else {
